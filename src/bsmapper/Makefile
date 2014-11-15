@@ -1,0 +1,59 @@
+ifndef SRC_ROOT
+SRC_ROOT=./../
+endif
+
+ifndef SMITHLAB_CPP
+SMITHLAB_CPP=./../smithlab_cpp
+endif
+
+PROGS = makedb bsmapper
+
+CXX = g++
+CFLAGS = -Wall -fPIC -fmessage-length=50
+OPTFLAGS = -O3
+DEBUGFLAGS = -g
+TEST_DIR = $(SRC_ROOT)/test
+
+ifeq "$(shell uname)" "Darwin"
+CFLAGS += -arch x86_64
+endif
+
+ifdef DEBUG
+CFLAGS += $(DEBUGFLAGS)
+endif
+
+ifdef OPT
+CFLAGS += $(OPTFLAGS)
+endif
+
+SRC = reference.cpp index.cpp mapping.cpp
+OBJ = $(patsubst %.cpp,%.o,$(SRC))
+
+all:	$(PROGS)
+
+%.o: %.cpp %.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<  -I$(SMITHLAB_CPP)
+
+makedb : $(OBJ) \
+	$(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o \
+	smithlab_utils.o OptionParser.o)
+
+bsmapper : $(OBJ) \
+	$(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o \
+	smithlab_utils.o OptionParser.o)
+
+%: %.cpp
+		$(CXX) $(CFLAGS) -o $@ $^ -I$(SMITHLAB_CPP)
+install: all
+	@mkdir -p $(SRC_ROOT)/bin
+	@install -m 755 $(PROGS) $(SRC_ROOT)/bin
+
+test_%:	%
+	@$(TEST_DIR)/$@ $(TEST_DIR)
+
+test:	$(addprefix test_, $(PROGS))
+
+clean:
+	@-rm -f $(PROGS) *.o *.so *.a *~
+
+.PHONY: clean
