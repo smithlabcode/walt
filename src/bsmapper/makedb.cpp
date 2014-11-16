@@ -60,7 +60,6 @@ int main(int argc, const char **argv) {
     ReadGenome readGenome(chrom_file, &genome);
     BuildIndex buildIndex(outfile, &genome, &hash_table);
 
-
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

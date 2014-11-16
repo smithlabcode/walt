@@ -15,7 +15,7 @@ void BuildIndex::BuildHashTable() {
     size = genome->chrom_sizes[i] + genome->chrom_start_pos[i] - HASHLEN;
     for (uint32_t j = genome->chrom_start_pos[i]; j <= size; ++j) {
       hashValue = getHashValue(&(genome->chrom_seqs[j]));
-      hash_table->insert(make_pair(hashValue, j));
+      (*hash_table)[hashValue].push_back(j);
     }
   }
 }
@@ -39,23 +39,14 @@ void BuildIndex::WriteIndex() {
   fwrite(&(genome->chrom_seqs[0]), sizeof(char), genome->all_chroms_len, fout);
 
   /* write hash table to disk */
-  set<uint32_t> hash_keys;
-  for (HashTable::const_iterator it = hash_table->begin(); it != hash_table->end(); ++it) {
-    hash_keys.insert(it->first);
-  }
-  uint32_t num_of_keys = hash_keys.size();
+  uint32_t num_of_keys = hash_table->size();
   fwrite(&(num_of_keys), sizeof(uint32_t), 1, fout);
-  for (set<uint32_t>::const_iterator key = hash_keys.begin(); key != hash_keys.end(); ++key) {
-    uint32_t hash_key = *key;
+  for (HashTable::const_iterator it = hash_table->begin(); it != hash_table->end();++it) {
+    uint32_t hash_key = it->first;
     fwrite(&(hash_key), sizeof(uint32_t), 1, fout);
-    uint32_t num_of_values = hash_table->count(hash_key);
+    uint32_t num_of_values = it->second.size();
     fwrite(&(num_of_values), sizeof(uint32_t), 1, fout);
-    pair<HashTable::iterator, HashTable::iterator> range = hash_table->equal_range(hash_key);
-    vector<uint32_t> hash_values(num_of_values);
-    for (HashTable::const_iterator val = range.first; val != range.second; ++val) {
-      hash_values.push_back(val->second);
-    }
-    fwrite(&(hash_values[0]), sizeof(uint32_t), num_of_values, fout);
+    fwrite(&(it->second[0]), sizeof(uint32_t), num_of_values, fout);
   }
 
   fclose(fout);
@@ -103,9 +94,7 @@ ReadIndex::ReadIndex(const string& _index_file, Genome* _genome,
         vector<uint32_t> hash_values(num_of_values);
         FREAD_CHECK(fread(&(hash_values[0]), sizeof(uint32_t), num_of_values, fin), num_of_values);
 
-        for (uint32_t j = 0; j < num_of_values; ++j) {
-          hash_table->insert(make_pair(hash_key, hash_values[j]));
-        }
+        hash_table->insert(make_pair(hash_key, hash_values));
       }
 
       fclose(fin);

@@ -18,7 +18,7 @@ using std::make_pair;
 using std::tr1::unordered_multimap;
 
 /* HashTable stores positions in the genome for each k-mer */
-typedef std::tr1::unordered_multimap<uint32_t, uint32_t> HashTable;
+typedef std::tr1::unordered_map<uint32_t, vector<uint32_t> > HashTable;
 
 class BuildIndex {
  public:

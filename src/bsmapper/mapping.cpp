@@ -72,9 +72,10 @@ void mapping(const Genome* genome, const HashTable* hash_table,
   uint32_t num_of_seeds = read_len - HASHLEN + 1;
   for (uint32_t i = 0; i < read_len - HASHLEN + 1; ++i) {
     hash_value = getHashValue(&(read[i]));
-    pair<HashTable::const_iterator, HashTable::const_iterator> range = hash_table->equal_range(hash_value);
-    for (HashTable::const_iterator val = range.first; val != range.second; ++val) {
-      diags_size[getDiag(val->second, i, read_len)]++;
+    HashTable::const_iterator it = hash_table->find(hash_value);
+    if(it == hash_table->end()) continue;
+    for (uint32_t val = 0; val < it->second.size(); ++val) {
+      diags_size[getDiag(it->second[val], i, read_len)]++;
     }
   }
 
