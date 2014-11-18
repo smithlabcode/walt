@@ -23,11 +23,11 @@ void ReadGenome::IdentifyChromosomes(const string& chrom_file) {
 
 void ReadGenome::ReadChromosomes() {
   cerr << "[READING CHROMS] " << endl;
-  vector<string> chroms;
+  vector < string > chroms;
   genome->all_chroms_len = 0;
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
-    vector<string> tmp_chrom_names;
-    vector<string> tmp_chroms;
+    vector < string > tmp_chrom_names;
+    vector < string > tmp_chroms;
 
     /* read chromosome name and seqeunce from the chromosome file */
     read_fasta_file(chrom_files[i].c_str(), tmp_chrom_names, tmp_chroms);
@@ -43,7 +43,8 @@ void ReadGenome::ReadChromosomes() {
   genome->num_of_chroms = chroms.size();
   genome->chrom_seqs.resize(genome->all_chroms_len);
   cerr << "[THERE ARE " << genome->num_of_chroms << " CHROMOSOMES]" << endl;
-  cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << genome->all_chroms_len << "]" << endl;
+  cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << genome->all_chroms_len
+      << "]" << endl;
   uint32_t k = 0;
   for (uint16_t i = 0; i < genome->num_of_chroms; ++i) {
     genome->chrom_sizes.push_back(chroms[i].size());
@@ -69,8 +70,8 @@ void ReadGenome::ToUpper() {
 
 void ReadGenome::N2ACGT() {
   cerr << "[NUCLEOTIDE N TO ACGT] " << endl;
-  srand(time(NULL));
-  int r = 0;
+  srand (time(NULL));int
+  r = 0;
   for (uint32_t i = 0; i < genome->all_chroms_len; ++i) {
     if ('N' == genome->chrom_seqs[i]) {
       r = rand() % 4;

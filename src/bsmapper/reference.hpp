@@ -30,9 +30,9 @@ class ReadGenome {
  public:
   ReadGenome(const string& chrom_file, Genome* _genome)
       : genome(_genome) {
-        IdentifyChromosomes(chrom_file);
-        ReadChromosomes();
-      }
+    IdentifyChromosomes(chrom_file);
+    ReadChromosomes();
+  }
 
  private:
   /* indentify the chromosome files */
