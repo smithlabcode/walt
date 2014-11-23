@@ -12,8 +12,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <string>
 #include <iostream>
 
+using std::string;
 using std::ostream;
 using std::cerr;
 using std::endl;
@@ -115,9 +117,9 @@ string ReverseComplimentStrand(const string& dna_sequence) {
   string reverse_complement_sequence;
   uint32_t sequence_len = dna_sequence.size();
   for (uint32_t i = 0; i < sequence_len; ++i) {
-    reverse_complement_seqeunce += complimentBase(dna_sequence[sequence_len - i - 1]);
+    reverse_complement_sequence += complimentBase(dna_sequence[sequence_len - i - 1]);
   }
-  return reverse_complement_seqeunce;
+  return reverse_complement_sequence;
 }
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
