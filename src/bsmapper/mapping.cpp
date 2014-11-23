@@ -9,15 +9,6 @@
 using std::tr1::unordered_map;
 using std::priority_queue;
 
-string Mapping::ReverseComplimentStrand(const string& read) {
-  string reverse_complement_read;
-  uint32_t read_len = read.size();
-  for (uint32_t i = 0; i < read_len; ++i) {
-    reverse_complement_read += complimentBase(read[read_len - i - 1]);
-  }
-  return reverse_complement_read;
-}
-
 uint32_t Mapping::GetDiag(const uint32_t& genome_pos, const uint32_t& seed_pos,
                           const uint32_t& read_len) {
   return genome_pos + read_len - seed_pos;

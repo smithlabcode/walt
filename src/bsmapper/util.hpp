@@ -111,6 +111,15 @@ inline char complimentBase(char nt) {
   }
 }
 
+string ReverseComplimentStrand(const string& dna_sequence) {
+  string reverse_complement_sequence;
+  uint32_t sequence_len = dna_sequence.size();
+  for (uint32_t i = 0; i < sequence_len; ++i) {
+    reverse_complement_seqeunce += complimentBase(dna_sequence[sequence_len - i - 1]);
+  }
+  return reverse_complement_seqeunce;
+}
+
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hashValue = 0;
