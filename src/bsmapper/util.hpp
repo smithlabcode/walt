@@ -55,7 +55,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
   start_t = clock(); \
   func; \
   end_t = clock(); \
-  printf("[%s takes %.3lf seconds]\n", msg, \
+  printf("[%s TAKES %.3lf SECONDS]\n", msg, \
          (double) ((end_t - start_t) / CLOCKS_PER_SEC )); \
 }
 
@@ -115,12 +115,12 @@ inline char complimentBase(char nt) {
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
-  uint32_t hashValue = 0;
+  uint32_t hash_value = 0;
   for (uint8_t i = 0; i < HASHLEN; ++i) {
-    hashValue <<= 2;
-    hashValue += getBits(nucleotides[i]);
+    hash_value <<= 2;
+    hash_value += getBits(nucleotides[i]);
   }
-  return hashValue;
+  return hash_value;
 }
 
 inline bool isFastqNameLine(uint64_t line_count) {

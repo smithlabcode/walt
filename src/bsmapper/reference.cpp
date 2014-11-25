@@ -83,8 +83,9 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
   cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
   cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
        << endl;
+  cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cerr << "[Chromosome " << i + 1 << "/" <<  num_of_chroms << "]" << endl;
+    cerr << "[" << i + 1 << "/" << num_of_chroms << "]" << endl;
     Chromosome& chrom = (*genome)[2 * i];
     Chromosome& chrom_rc = (*genome)[2 * i];
 
@@ -95,7 +96,6 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
     for (uint32_t j = 0; j < chrom.length; ++j) {
       chrom.sequence[j] = chrom_seqs[i][j];
     }
-    cerr << "length = " << chrom.length << endl;
     ToUpper(&chrom);
     N2ACGT(&chrom);
 
@@ -154,7 +154,7 @@ void WriteIndex(const string& index_file, const Genome& genome) {
   fclose(fout);
 }
 
-void ReadIndex(Genome* genome, const string& index_file) {
+void ReadIndex(const string& index_file, Genome* genome) {
   cerr << "[READING INDEX FROM " << index_file << "]" << endl;
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);

@@ -58,9 +58,10 @@ int main(int argc, const char **argv) {
     IdentifyChromosomes(chrom_file, chrom_files);
 
     Genome genome;
-    ReadChromsAndBuildIndex(chrom_files, &genome);
+    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome),
+              "READ CHROMOSOMES AND BUILD INDEX");
 
-    WriteIndex(outfile, genome);
+    TIME_INFO(WriteIndex(outfile, genome), "WRITE INDEX");
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
