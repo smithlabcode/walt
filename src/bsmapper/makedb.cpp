@@ -7,7 +7,6 @@
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
-#include "index.hpp"
 #include "reference.hpp"
 
 using std::string;
@@ -55,10 +54,13 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // BUILD THE INDEX
     //
+    vector<string> chrom_files;
+    IdentifyChromosomes(chrom_file, chrom_files);
+
     Genome genome;
-    HashTable hash_table;
-    ReadGenome readGenome(chrom_file, &genome);
-    BuildIndex buildIndex(outfile, &genome, &hash_table);
+    ReadChromsAndBuildIndex(chrom_files, &genome);
+
+    WriteIndex(outfile, genome);
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;

@@ -124,8 +124,7 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // LOAD THE INDEX
     Genome genome;
-    HashTable hash_table;
-    ReadIndex readIndex(index_file, &genome, &hash_table);
+    (index_file, &genome, &hash_table);
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS

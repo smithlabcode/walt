@@ -6,7 +6,7 @@ ifndef SMITHLAB_CPP
 SMITHLAB_CPP=./../smithlab_cpp
 endif
 
-PROGS = makedb bsmapper
+PROGS = makedb
 
 CXX = g++
 CFLAGS = -Wall -fPIC -fmessage-length=50
@@ -26,7 +26,7 @@ ifdef OPT
 CFLAGS += $(OPTFLAGS)
 endif
 
-SRC = reference.cpp index.cpp mapping.cpp
+SRC = reference.cpp
 OBJ = $(patsubst %.cpp,%.o,$(SRC))
 
 all:	$(PROGS)
