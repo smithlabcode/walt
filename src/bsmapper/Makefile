@@ -6,7 +6,7 @@ ifndef SMITHLAB_CPP
 SMITHLAB_CPP=./../smithlab_cpp
 endif
 
-PROGS = makedb
+PROGS = makedb bsmapper
 
 CXX = g++
 CFLAGS = -Wall -fPIC -fmessage-length=50
@@ -26,21 +26,21 @@ ifdef OPT
 CFLAGS += $(OPTFLAGS)
 endif
 
-SRC = reference.cpp
-OBJ = $(patsubst %.cpp,%.o,$(SRC))
+SRCDB = reference.cpp
+SRCMAP = mapping.cpp
+OBJDB = $(patsubst %.cpp,%.o,$(SRCDB))
+OBJMAP = $(patsubst %.cpp,%.o,$(SRCMAP))
 
 all:	$(PROGS)
 
 %.o: %.cpp %.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<  -I$(SMITHLAB_CPP)
 
-makedb : $(OBJ) \
-	$(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o \
-	smithlab_utils.o OptionParser.o)
+makedb : $(OBJDB) \
+	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
 
-bsmapper : $(OBJ) \
-	$(addprefix $(SMITHLAB_CPP)/, GenomicRegion.o smithlab_os.o \
-	smithlab_utils.o OptionParser.o)
+bsmapper : $(OBJMAP) \
+	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
 
 %: %.cpp
 		$(CXX) $(CFLAGS) -o $@ $^ -I$(SMITHLAB_CPP)

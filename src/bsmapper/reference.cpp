@@ -59,7 +59,7 @@ void C2T(Chromosome* chrom) {
 
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
                              Genome* genome) {
-  cerr << "[READING CHROMS] " << endl;
+  cerr << "[READING CHROMOSOMES] " << endl;
   vector<string> chrom_names;
   vector<string> chrom_seqs;
   uint64_t all_chroms_len = 0;
@@ -85,7 +85,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
        << endl;
   cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cerr << "[" << i + 1 << "/" << num_of_chroms << "]" << endl;
+    cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
     Chromosome& chrom = (*genome)[2 * i];
     Chromosome& chrom_rc = (*genome)[2 * i];
 
@@ -116,6 +116,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
     BuildHashTable(&chrom);
     BuildHashTable(&chrom_rc);
   }
+  cerr << endl;
 }
 
 void WriteIndex(const string& index_file, const Genome& genome) {

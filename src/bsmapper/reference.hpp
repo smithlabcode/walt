@@ -14,10 +14,13 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 #include <tr1/unordered_map>
 
 using std::string;
 using std::vector;
+using std::pair;
+using std::make_pair;
 using std::tr1::unordered_map;
 
 typedef std::tr1::unordered_map<uint32_t, vector<uint32_t> > HashTable;
@@ -44,6 +47,10 @@ struct Chromosome {
 
 /* Genome contains several Chromosomes */
 typedef vector<Chromosome> Genome;
+
+/* GenomePosition is a pair, the first indicates the chrom_id and
+ * the second indicates the position in the chromosome */
+typedef pair<uint32_t, uint32_t> GenomePosition;
 
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);

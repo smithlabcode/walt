@@ -1,20 +1,15 @@
 /*
  * This is the main function for bsmapper.
  */
-#include <string>
-#include <vector>
-#include <limits>
+
 #include <fstream>
 
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
-#include "index.hpp"
 #include "mapping.hpp"
 #include "reference.hpp"
 
-using std::string;
-using std::vector;
 using std::cerr;
 using std::endl;
 
@@ -27,7 +22,7 @@ void LoadReadsFromFastqFile(const string &filename,
                             vector<string>& read_seqs) {
   if (n_reads_to_process != std::numeric_limits<uint64_t>::max()) {
     cerr << "[LOADING READS FROM " << read_start_idx << " TO "
-        << n_reads_to_process + read_start_idx << "]" << endl;
+         << n_reads_to_process + read_start_idx << "]" << endl;
   } else {
     cerr << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
   }
@@ -124,7 +119,7 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // LOAD THE INDEX
     Genome genome;
-    (index_file, &genome, &hash_table);
+    TIME_INFO(ReadIndex(index_file, &genome), "READ INDEX");
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
@@ -133,11 +128,10 @@ int main(int argc, const char **argv) {
     for (uint64_t i = 0;; i += n_reads_to_process) {
       LoadReadsFromFastqFile(reads_file, i, n_reads_to_process, read_names,
                              read_seqs);
-      Mapping mapping(&genome, &hash_table, num_top_diags);
       uint32_t num_of_reads = read_seqs.size();
 //#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        mapping.SingleEndMapping(read_seqs[j]);
+        SingleEndMapping(read_seqs[j], genome, num_top_diags);
       }
 
       if (read_seqs.size() < n_reads_to_process)

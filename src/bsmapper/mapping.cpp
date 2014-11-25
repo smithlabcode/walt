@@ -1,15 +1,9 @@
 #include "mapping.hpp"
 
 #include <queue>
-#include <tr1/unordered_map>
-
-#include "smithlab_utils.hpp"
-#include "smithlab_os.hpp"
-
-using std::tr1::unordered_map;
 using std::priority_queue;
 
-string Mapping::ReverseComplimentStrand(const string& read) {
+string ReverseComplimentStrand(const string& read) {
   string reverse_complement_read;
   uint32_t read_len = read.size();
   for (uint32_t i = 0; i < read_len; ++i) {
@@ -18,104 +12,94 @@ string Mapping::ReverseComplimentStrand(const string& read) {
   return reverse_complement_read;
 }
 
-uint32_t Mapping::GetDiag(const uint32_t& genome_pos, const uint32_t& seed_pos,
-                          const uint32_t& read_len) {
-  return genome_pos + read_len - seed_pos;
+GenomePosition GetDiag(const uint32_t& chrom_pos, const uint32_t& seed_pos,
+                       const uint32_t& chrom_id, const uint32_t& read_len) {
+  GenomePosition pos;
+  uint32_t diag = chrom_pos + read_len - seed_pos;
+
+  return make_pair(chrom_id, diag);
 }
 
-uint32_t Mapping::GetGenomeStartPos(const uint32_t& diag,
-                                    const uint32_t& read_len) {
+uint32_t GetGenomeStartPos(const uint32_t& diag, const uint32_t& read_len) {
   if (read_len > diag)
     return 0;
+
   return diag - read_len;
 }
 
-void Mapping::GetDiagsSize(const char* read, uint32_t& read_len,
-                           unordered_map<uint32_t, uint32_t>& diags_size) {
+void GetDiagsSize(const char* read, uint32_t& read_len,
+                  unordered_map<GenomePosition, uint32_t>& diags_size,
+                  const Genome& genome) {
   /* count how many matched seeds in each diag */
   uint32_t hash_value = 0, num_of_seeds = read_len - HASHLEN + 1;
   for (uint32_t i = 0; i < num_of_seeds; ++i) {
     hash_value = getHashValue(&(read[i]));
-    HashTable::const_iterator it = hash_table->find(hash_value);
-    if (it == hash_table->end())
-      continue;
+    for (uint32_t j = 0; j < genome.size(); ++j) {
+      HashTable::const_iterator it = genome[j].hash_table.find(hash_value);
+      if (it == genome[j].hash_table.end())
+        continue;
 
-    /* ignore large bucket*/
-    if (it->second.size() > 5000)
-      continue;
+      /* ignore large bucket*/
+      if (it->second.size() > 5000)
+        continue;
 
-    for (uint32_t val = 0; val < it->second.size(); ++val) {
-      diags_size[GetDiag(it->second[val], i, read_len)]++;
+      for (uint32_t val = 0; val < it->second.size(); ++val) {
+        diags_size[GetDiag(it->second[val], i, j, read_len)]++;
+      }
     }
   }
 }
 
-void Mapping::GetTopDiags(
-    const unordered_map<uint32_t, uint32_t>& diags_size_pos,
-    const unordered_map<uint32_t, uint32_t>& diags_size_neg,
-    vector<pair<uint32_t, char> >& top_diags) {
+void GetTopDiags(unordered_map<GenomePosition, uint32_t>& diags_size,
+                 vector<GenomePosition>& top_diags, const int& num_top_diags) {
   /* select the top diags */
-  priority_queue < DiagSize > top_diags_queue;
+  priority_queue<DiagSize> top_diags_queue;
   uint32_t num_top_diags_threshold = num_top_diags + 1;
 
-  /* positive strand */
-  for (unordered_map<uint32_t, uint32_t>::const_iterator it = diags_size_pos
-      .begin(); it != diags_size_pos.end(); it++) {
-    top_diags_queue.push(DiagSize(it->first, it->second, '+'));
-    if (top_diags_queue.size() == num_top_diags_threshold) {
-      top_diags_queue.pop();
-    }
-  }
-
-  /* negative strand */
-  for (unordered_map<uint32_t, uint32_t>::const_iterator it = diags_size_neg
-      .begin(); it != diags_size_neg.end(); it++) {
-    top_diags_queue.push(DiagSize(it->first, it->second, '-'));
+  for (unordered_map<GenomePosition, uint32_t>::iterator it =
+      diags_size.begin(); it != diags_size.end(); it++) {
+    top_diags_queue.push(DiagSize(it->first, it->second));
     if (top_diags_queue.size() == num_top_diags_threshold) {
       top_diags_queue.pop();
     }
   }
 
   while (!top_diags_queue.empty()) {
-    top_diags.push_back(
-        make_pair(top_diags_queue.top().diag, top_diags_queue.top().strand));
+    top_diags.push_back(top_diags_queue.top().diag);
     top_diags_queue.pop();
   }
 }
 
-void Mapping::SingleEndMapping(const string& read) {
+void SingleEndMapping(const string& read, const Genome& genome,
+                      const int& num_top_diags) {
   uint32_t read_len = read.size();
   uint32_t num_of_seeds = read_len - HASHLEN + 1;
-  string reverse_complement_read = ReverseComplimentStrand(read);
-  unordered_map < uint32_t, uint32_t > diags_size_pos;
-  unordered_map < uint32_t, uint32_t > diags_size_neg;
-  GetDiagsSize(read.c_str(), read_len, diags_size_pos);
-  GetDiagsSize(reverse_complement_read.c_str(), read_len, diags_size_neg);
 
-  vector < pair<uint32_t, char> > top_diags;
-  GetTopDiags(diags_size_pos, diags_size_neg, top_diags);
+  unordered_map<GenomePosition, uint32_t> diags_size;
+  GetDiagsSize(read.c_str(), read_len, diags_size, genome);
+
+  vector<GenomePosition> top_diags;
+  GetTopDiags(diags_size, top_diags, num_top_diags);
 
   /* select the best match */
   BestMatch best_match;
 
   int top_diags_size = top_diags.size();
   for (int i = top_diags_size - 1; i >= 0; --i) {
-    uint32_t diag_size = 0;
-    if (top_diags[i].second == '+') {
-      diag_size = diags_size_pos[top_diags[i].first];
-    } else {
-      diag_size = diags_size_neg[top_diags[i].first];
-    }
+    uint32_t chrom_id = top_diags[i].first;
+    uint32_t chrom_pos = top_diags[i].second;
 
-    uint32_t start_pos = GetGenomeStartPos(top_diags[i].first, read_len);
-    if (start_pos + read_len >= genome->all_chroms_len)
+    if (chrom_pos >= genome[chrom_id].length)
       continue;
 
-    if (diag_size == num_of_seeds) {
+    uint32_t start_pos = GetGenomeStartPos(chrom_pos, read_len);
+
+    GenomePosition genome_pos = make_pair(chrom_id, start_pos);
+
+    if (diags_size[top_diags[i]] == num_of_seeds) {
       /* exact match */
       if (best_match.mismatch > 0) {
-        best_match = BestMatch(top_diags[i].first, 1, 0, start_pos,
-                               top_diags[i].second);
+        best_match = BestMatch(genome_pos, 1, 0);
         continue;
       }
 
@@ -133,7 +117,7 @@ void Mapping::SingleEndMapping(const string& read) {
     uint32_t num_of_mismatch = 0;
     uint32_t k = start_pos;
     for (uint32_t j = 0; j < read_len; ++j) {
-      if (genome->chrom_seqs[k] != read[j]) {
+      if (genome[chrom_id].sequence[k] != read[j]) {
         num_of_mismatch++;
       }
       if (num_of_mismatch > best_match.mismatch)
@@ -142,8 +126,7 @@ void Mapping::SingleEndMapping(const string& read) {
     }
 
     if (num_of_mismatch < best_match.mismatch) {
-      best_match = BestMatch(top_diags[i].first, 1, num_of_mismatch, start_pos,
-                             top_diags[i].second);
+      best_match = BestMatch(genome_pos, 1, num_of_mismatch);
     } else if (best_match.mismatch == num_of_mismatch) {
       best_match.times++;
     }
