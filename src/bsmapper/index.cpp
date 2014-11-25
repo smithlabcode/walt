@@ -6,7 +6,7 @@
 using std::set;
 
 void BuildIndex::BuildHashTable() {
-  cerr << "[BUILD HASH TABLE]" << endl;
+  cerr << "[BUILD HASH TABLE FOR FORWARD STRAND]" << endl;
   uint32_t size = 0, hashValue = 0;
   for (uint16_t i = 0; i < genome->num_of_chroms; ++i) {
     cerr << "[" << i + 1 << "/" << genome->num_of_chroms << "]";
@@ -15,6 +15,19 @@ void BuildIndex::BuildHashTable() {
     size = genome->chrom_sizes[i] + genome->chrom_start_pos[i] - HASHLEN;
     for (uint32_t j = genome->chrom_start_pos[i]; j <= size; ++j) {
       hashValue = getHashValue(&(genome->chrom_seqs[j]));
+      (*hash_table)[hashValue].push_back(j);
+    }
+  }
+
+  /* reverse compliment strand */
+  cerr << "[BUILD HASH TABLE FOR REVERSE COMPLIMENT STRAND]" << endl;
+  for (uint16_t i = 0; i < genome->num_of_chroms; ++i) {
+    cerr << "[" << i + 1 << "/" << genome->num_of_chroms << "]";
+    if (genome->rc_chrom_sizes[i] + genome->rc_chrom_start_pos[i] < HASHLEN)
+      continue;
+    size = genome->rc_chrom_sizes[i] + genome->rc_chrom_start_pos[i] - HASHLEN;
+    for (uint32_t j = genome->rc_chrom_start_pos[i]; j <= size; ++j) {
+      hashValue = getHashValue(&(genome->rc_chrom_seqs[j]));
       (*hash_table)[hashValue].push_back(j);
     }
   }
@@ -85,6 +98,8 @@ ReadIndex::ReadIndex(const string& _index_file, Genome* _genome,
       fread(&(genome->chrom_seqs[0]), sizeof(char), genome->all_chroms_len,
             fin),
       genome->all_chroms_len);
+
+  SetReverseComplimentStrand(genome);
 
   /* read hash table from disk */
   uint32_t num_of_keys = 0, hash_key = 0, num_of_values = 0;

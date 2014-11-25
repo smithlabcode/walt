@@ -5,6 +5,33 @@
 #include "reference.hpp"
 #include "smithlab_os.hpp"
 
+/* get the reverse compliment reference genome */
+void SetReverseComplimentStrand(Genome* genome) {
+  cerr << "[GET THE REVERSE COMPLIMENT STRAND FOR THE REFERENCE GENOME]"
+      << endl;
+  genome->rc_chrom_seqs.resize(genome->all_chroms_len);
+  for (uint32_t i = 0; i < genome->all_chroms_len; ++i) {
+    genome->rc_chrom_seqs[i] = complimentBase(
+        genome->chrom_seqs[genome->all_chroms_len - i - 1]);
+  }
+
+  genome->rc_chrom_sizes.resize(genome->num_of_chroms);
+  genome->rc_chrom_start_pos.resize(genome->num_of_chroms);
+  genome->rc_chrom_names.resize(genome->num_of_chroms);
+
+  for (uint32_t i = 0; i < genome->num_of_chroms; ++i) {
+    genome->rc_chrom_sizes[i] = genome->chrom_sizes[genome->num_of_chroms - i
+        - 1];
+    genome->rc_chrom_names[i] = genome->chrom_names[genome->num_of_chroms - i
+        - 1];
+  }
+  genome->rc_chrom_start_pos[0] = 0;
+  for (int i = 1; i < genome->num_of_chroms; i++) {
+    genome->rc_chrom_start_pos[i] = genome->rc_chrom_start_pos[i - 1]
+        + genome->rc_chrom_sizes[i - 1];
+  }
+}
+
 void ReadGenome::IdentifyChromosomes(const string& chrom_file) {
   cerr << "[IDENTIFYING CHROMS] ";
   if (isdir(chrom_file.c_str())) {
@@ -58,6 +85,9 @@ void ReadGenome::ReadChromosomes() {
 
   ToUpper();
   N2ACGT();
+
+  SetReverseComplimentStrand (genome);
+
   C2T();
 }
 
@@ -85,6 +115,10 @@ void ReadGenome::C2T() {
   for (uint32_t i = 0; i < genome->all_chroms_len; ++i) {
     if ('C' == genome->chrom_seqs[i]) {
       genome->chrom_seqs[i] = 'T';
+    }
+
+    if ('C' == genome->rc_chrom_seqs[i]) {
+      genome->rc_chrom_seqs[i] = 'T';
     }
   }
 }

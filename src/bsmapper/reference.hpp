@@ -24,6 +24,12 @@ struct Genome {
   vector<string> chrom_names;
   uint32_t all_chroms_len;
   vector<char> chrom_seqs;
+
+  //reverse compliment strand
+  vector<uint32_t> rc_chrom_sizes;
+  vector<uint32_t> rc_chrom_start_pos;
+  vector<string> rc_chrom_names;
+  vector<char> rc_chrom_seqs;
 };
 
 class ReadGenome {
@@ -56,5 +62,8 @@ class ReadGenome {
 
   Genome* genome;
 };
+
+
+void SetReverseComplimentStrand(Genome* genome);
 
 #endif /* REFERENCE_H_ */

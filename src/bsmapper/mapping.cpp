@@ -9,6 +9,15 @@
 using std::tr1::unordered_map;
 using std::priority_queue;
 
+string Mapping::ReverseComplimentStrand(const string& read) {
+  string reverse_complement_read;
+  uint32_t read_len = read.size();
+  for (uint32_t i = 0; i < read_len; ++i) {
+    reverse_complement_read += complimentBase(read[read_len - i - 1]);
+  }
+  return reverse_complement_read;
+}
+
 uint32_t Mapping::GetDiag(const uint32_t& genome_pos, const uint32_t& seed_pos,
                           const uint32_t& read_len) {
   return genome_pos + read_len - seed_pos;
@@ -46,7 +55,7 @@ void Mapping::GetTopDiags(
     const unordered_map<uint32_t, uint32_t>& diags_size_neg,
     vector<pair<uint32_t, char> >& top_diags) {
   /* select the top diags */
-  priority_queue<DiagSize> top_diags_queue;
+  priority_queue < DiagSize > top_diags_queue;
   uint32_t num_top_diags_threshold = num_top_diags + 1;
 
   /* positive strand */
@@ -78,12 +87,12 @@ void Mapping::SingleEndMapping(const string& read) {
   uint32_t read_len = read.size();
   uint32_t num_of_seeds = read_len - HASHLEN + 1;
   string reverse_complement_read = ReverseComplimentStrand(read);
-  unordered_map <uint32_t, uint32_t> diags_size_pos;
-  unordered_map <uint32_t, uint32_t> diags_size_neg;
+  unordered_map < uint32_t, uint32_t > diags_size_pos;
+  unordered_map < uint32_t, uint32_t > diags_size_neg;
   GetDiagsSize(read.c_str(), read_len, diags_size_pos);
   GetDiagsSize(reverse_complement_read.c_str(), read_len, diags_size_neg);
 
-  vector<pair<uint32_t, char> > top_diags;
+  vector < pair<uint32_t, char> > top_diags;
   GetTopDiags(diags_size_pos, diags_size_neg, top_diags);
 
   /* select the best match */
