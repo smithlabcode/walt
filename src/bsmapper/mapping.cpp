@@ -12,11 +12,6 @@ string ReverseComplimentStrand(const string& read) {
   return reverse_complement_read;
 }
 
-void CheckPosition(const Chromosome& chrom, const uint32_t& chrom_id,
-                   const uint32_t& chrom_pos, BestMatch& best_match) {
-
-}
-
 void SingleEndMapping(const char* read, const Genome& genome,
                       BestMatch& best_match) {
   uint32_t read_len = strlen(read);
