@@ -34,18 +34,21 @@ struct BestMatch {
 };
 
 struct DiagSize {
-  DiagSize(const GenomePosition& _diag, const uint32_t& _size)
+  DiagSize(const uint32_t& _diag, const uint32_t& _chrom_id,
+           const uint32_t& _size)
       : diag(_diag),
+        chrom_id(_chrom_id),
         size(_size) {
   }
-  GenomePosition diag;
+  uint32_t diag;
+  uint32_t chrom_id;
   uint32_t size;
   bool operator<(const DiagSize& b) const {
     return size > b.size;
   }
 };
 
-void SingleEndMapping(const string& read, const Genome& genome,
+void SingleEndMapping(const char* read, const Genome& genome,
                       const int& num_top_diags);
 
 #endif /* MAPPING_HPP_ */

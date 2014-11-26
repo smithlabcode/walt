@@ -27,7 +27,7 @@ CFLAGS += $(OPTFLAGS)
 endif
 
 SRCDB = reference.cpp
-SRCMAP = mapping.cpp
+SRCMAP =  reference.cpp mapping.cpp
 OBJDB = $(patsubst %.cpp,%.o,$(SRCDB))
 OBJMAP = $(patsubst %.cpp,%.o,$(SRCMAP))
 

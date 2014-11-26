@@ -131,7 +131,7 @@ int main(int argc, const char **argv) {
       uint32_t num_of_reads = read_seqs.size();
 //#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, num_top_diags);
+        SingleEndMapping(read_seqs[j].c_str(), genome, num_top_diags);
       }
 
       if (read_seqs.size() < n_reads_to_process)
