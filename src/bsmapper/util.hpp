@@ -17,7 +17,7 @@
 
 using std::string;
 using std::ostream;
-using std::cerr;
+using std::cout;
 using std::endl;
 
 #define HASHLEN 13

@@ -49,6 +49,6 @@ struct DiagSize {
 };
 
 void SingleEndMapping(const char* read, const Genome& genome,
-                      const int& num_top_diags);
+                      const int& num_top_diags, BestMatch& best_match);
 
 #endif /* MAPPING_HPP_ */

@@ -54,7 +54,7 @@ void GetTopDiags(const unordered_map<uint32_t, uint32_t>& diags_size,
 }
 
 void SingleEndMapping(const char* read, const Genome& genome,
-                      const int& num_top_diags) {
+                      const int& num_top_diags, BestMatch& best_match) {
   uint32_t read_len = strlen(read);
   uint32_t num_of_seeds = read_len - HASHLEN + 1;
   vector<uint32_t> hash_values(num_of_seeds);
@@ -76,8 +76,6 @@ void SingleEndMapping(const char* read, const Genome& genome,
   }
 
   /* select the best match */
-  BestMatch best_match;
-
   int top_diags_size = top_diags.size();
   for (int i = top_diags_size - 1; i >= 0; --i) {
     uint32_t chrom_id = top_diags[i].chrom_id;
@@ -102,7 +100,7 @@ void SingleEndMapping(const char* read, const Genome& genome,
       }
 
       if (best_match.mismatch == 0) {
-        cerr << "[exact match to multiple positions, ignore this read]" << endl;
+        //cout << "[exact match to multiple positions, ignore this read]" << endl;
         return;
       }
     }
@@ -130,7 +128,7 @@ void SingleEndMapping(const char* read, const Genome& genome,
     }
   }
   if (best_match.times > 1) {
-    cerr << "[best match to multiple positions, ignore this read]" << endl;
+    //cout << "[best match to multiple positions, ignore this read]" << endl;
     return;
   }
 }

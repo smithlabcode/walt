@@ -10,8 +10,9 @@
 #include "mapping.hpp"
 #include "reference.hpp"
 
-using std::cerr;
+using std::cout;
 using std::endl;
+using std::ofstream;
 
 /* load reads from reads file, each time load n_reads_to_process reads,
  * start from  read_start_idx */
@@ -21,10 +22,10 @@ void LoadReadsFromFastqFile(const string &filename,
                             vector<string>& read_names,
                             vector<string>& read_seqs) {
   if (n_reads_to_process != std::numeric_limits<uint64_t>::max()) {
-    cerr << "[LOADING READS FROM " << read_start_idx << " TO "
+    cout << "[LOADING READS FROM " << read_start_idx << " TO "
          << n_reads_to_process + read_start_idx << "]" << endl;
   } else {
-    cerr << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
+    cout << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
   }
   read_names.clear();
   read_seqs.clear();
@@ -49,7 +50,12 @@ void LoadReadsFromFastqFile(const string &filename,
     if (isFastqSequenceLine(line_count)) {
       read_seqs.push_back(line);
     } else if (isFastqNameLine(line_count)) {
-      read_names.push_back(line);
+      uint32_t space_pos = line.find_first_of(' ');
+      if (space_pos == string::npos) {
+        read_names.push_back(line.substr(1));
+      } else {
+        read_names.push_back(line.substr(1, space_pos - 1));
+      }
     }
     ++line_count;
   }
@@ -92,24 +98,24 @@ int main(int argc, const char **argv) {
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
-      cerr << opt_parse.help_message() << endl;
+      cout << opt_parse.help_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.about_requested()) {
-      cerr << opt_parse.about_message() << endl;
+      cout << opt_parse.about_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.option_missing()) {
-      cerr << opt_parse.option_missing_message() << endl;
+      cout << opt_parse.option_missing_message() << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(index_file, "dbindex")) {
-      cerr << "The suffix of the index file should be '.dbindex' " << endl;
+      cout << "The suffix of the index file should be '.dbindex' " << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(reads_file, "fastq")
         && !is_valid_filename(reads_file, "fq")) {
-      cerr
+      cout
           << "The suffix of the reads file should be '.fastq', '.fq', '.fasta' or '.fa'"
           << endl;
       return EXIT_SUCCESS;
@@ -120,31 +126,47 @@ int main(int argc, const char **argv) {
     // LOAD THE INDEX
     Genome genome;
     TIME_INFO(ReadIndex(index_file, &genome), "READ INDEX");
-
+//#define TESTREADINDEX
+#ifdef TESTREADINDEX
+    return 0;
+#endif
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
     vector<string> read_names;
     vector<string> read_seqs;
+    clock_t start_t, end_t;
+    start_t = clock();
+    ofstream fout(outfile.c_str());
     for (uint64_t i = 0;; i += n_reads_to_process) {
       LoadReadsFromFastqFile(reads_file, i, n_reads_to_process, read_names,
                              read_seqs);
       uint32_t num_of_reads = read_seqs.size();
+      cout << "[START MAPPING]" << endl;
 //#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j].c_str(), genome, num_top_diags);
+        BestMatch best_match;
+        SingleEndMapping(read_seqs[j].c_str(), genome, num_top_diags,
+                         best_match);
+        uint32_t chrom_id = best_match.genome_pos.first;
+        fout << genome[chrom_id].name << " " << best_match.genome_pos.second
+             << " " << read_names[j] << " " << genome[chrom_id].strand << endl;
       }
 
       if (read_seqs.size() < n_reads_to_process)
         break;
     }
+    fout.close();
+
+    end_t = clock();
+    printf("[MAPPING TAKES %.3lf SECONDS]\n",
+           (double) ((end_t - start_t) / CLOCKS_PER_SEC));
 
   } catch (const SMITHLABException &e) {
-    cerr << e.what() << endl;
+    cout << e.what() << endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
-    cerr << "ERROR: could not allocate memory" << endl;
+    cout << "ERROR: could not allocate memory" << endl;
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
-
