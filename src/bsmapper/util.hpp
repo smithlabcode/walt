@@ -17,7 +17,7 @@
 
 using std::string;
 using std::ostream;
-using std::cout;
+using std::cerr;
 using std::endl;
 
 #define HASHLEN 13
@@ -27,14 +27,14 @@ const double GB = 1024 * 1024 * 1024;
 
 inline void MemoryAllocateCheck(void * pointer, const char * file, int line) {
   if (pointer == NULL) {
-    printf("Memory allocate error in %s at line %d\n", file, line);
+    fprintf(stderr, "Memory allocate error in %s at line %d\n", file, line);
     exit(EXIT_FAILURE);
   }
 }
 
 inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
   if (pfile == NULL) {
-    printf("File open error in %s at line %d\n", file, line);
+    fprintf(stderr, "File open error in %s at line %d\n", file, line);
     exit(EXIT_FAILURE);
   }
 }
@@ -45,7 +45,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
 #define FREAD_CHECK(func, size) { \
   uint32_t s = func; \
   if(s != size) { \
-    printf("read file error. --- %s:%s:%d\n", __FILE__, __func__, __LINE__); \
+    fprintf(stderr, "read file error. --- %s:%s:%d\n", __FILE__, __func__, __LINE__); \
     exit(EXIT_FAILURE); \
   } \
 }
@@ -55,7 +55,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
   start_t = clock(); \
   func; \
   end_t = clock(); \
-  printf("[%s TAKES %.3lf SECONDS]\n", msg, \
+  fprintf(stderr, "[%s TAKES %.3lf SECONDS]\n", msg, \
          (double) ((end_t - start_t) / CLOCKS_PER_SEC )); \
 }
 

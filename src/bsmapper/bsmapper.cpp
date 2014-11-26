@@ -10,7 +10,7 @@
 #include "mapping.hpp"
 #include "reference.hpp"
 
-using std::cout;
+using std::cerr;
 using std::endl;
 using std::ofstream;
 
@@ -22,10 +22,10 @@ void LoadReadsFromFastqFile(const string &filename,
                             vector<string>& read_names,
                             vector<string>& read_seqs) {
   if (n_reads_to_process != std::numeric_limits<uint64_t>::max()) {
-    cout << "[LOADING READS FROM " << read_start_idx << " TO "
+    cerr << "[LOADING READS FROM " << read_start_idx << " TO "
          << n_reads_to_process + read_start_idx << "]" << endl;
   } else {
-    cout << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
+    cerr << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
   }
   read_names.clear();
   read_seqs.clear();
@@ -98,24 +98,24 @@ int main(int argc, const char **argv) {
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
-      cout << opt_parse.help_message() << endl;
+      cerr << opt_parse.help_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.about_requested()) {
-      cout << opt_parse.about_message() << endl;
+      cerr << opt_parse.about_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.option_missing()) {
-      cout << opt_parse.option_missing_message() << endl;
+      cerr << opt_parse.option_missing_message() << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(index_file, "dbindex")) {
-      cout << "The suffix of the index file should be '.dbindex' " << endl;
+      cerr << "The suffix of the index file should be '.dbindex' " << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(reads_file, "fastq")
         && !is_valid_filename(reads_file, "fq")) {
-      cout
+      cerr
           << "The suffix of the reads file should be '.fastq', '.fq', '.fasta' or '.fa'"
           << endl;
       return EXIT_SUCCESS;
@@ -141,7 +141,7 @@ int main(int argc, const char **argv) {
       LoadReadsFromFastqFile(reads_file, i, n_reads_to_process, read_names,
                              read_seqs);
       uint32_t num_of_reads = read_seqs.size();
-      cout << "[START MAPPING]" << endl;
+      cerr << "[START MAPPING]" << endl;
 //#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         BestMatch best_match;
@@ -162,10 +162,10 @@ int main(int argc, const char **argv) {
            (double) ((end_t - start_t) / CLOCKS_PER_SEC));
 
   } catch (const SMITHLABException &e) {
-    cout << e.what() << endl;
+    cerr << e.what() << endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
-    cout << "ERROR: could not allocate memory" << endl;
+    cerr << "ERROR: could not allocate memory" << endl;
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

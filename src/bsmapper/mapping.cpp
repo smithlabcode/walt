@@ -100,7 +100,7 @@ void SingleEndMapping(const char* read, const Genome& genome,
       }
 
       if (best_match.mismatch == 0) {
-        //cout << "[exact match to multiple positions, ignore this read]" << endl;
+        //cerr << "[exact match to multiple positions, ignore this read]" << endl;
         return;
       }
     }
@@ -128,7 +128,7 @@ void SingleEndMapping(const char* read, const Genome& genome,
     }
   }
   if (best_match.times > 1) {
-    //cout << "[best match to multiple positions, ignore this read]" << endl;
+    //cerr << "[best match to multiple positions, ignore this read]" << endl;
     return;
   }
 }

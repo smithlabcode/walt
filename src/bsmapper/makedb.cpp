@@ -11,7 +11,7 @@
 
 using std::string;
 using std::vector;
-using std::cout;
+using std::cerr;
 using std::endl;
 
 int main(int argc, const char **argv) {
@@ -34,19 +34,19 @@ int main(int argc, const char **argv) {
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
-      cout << opt_parse.help_message() << endl;
+      cerr << opt_parse.help_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.about_requested()) {
-      cout << opt_parse.about_message() << endl;
+      cerr << opt_parse.about_message() << endl;
       return EXIT_SUCCESS;
     }
     if (opt_parse.option_missing()) {
-      cout << opt_parse.option_missing_message() << endl;
+      cerr << opt_parse.option_missing_message() << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(outfile, "dbindex")) {
-      cout << "The suffix of the output file should be '.dbindex' " << endl;
+      cerr << "The suffix of the output file should be '.dbindex' " << endl;
       return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -64,10 +64,10 @@ int main(int argc, const char **argv) {
     TIME_INFO(WriteIndex(outfile, genome), "WRITE INDEX");
 
   } catch (const SMITHLABException &e) {
-    cout << e.what() << endl;
+    cerr << e.what() << endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
-    cout << "ERROR: could not allocate memory" << endl;
+    cerr << "ERROR: could not allocate memory" << endl;
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

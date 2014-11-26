@@ -7,19 +7,19 @@
 
 void IdentifyChromosomes(const string& chrom_file,
                          vector<string>& chrom_files) {
-  cout << "[IDENTIFYING CHROMS] ";
+  cerr << "[IDENTIFYING CHROMS] ";
   if (isdir(chrom_file.c_str())) {
     read_dir(chrom_file, "fa", chrom_files);
   } else {
     chrom_files.push_back(chrom_file);
   }
 
-  cout << "[DONE]" << endl << "chromosome files found (approx size):" << endl;
+  cerr << "[DONE]" << endl << "chromosome files found (approx size):" << endl;
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
-    cout << chrom_files[i] << " ("
+    cerr << chrom_files[i] << " ("
          << roundf(get_filesize(chrom_files[i]) / 1e06) << "Mbp)" << endl;
   }
-  cout << endl;
+  cerr << endl;
 }
 
 void BuildHashTable(Chromosome* chrom) {
@@ -59,7 +59,7 @@ void C2T(Chromosome* chrom) {
 
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
                              Genome* genome) {
-  cout << "[READING CHROMOSOMES] " << endl;
+  cerr << "[READING CHROMOSOMES] " << endl;
   vector<string> chrom_names;
   vector<string> chrom_seqs;
   uint64_t all_chroms_len = 0;
@@ -80,12 +80,12 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
   /* copy chroms sequences to genome */
   uint32_t num_of_chroms = chrom_seqs.size();
   genome->resize(2 * num_of_chroms);
-  cout << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
-  cout << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
+  cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
+  cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
        << endl;
-  cout << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
+  cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cout << "[" << i + 1 << "/" << num_of_chroms << "]";
+    cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
     Chromosome& chrom = (*genome)[2 * i];
     Chromosome& chrom_rc = (*genome)[2 * i + 1];
 
@@ -116,11 +116,11 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
     BuildHashTable(&chrom);
     BuildHashTable(&chrom_rc);
   }
-  cout << endl;
+  cerr << endl;
 }
 
 void WriteIndex(const string& index_file, const Genome& genome) {
-  cout << "[WRITTING INDEX TO " << index_file << "]" << endl;
+  cerr << "[WRITTING INDEX TO " << index_file << "]" << endl;
   FILE * fout = fopen(index_file.c_str(), "wb");
 
   uint32_t num_of_chroms = genome.size();
@@ -156,21 +156,21 @@ void WriteIndex(const string& index_file, const Genome& genome) {
 }
 
 void ReadIndex(const string& index_file, Genome* genome) {
-  cout << "[READING INDEX FROM " << index_file << "]" << endl;
+  cerr << "[READING INDEX FROM " << index_file << "]" << endl;
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
   genome->resize(num_of_chroms);
-  cout << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
+  cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
        << endl;
 
   char chrom_strand;
   char chrom_name[256];
   uint32_t chrom_name_len, chrom_length;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cout << "[" << i << "/" << num_of_chroms << "]";
+    cerr << "[" << i << "/" << num_of_chroms << "]";
     /* read chromosome from disk */
     FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
@@ -201,7 +201,7 @@ void ReadIndex(const string& index_file, Genome* genome) {
       (*genome)[i].hash_table.insert(make_pair(hash_key, hash_values));
     }
   }
-  cout << endl;
+  cerr << endl;
 
   fclose(fin);
 }
