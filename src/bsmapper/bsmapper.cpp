@@ -145,11 +145,10 @@ int main(int argc, const char **argv) {
 //#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         BestMatch best_match;
-        SingleEndMapping(read_seqs[j].c_str(), genome, num_top_diags,
-                         best_match);
-        uint32_t chrom_id = best_match.genome_pos.first;
-        fout << genome[chrom_id].name << " " << best_match.genome_pos.second
-             << " " << read_names[j] << " " << genome[chrom_id].strand << endl;
+        SingleEndMapping(read_seqs[j].c_str(), genome, best_match);
+        fout << genome[best_match.chrom_id].name << " " << best_match.chrom_pos
+             << " " << read_names[j] << " "
+             << genome[best_match.chrom_id].strand << endl;
       }
 
       if (read_seqs.size() < n_reads_to_process)
