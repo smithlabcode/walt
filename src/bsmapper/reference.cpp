@@ -87,7 +87,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
     cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
     Chromosome& chrom = (*genome)[2 * i];
-    Chromosome& chrom_rc = (*genome)[2 * i];
+    Chromosome& chrom_rc = (*genome)[2 * i + 1];
 
     chrom.name = chrom_names[i];
     chrom.length = chrom_seqs[i].size();
@@ -167,7 +167,7 @@ void ReadIndex(const string& index_file, Genome* genome) {
   char chrom_strand;
   char chrom_name[256];
   uint32_t chrom_name_len, chrom_length;
-  for (uint16_t i = 0; i < num_of_chroms; ++i) {
+  for (uint32_t i = 0; i < num_of_chroms; ++i) {
     /* read chromosome from disk */
     FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
@@ -187,7 +187,7 @@ void ReadIndex(const string& index_file, Genome* genome) {
     /* read hash table from disk */
     uint32_t num_of_keys = 0, hash_key = 0, num_of_values = 0;
     FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
-    for (uint32_t i = 0; i < num_of_keys; ++i) {
+    for (uint32_t j = 0; j < num_of_keys; ++j) {
       FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
       FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
       vector<uint32_t> hash_values(num_of_values);
