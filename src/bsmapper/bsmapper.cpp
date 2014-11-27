@@ -2,6 +2,8 @@
  * This is the main function for bsmapper.
  */
 
+#include <omp.h>
+
 #include <fstream>
 
 #include "smithlab_os.hpp"
@@ -126,10 +128,20 @@ int main(int argc, const char **argv) {
     // LOAD THE INDEX
     Genome genome;
     TIME_INFO(ReadIndex(index_file, &genome), "READ INDEX");
-//#define TESTREADINDEX
-#ifdef TESTREADINDEX
-    return 0;
-#endif
+
+    //////////////////////////////////////////////////////////////
+    // SET NUMBER OF THREADS
+    int num_of_threads_in_system = omp_get_max_threads();
+    cerr << "[THERE ARE TOTAL " << num_of_threads_in_system
+         << " THREADS IN SYSMTE]" << endl;
+    if (num_of_threads_in_system < num_of_threads) {
+      cerr << "[THERE ARE " << num_of_threads_in_system << " THREADS IN SYSMTE]"
+           << endl;
+      num_of_threads = num_of_threads_in_system;
+    }
+    omp_set_dynamic(1);
+    omp_set_num_threads(num_of_threads);
+    cerr << "[" << num_of_threads << " THREADS FOR MAPPING]" << endl;
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
     vector<string> read_names;
@@ -141,16 +153,28 @@ int main(int argc, const char **argv) {
       LoadReadsFromFastqFile(reads_file, i, n_reads_to_process, read_names,
                              read_seqs);
       uint32_t num_of_reads = read_seqs.size();
-      cerr << "[START MAPPING]" << endl;
-//#pragma omp parallel for
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        BestMatch best_match;
-        SingleEndMapping(read_seqs[j].c_str(), genome, best_match);
-        fout << genome[best_match.chrom_id].name << " " << best_match.chrom_pos
-             << " " << read_names[j] << " "
-             << genome[best_match.chrom_id].strand << endl;
+      if (num_of_reads == 0)
+        break;
+      uint32_t read_width = read_seqs[0].size();
+      if (max_mismatches == std::numeric_limits<size_t>::max()) {
+        max_mismatches = static_cast<size_t>(0.07 * read_width);
       }
 
+      BestMatch best_match(0, 0, 0, max_mismatches);
+      vector<BestMatch> map_results(num_of_reads, best_match);
+      cerr << "[START MAPPING]" << endl;
+#pragma omp parallel for
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        SingleEndMapping(read_seqs[j].c_str(), genome, map_results[j]);
+      }
+#pragma omp barrier
+
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        fout << genome[map_results[j].chrom_id].name << "\t"
+             << map_results[j].chrom_pos << "\t" << read_names[j] << "\t"
+             << map_results[j].mismatch << "\t"
+             << genome[map_results[j].chrom_id].strand << endl;
+      }
       if (read_seqs.size() < n_reads_to_process)
         break;
     }
