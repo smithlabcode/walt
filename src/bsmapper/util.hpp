@@ -25,14 +25,14 @@ using std::endl;
 
 const double GB = 1024 * 1024 * 1024;
 
-inline void MemoryAllocateCheck(void * pointer, const char * file, int line) {
+inline void MemoryAllocateCheck(void* pointer, const char* file, int line) {
   if (pointer == NULL) {
     fprintf(stderr, "Memory allocate error in %s at line %d\n", file, line);
     exit(EXIT_FAILURE);
   }
 }
 
-inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
+inline void FileOpenCheck(FILE* pfile, const char* file, int line) {
   if (pfile == NULL) {
     fprintf(stderr, "File open error in %s at line %d\n", file, line);
     exit(EXIT_FAILURE);
@@ -60,7 +60,7 @@ inline void FileOpenCheck(FILE * pfile, const char * file, int line) {
 }
 
 /* transfer integer number to nucleotide */
-inline char getNT(const int & nt) {
+inline char getNT(const int& nt) {
   switch (nt) {
     case 0:
       return 'A';
@@ -75,7 +75,7 @@ inline char getNT(const int & nt) {
 }
 
 /* transfer nucleotide to integer number */
-inline int getBits(const char & nt) {
+inline int getBits(const char& nt) {
   switch (nt) {
     case 'A':
       return 0;
@@ -90,7 +90,7 @@ inline int getBits(const char & nt) {
 }
 
 /* get the compliment strand nucleotide */
-inline char complimentBase(char nt) {
+inline char complimentBase(const char& nt) {
   switch (nt) {
     case 'a':
       return ('t');
@@ -121,14 +121,6 @@ inline uint32_t getHashValue(const char* nucleotides) {
     hash_value += getBits(nucleotides[i]);
   }
   return hash_value;
-}
-
-inline bool isFastqNameLine(uint64_t line_count) {
-  return ((line_count & 3) == 0);
-}
-
-inline bool isFastqSequenceLine(uint64_t line_count) {
-  return ((line_count & 3) == 1);
 }
 
 #endif /* UTIL_H_ */

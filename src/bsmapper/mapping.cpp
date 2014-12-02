@@ -12,11 +12,25 @@ string ReverseComplimentStrand(const string& read) {
   return reverse_complement_read;
 }
 
-void SingleEndMapping(const char* read, const Genome& genome,
+/* for bisulfite sequence mapping, Cs are transfered to Ts*/
+void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
+  for (uint32_t i = 0; i < read_len; ++i) {
+    if ('C' == orginal_read[i]) {
+      read += 'T';
+    } else {
+      read += orginal_read[i];
+    }
+  }
+}
+
+void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       BestMatch& best_match) {
-  uint32_t read_len = strlen(read);
+  uint32_t read_len = orginal_read.size();
   if (read_len < HASHLEN)
     return;
+
+  string read;
+  C2T(orginal_read, read_len, read);
 
   uint32_t hash_value = getHashValue(&(read[0]));
   for (uint32_t i = 0; i < genome.size(); ++i) {

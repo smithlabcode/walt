@@ -25,7 +25,7 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
-void SingleEndMapping(const char* read, const Genome& genome,
+void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       BestMatch& best_match);
 
 #endif /* MAPPING_HPP_ */
