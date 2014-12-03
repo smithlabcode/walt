@@ -15,7 +15,10 @@ string ReverseComplimentStrand(const string& read) {
 /* for bisulfite sequence mapping, Cs are transfered to Ts*/
 void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
-    if ('C' == orginal_read[i]) {
+    if('N' == orginal_read[i]) {
+      read += getNT(3); // in rampbs N set to 3. 
+    }
+    else if ('C' == orginal_read[i]) {
       read += 'T';
     } else {
       read += orginal_read[i];

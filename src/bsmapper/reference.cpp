@@ -43,7 +43,8 @@ void N2ACGT(Chromosome* chrom) {
   srand(time(NULL));
   for (uint32_t i = 0; i < chrom->length; ++i) {
     if ('N' == chrom->sequence[i]) {
-      int r = rand() % 4;
+      //int r = rand() % 4;
+      int r = 3;
       chrom->sequence[i] = getNT(r);
     }
   }
