@@ -2,8 +2,6 @@
  * This is the main function for bsmapper.
  */
 
-#include <omp.h>
-
 #include <vector>
 #include <string>
 #include <limits>
@@ -19,66 +17,53 @@ using std::cerr;
 using std::endl;
 using std::vector;
 using std::ofstream;
+using std::ifstream;
 
 /* load reads from reads file, each time load n_reads_to_process reads,
  * start from  read_start_idx */
-void LoadReadsFromFastqFile(const string &filename,
-                            const uint64_t read_start_idx,
+void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
                             const uint64_t n_reads_to_process,
-                            vector<string>& read_names,
+                            uint32_t& num_of_reads, vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores) {
-  if (n_reads_to_process != std::numeric_limits<uint64_t>::max()) {
-    cerr << "[LOADING READS FROM " << read_start_idx << " TO "
-         << n_reads_to_process + read_start_idx << "]" << endl;
-  } else {
-    cerr << "[LOADING READS FROM " << read_start_idx << " TO LAST ONE]" << endl;
-  }
-  read_names.clear();
-  read_seqs.clear();
-  read_scores.clear();
-  std::ifstream in(filename.c_str());
-  if (!in)
-    throw SMITHLABException("cannot open input file " + filename);
 
-  uint64_t line_count = 0;
-  const uint64_t lim1 = read_start_idx * 4;
-  while (line_count < lim1) {
-    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    ++line_count;
-  }
-
-  const uint64_t lim2 =
-      (n_reads_to_process != std::numeric_limits<size_t>::max()) ?
-          (read_start_idx + n_reads_to_process) * 4 :
-          std::numeric_limits<size_t>::max();
+  cerr << "[LOADING READS FROM " << read_start_idx << " TO "
+       << n_reads_to_process + read_start_idx << "]" << endl;
 
   string line;
-  while (line_count < lim2 && getline(in, line)) {
-    int line_code = line_count % 4;
+  int line_code = 0;
+  uint64_t line_count = 0;
+  num_of_reads = 0;
+  uint64_t lim = n_reads_to_process * 4;
+  while (line_count < lim && getline(fin, line)) {
     switch (line_code) {
       case 0: {
         uint32_t space_pos = line.find_first_of(' ');
         if (space_pos == string::npos) {
-          read_names.push_back(line.substr(1));
+          read_names[num_of_reads] = line.substr(1);
         } else {
-          read_names.push_back(line.substr(1, space_pos - 1));
+          read_names[num_of_reads] = line.substr(1, space_pos - 1);
         }
         break;
       }
       case 1: {
-        read_seqs.push_back(line);
+        read_seqs[num_of_reads] = line;
         break;
       }
       case 2: {
         break;
       }
       case 3: {
-        read_scores.push_back(line);
+        read_scores[num_of_reads] = line;
+        num_of_reads++;
         break;
       }
     }
     ++line_count;
+    ++line_code;
+    if (line_code == 4) {
+      line_code = 0;
+    }
   }
 }
 
@@ -101,9 +86,8 @@ int main(int argc, const char **argv) {
         "index file created by build command (the suffix of the index file should be '.dbindex')",
         true, index_file);
     opt_parse.add_opt(
-        "reads",
-        'r',
-        "reads file (the suffix of the reads file should be '.fastq', '.fq', '.fasta' or '.fa')",
+        "reads", 'r',
+        "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
         true, reads_file);
 
     opt_parse.add_opt("output", 'o', "output file name", true, outfile);
@@ -148,30 +132,26 @@ int main(int argc, const char **argv) {
     TIME_INFO(ReadIndex(index_file, &genome), "READ INDEX");
 
     //////////////////////////////////////////////////////////////
-    // SET NUMBER OF THREADS
-    int num_of_threads_in_system = omp_get_max_threads();
-    cerr << "[THERE ARE TOTAL " << num_of_threads_in_system
-         << " THREADS IN SYSMTE]" << endl;
-    if (num_of_threads_in_system < num_of_threads) {
-      cerr << "[THERE ARE " << num_of_threads_in_system << " THREADS IN SYSMTE]"
-           << endl;
-      num_of_threads = num_of_threads_in_system;
-    }
-    omp_set_dynamic(1);
-    omp_set_num_threads(num_of_threads);
-    cerr << "[" << num_of_threads << " THREADS FOR MAPPING]" << endl;
-    //////////////////////////////////////////////////////////////
     // LOAD THE READS
-    vector<string> read_names;
-    vector<string> read_seqs;
-    vector<string> read_scores;
+    if (n_reads_to_process > 10000000) {
+      n_reads_to_process = 10000000;
+    }
+    vector<string> read_names(n_reads_to_process);
+    vector<string> read_seqs(n_reads_to_process);
+    vector<string> read_scores(n_reads_to_process);
+
     clock_t start_t, end_t;
     start_t = clock();
+
+    ifstream fin(reads_file.c_str());
+    if (!fin) {
+      throw SMITHLABException("cannot open input file " + reads_file);
+    }
     ofstream fout(outfile.c_str());
+    uint32_t num_of_reads;
     for (uint64_t i = 0;; i += n_reads_to_process) {
-      LoadReadsFromFastqFile(reads_file, i, n_reads_to_process, read_names,
-                             read_seqs, read_scores);
-      uint32_t num_of_reads = read_seqs.size();
+      LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads,
+                             read_names, read_seqs, read_scores);
       if (num_of_reads == 0)
         break;
       uint32_t read_width = read_seqs[0].size();
@@ -179,35 +159,31 @@ int main(int argc, const char **argv) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
       }
 
-      BestMatch best_match(0, 0, 0, max_mismatches);
-      vector<BestMatch> map_results(num_of_reads, best_match);
       cerr << "[START MAPPING]" << endl;
-#pragma omp parallel for
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, map_results[j]);
-      }
-#pragma omp barrier
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        if (map_results[j].times == 0 || map_results[j].times > 1)
+        BestMatch best_match(0, 0, 0, max_mismatches);
+        SingleEndMapping(read_seqs[j], genome, best_match);
+
+        if (best_match.times == 0 || best_match.times > 1)
           continue;
-        uint32_t start_pos = map_results[j].chrom_pos;
-        if ('-' == genome[map_results[j].chrom_id].strand) {
-          start_pos = genome[map_results[j].chrom_id].length
-              - map_results[j].chrom_pos - read_seqs[j].size();
+        uint32_t start_pos = best_match.chrom_pos;
+        if ('-' == genome[best_match.chrom_id].strand) {
+          start_pos = genome[best_match.chrom_id].length - best_match.chrom_pos
+              - read_seqs[j].size();
         }
         uint32_t end_pos = start_pos + read_seqs[j].size();
 
-        fout << genome[map_results[j].chrom_id].name << "\t" << start_pos
-             << "\t" << end_pos << "\t" << read_names[j] << "\t"
-             << map_results[j].mismatch << "\t"
-             << genome[map_results[j].chrom_id].strand << "\t" << read_seqs[j]
-             << "\t" << read_scores[j] << endl;
+        fout << genome[best_match.chrom_id].name << "\t" << start_pos << "\t"
+             << end_pos << "\t" << read_names[j] << "\t" << best_match.mismatch
+             << "\t" << genome[best_match.chrom_id].strand << "\t"
+             << read_seqs[j] << "\t" << read_scores[j] << endl;
       }
 
-      if (read_seqs.size() < n_reads_to_process)
+      if (num_of_reads < n_reads_to_process)
         break;
     }
+    fin.close();
     fout.close();
 
     end_t = clock();

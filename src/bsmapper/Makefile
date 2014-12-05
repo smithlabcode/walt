@@ -9,21 +9,12 @@ endif
 PROGS = makedb bsmapper
 
 CXX = g++
-CFLAGS = -Wall -fPIC -fmessage-length=50 -fopenmp
-OPTFLAGS = -O3
-DEBUGFLAGS = -g
+CFLAGS = -Wall -O3 -fPIC -fmessage-length=50
+
 TEST_DIR = $(SRC_ROOT)/test
 
 ifeq "$(shell uname)" "Darwin"
 CFLAGS += -arch x86_64
-endif
-
-ifdef DEBUG
-CFLAGS += $(DEBUGFLAGS)
-endif
-
-ifdef OPT
-CFLAGS += $(OPTFLAGS)
 endif
 
 SRCDB = reference.cpp
