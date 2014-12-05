@@ -26,7 +26,7 @@ void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
 }
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
-                      BestMatch& best_match) {
+                      BestMatch& best_match, const uint32_t& HASHLEN) {
   uint32_t read_len = orginal_read.size();
   if (read_len < HASHLEN)
     return;
@@ -34,7 +34,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
   string read;
   C2T(orginal_read, read_len, read);
 
-  uint32_t hash_value = getHashValue(&(read[0]));
+  uint64_t hash_value = getHashValue(&(read[0]), HASHLEN);
   for (uint32_t i = 0; i < genome.size(); ++i) {
     const Chromosome& chrom = genome[i];
     HashTable::const_iterator it = chrom.hash_table.find(hash_value);

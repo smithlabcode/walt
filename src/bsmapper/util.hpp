@@ -20,7 +20,7 @@ using std::ostream;
 using std::cerr;
 using std::endl;
 
-#define HASHLEN 13
+//#define HASHLEN 13
 #define MAX_LINE_LEN 100000
 
 const double GB = 1024 * 1024 * 1024;
@@ -114,9 +114,9 @@ inline char complimentBase(const char& nt) {
 }
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
-inline uint32_t getHashValue(const char* nucleotides) {
-  uint32_t hash_value = 0;
-  for (uint8_t i = 0; i < HASHLEN; ++i) {
+inline uint64_t getHashValue(const char* nucleotides, const uint32_t& HASHLEN) {
+  uint64_t hash_value = 0;
+  for (uint32_t i = 0; i < HASHLEN; ++i) {
     hash_value <<= 2;
     hash_value += getBits(nucleotides[i]);
   }

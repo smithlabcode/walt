@@ -18,6 +18,7 @@ int main(int argc, const char **argv) {
   try {
     string chrom_file;
     string outfile;
+    uint32_t HASHLEN = 13;
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]),
                            "build index for reference genome", "");
@@ -31,6 +32,9 @@ int main(int argc, const char **argv) {
         "output", 'o',
         "output file name (the suffix of the file should be '.dbindex')", true,
         outfile);
+    opt_parse.add_opt("hashlen", 'h',
+                      "the length of k-mer as the key for hash function", false,
+                      HASHLEN);
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
@@ -58,10 +62,10 @@ int main(int argc, const char **argv) {
     IdentifyChromosomes(chrom_file, chrom_files);
 
     Genome genome;
-    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome),
+    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, HASHLEN),
               "READ CHROMOSOMES AND BUILD INDEX");
 
-    TIME_INFO(WriteIndex(outfile, genome), "WRITE INDEX");
+    TIME_INFO(WriteIndex(outfile, genome, HASHLEN), "WRITE INDEX");
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;

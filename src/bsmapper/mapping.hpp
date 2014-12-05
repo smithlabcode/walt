@@ -26,6 +26,6 @@ struct BestMatch {
 };
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
-                      BestMatch& best_match);
+                      BestMatch& best_match, const uint32_t& HASHLEN);
 
 #endif /* MAPPING_HPP_ */

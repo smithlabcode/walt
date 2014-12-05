@@ -22,13 +22,14 @@ void IdentifyChromosomes(const string& chrom_file,
   cerr << endl;
 }
 
-void BuildHashTable(Chromosome* chrom) {
-  uint32_t size = 0, hash_value = 0;
+void BuildHashTable(Chromosome* chrom, const uint32_t& HASHLEN) {
+  uint32_t size = 0;
+  uint64_t hash_value = 0;
   if (chrom->length < HASHLEN)
     return;
   size = chrom->length - HASHLEN;
   for (uint32_t j = 0; j <= size; ++j) {
-    hash_value = getHashValue(&(chrom->sequence[j]));
+    hash_value = getHashValue(&(chrom->sequence[j]), HASHLEN);
     chrom->hash_table[hash_value].push_back(j);
   }
 }
@@ -58,8 +59,8 @@ void C2T(Chromosome* chrom) {
   }
 }
 
-void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
-                             Genome* genome) {
+void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
+                             const uint32_t& HASHLEN) {
   cerr << "[READING CHROMOSOMES] " << endl;
   vector<string> chrom_names;
   vector<string> chrom_seqs;
@@ -84,6 +85,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
   cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
   cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
        << endl;
+  cerr << "[USING FIRST " << HASHLEN << " NUCLEOTIDES AS THE HASH KEY]" << endl;
   cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
     cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
@@ -114,15 +116,18 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files,
 
     C2T(&chrom);
     C2T(&chrom_rc);
-    BuildHashTable(&chrom);
-    BuildHashTable(&chrom_rc);
+    BuildHashTable(&chrom, HASHLEN);
+    BuildHashTable(&chrom_rc, HASHLEN);
   }
   cerr << endl;
 }
 
-void WriteIndex(const string& index_file, const Genome& genome) {
+void WriteIndex(const string& index_file, const Genome& genome,
+                const uint32_t& HASHLEN) {
   cerr << "[WRITTING INDEX TO " << index_file << "]" << endl;
   FILE * fout = fopen(index_file.c_str(), "wb");
+
+  fwrite(&HASHLEN, sizeof(uint32_t), 1, fout);
 
   uint32_t num_of_chroms = genome.size();
   fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
@@ -145,8 +150,8 @@ void WriteIndex(const string& index_file, const Genome& genome) {
     fwrite(&(num_of_keys), sizeof(uint32_t), 1, fout);
     for (HashTable::const_iterator it = genome[i].hash_table.begin();
         it != genome[i].hash_table.end(); ++it) {
-      uint32_t hash_key = it->first;
-      fwrite(&(hash_key), sizeof(uint32_t), 1, fout);
+      uint64_t hash_key = it->first;
+      fwrite(&(hash_key), sizeof(uint64_t), 1, fout);
       uint32_t num_of_values = it->second.size();
       fwrite(&(num_of_values), sizeof(uint32_t), 1, fout);
       fwrite(&(it->second[0]), sizeof(uint32_t), num_of_values, fout);
@@ -156,11 +161,12 @@ void WriteIndex(const string& index_file, const Genome& genome) {
   fclose(fout);
 }
 
-void ReadIndex(const string& index_file, Genome* genome) {
+void ReadIndex(const string& index_file, Genome* genome, uint32_t& HASHLEN) {
   cerr << "[READING INDEX FROM " << index_file << "]" << endl;
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
+  FREAD_CHECK(fread(&HASHLEN, sizeof(uint32_t), 1, fin), 1);
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
   genome->resize(num_of_chroms);
@@ -189,10 +195,11 @@ void ReadIndex(const string& index_file, Genome* genome) {
         chrom_length);
 
     /* read hash table from disk */
-    uint32_t num_of_keys = 0, hash_key = 0, num_of_values = 0;
+    uint32_t num_of_keys = 0, num_of_values = 0;
+    uint64_t hash_key = 0;
     FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
     for (uint32_t j = 0; j < num_of_keys; ++j) {
-      FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
+      FREAD_CHECK(fread(&hash_key, sizeof(uint64_t), 1, fin), 1);
       FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
       vector<uint32_t> hash_values(num_of_values);
       FREAD_CHECK(

@@ -128,13 +128,14 @@ int main(int argc, const char **argv) {
 
     //////////////////////////////////////////////////////////////
     // LOAD THE INDEX
+    uint32_t HASHLEN;
     Genome genome;
-    TIME_INFO(ReadIndex(index_file, &genome), "READ INDEX");
+    TIME_INFO(ReadIndex(index_file, &genome, HASHLEN), "READ INDEX");
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
-    if (n_reads_to_process > 10000000) {
-      n_reads_to_process = 10000000;
+    if (n_reads_to_process > 1000000) {
+      n_reads_to_process = 1000000;
     }
     vector<string> read_names(n_reads_to_process);
     vector<string> read_seqs(n_reads_to_process);
@@ -149,6 +150,8 @@ int main(int argc, const char **argv) {
     }
     ofstream fout(outfile.c_str());
     uint32_t num_of_reads;
+    BestMatch best_match(0, 0, 0, max_mismatches);
+    vector<BestMatch> map_results(n_reads_to_process);
     for (uint64_t i = 0;; i += n_reads_to_process) {
       LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads,
                              read_names, read_seqs, read_scores);
@@ -159,25 +162,30 @@ int main(int argc, const char **argv) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
       }
 
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        map_results[j] = best_match;
+      }
+
       cerr << "[START MAPPING]" << endl;
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        SingleEndMapping(read_seqs[j], genome, map_results[j], HASHLEN);
+      }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        BestMatch best_match(0, 0, 0, max_mismatches);
-        SingleEndMapping(read_seqs[j], genome, best_match);
-
-        if (best_match.times == 0 || best_match.times > 1)
+        if (map_results[j].times == 0 || map_results[j].times > 1)
           continue;
-        uint32_t start_pos = best_match.chrom_pos;
-        if ('-' == genome[best_match.chrom_id].strand) {
-          start_pos = genome[best_match.chrom_id].length - best_match.chrom_pos
-              - read_seqs[j].size();
+        uint32_t start_pos = map_results[j].chrom_pos;
+        if ('-' == genome[map_results[j].chrom_id].strand) {
+          start_pos = genome[map_results[j].chrom_id].length
+              - map_results[j].chrom_pos - read_seqs[j].size();
         }
         uint32_t end_pos = start_pos + read_seqs[j].size();
 
-        fout << genome[best_match.chrom_id].name << "\t" << start_pos << "\t"
-             << end_pos << "\t" << read_names[j] << "\t" << best_match.mismatch
-             << "\t" << genome[best_match.chrom_id].strand << "\t"
-             << read_seqs[j] << "\t" << read_scores[j] << endl;
+        fout << genome[map_results[j].chrom_id].name << "\t" << start_pos
+             << "\t" << end_pos << "\t" << read_names[j] << "\t"
+             << map_results[j].mismatch << "\t"
+             << genome[map_results[j].chrom_id].strand << "\t" << read_seqs[j]
+             << "\t" << read_scores[j] << endl;
       }
 
       if (num_of_reads < n_reads_to_process)
