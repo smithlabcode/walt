@@ -22,7 +22,8 @@ void IdentifyChromosomes(const string& chrom_file,
   cerr << endl;
 }
 
-void BuildHashTable(Chromosome* chrom, const uint32_t& HASHLEN) {
+void BuildHashTable(const Chromosome* chrom, const uint8_t& chrom_id,
+                    HashTable* hash_table, const uint32_t& HASHLEN) {
   uint32_t size = 0;
   uint64_t hash_value = 0;
   if (chrom->length < HASHLEN)
@@ -30,7 +31,7 @@ void BuildHashTable(Chromosome* chrom, const uint32_t& HASHLEN) {
   size = chrom->length - HASHLEN;
   for (uint32_t j = 0; j <= size; ++j) {
     hash_value = getHashValue(&(chrom->sequence[j]), HASHLEN);
-    chrom->hash_table[hash_value].push_back(j);
+    (*hash_table)[hash_value].push_back(make_pair(chrom_id, j));
   }
 }
 
@@ -60,7 +61,7 @@ void C2T(Chromosome* chrom) {
 }
 
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
-                             const uint32_t& HASHLEN) {
+                             HashTable* hash_table, const uint32_t& HASHLEN) {
   cerr << "[READING CHROMOSOMES] " << endl;
   vector<string> chrom_names;
   vector<string> chrom_seqs;
@@ -81,13 +82,18 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
 
   /* copy chroms sequences to genome */
   uint32_t num_of_chroms = chrom_seqs.size();
+  if (2 * num_of_chroms > 256) {
+    cerr << "[THE NUMBER OF CHROMOSOMES IS MORE THAN 256. "
+         << "THIS PROGRAM CURRENTLY DOESN'T SUPPORT THIS.]" << endl;
+    exit(EXIT_FAILURE);
+  }
   genome->resize(2 * num_of_chroms);
   cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
   cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
        << endl;
   cerr << "[USING FIRST " << HASHLEN << " NUCLEOTIDES AS THE HASH KEY]" << endl;
   cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
-  for (uint32_t i = 0; i < num_of_chroms; ++i) {
+  for (uint8_t i = 0; i < num_of_chroms; ++i) {
     cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
     Chromosome& chrom = (*genome)[2 * i];
     Chromosome& chrom_rc = (*genome)[2 * i + 1];
@@ -116,14 +122,14 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
 
     C2T(&chrom);
     C2T(&chrom_rc);
-    BuildHashTable(&chrom, HASHLEN);
-    BuildHashTable(&chrom_rc, HASHLEN);
+    BuildHashTable(&chrom, 2 * i, hash_table, HASHLEN);
+    BuildHashTable(&chrom_rc, 2 * i + 1, hash_table, HASHLEN);
   }
   cerr << endl;
 }
 
 void WriteIndex(const string& index_file, const Genome& genome,
-                const uint32_t& HASHLEN) {
+                const HashTable& hash_table, const uint32_t& HASHLEN) {
   cerr << "[WRITTING INDEX TO " << index_file << "]" << endl;
   FILE * fout = fopen(index_file.c_str(), "wb");
 
@@ -144,24 +150,25 @@ void WriteIndex(const string& index_file, const Genome& genome,
     fwrite(&(genome[i].length), sizeof(uint32_t), 1, fout);
     fwrite(&(genome[i].strand), sizeof(char), 1, fout);
     fwrite(&(genome[i].sequence[0]), sizeof(char), genome[i].length, fout);
+  }
 
-    /* write hash table to disk */
-    uint32_t num_of_keys = genome[i].hash_table.size();
-    fwrite(&(num_of_keys), sizeof(uint32_t), 1, fout);
-    for (HashTable::const_iterator it = genome[i].hash_table.begin();
-        it != genome[i].hash_table.end(); ++it) {
-      uint64_t hash_key = it->first;
-      fwrite(&(hash_key), sizeof(uint64_t), 1, fout);
-      uint32_t num_of_values = it->second.size();
-      fwrite(&(num_of_values), sizeof(uint32_t), 1, fout);
-      fwrite(&(it->second[0]), sizeof(uint32_t), num_of_values, fout);
-    }
+  /* write hash table to disk */
+  uint32_t num_of_keys = hash_table.size();
+  fwrite(&(num_of_keys), sizeof(uint32_t), 1, fout);
+  for (HashTable::const_iterator it = hash_table.begin();
+      it != hash_table.end(); ++it) {
+    uint64_t hash_key = it->first;
+    fwrite(&(hash_key), sizeof(uint64_t), 1, fout);
+    uint32_t num_of_values = it->second.size();
+    fwrite(&(num_of_values), sizeof(uint32_t), 1, fout);
+    fwrite(&(it->second[0]), sizeof(GenomePosition), num_of_values, fout);
   }
 
   fclose(fout);
 }
 
-void ReadIndex(const string& index_file, Genome* genome, uint32_t& HASHLEN) {
+void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table,
+               uint32_t& HASHLEN) {
   cerr << "[READING INDEX FROM " << index_file << "]" << endl;
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
@@ -193,23 +200,23 @@ void ReadIndex(const string& index_file, Genome* genome, uint32_t& HASHLEN) {
     FREAD_CHECK(
         fread(&((*genome)[i].sequence[0]), sizeof(char), chrom_length, fin),
         chrom_length);
-
-    /* read hash table from disk */
-    uint32_t num_of_keys = 0, num_of_values = 0;
-    uint64_t hash_key = 0;
-    FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
-    for (uint32_t j = 0; j < num_of_keys; ++j) {
-      FREAD_CHECK(fread(&hash_key, sizeof(uint64_t), 1, fin), 1);
-      FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
-      vector<uint32_t> hash_values(num_of_values);
-      FREAD_CHECK(
-          fread(&(hash_values[0]), sizeof(uint32_t), num_of_values, fin),
-          num_of_values);
-
-      (*genome)[i].hash_table.insert(make_pair(hash_key, hash_values));
-    }
   }
   cerr << endl;
+
+  /* read hash table from disk */
+  uint32_t num_of_keys = 0, num_of_values = 0;
+  uint64_t hash_key = 0;
+  FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
+  for (uint32_t j = 0; j < num_of_keys; ++j) {
+    FREAD_CHECK(fread(&hash_key, sizeof(uint64_t), 1, fin), 1);
+    FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
+    vector<GenomePosition> hash_values(num_of_values);
+    FREAD_CHECK(
+        fread(&(hash_values[0]), sizeof(GenomePosition), num_of_values, fin),
+        num_of_values);
+
+    hash_table->insert(make_pair(hash_key, hash_values));
+  }
 
   fclose(fin);
 }

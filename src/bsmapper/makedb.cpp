@@ -62,10 +62,12 @@ int main(int argc, const char **argv) {
     IdentifyChromosomes(chrom_file, chrom_files);
 
     Genome genome;
-    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, HASHLEN),
-              "READ CHROMOSOMES AND BUILD INDEX");
+    HashTable hash_table;
+    TIME_INFO(
+        ReadChromsAndBuildIndex(chrom_files, &genome, &hash_table, HASHLEN),
+        "READ CHROMOSOMES AND BUILD INDEX");
 
-    TIME_INFO(WriteIndex(outfile, genome, HASHLEN), "WRITE INDEX");
+    TIME_INFO(WriteIndex(outfile, genome, hash_table, HASHLEN), "WRITE INDEX");
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
