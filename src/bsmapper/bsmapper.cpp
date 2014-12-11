@@ -128,11 +128,9 @@ int main(int argc, const char **argv) {
 
     //////////////////////////////////////////////////////////////
     // LOAD THE INDEX
-    uint32_t HASHLEN;
     Genome genome;
     HashTable hash_table;
-    TIME_INFO(ReadIndex(index_file, &genome, &hash_table, HASHLEN),
-              "READ INDEX");
+    TIME_INFO(ReadIndex(index_file, &genome, &hash_table), "READ INDEX");
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
@@ -170,8 +168,7 @@ int main(int argc, const char **argv) {
 
       cerr << "[START MAPPING]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         HASHLEN);
+        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j]);
       }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {

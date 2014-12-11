@@ -26,8 +26,7 @@ void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
 }
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
-                      const HashTable& hash_table, BestMatch& best_match,
-                      const uint32_t& HASHLEN) {
+                      const HashTable& hash_table, BestMatch& best_match) {
   uint32_t read_len = orginal_read.size();
   if (read_len < HASHLEN)
     return;
@@ -35,20 +34,20 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
   string read;
   C2T(orginal_read, read_len, read);
 
-  uint64_t hash_value = getHashValue(&(read[0]), HASHLEN);
+  uint32_t hash_value = getHashValue(&(read[0]));
   HashTable::const_iterator it = hash_table.find(hash_value);
   if (it == hash_table.end())
     return;
 
   for (uint32_t j = 0; j < it->second.size(); ++j) {
-    const Chromosome& chrom = genome[it->second[j].first];
-    if (it->second[j].second + read_len >= chrom.length)
+    const Chromosome& chrom = genome[it->second[j].chrom_id];
+    if (it->second[j].chrom_pos + read_len >= chrom.length)
       return;
 
     /* check the position */
     uint32_t num_of_mismatch = 0;
-    for (uint32_t q = it->second[j].second + HASHLEN, p = HASHLEN; p < read_len;
-        ++q, ++p) {
+    for (uint32_t q = it->second[j].chrom_pos + HASHLEN, p = HASHLEN;
+        p < read_len; ++q, ++p) {
       if (chrom.sequence[q] != read[p]) {
         num_of_mismatch++;
       }
@@ -57,7 +56,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
     }
 
     if (num_of_mismatch < best_match.mismatch) {
-      best_match = BestMatch(it->second[j].first, it->second[j].second, 1,
+      best_match = BestMatch(it->second[j].chrom_id, it->second[j].chrom_pos, 1,
                              num_of_mismatch);
     } else if (best_match.mismatch == num_of_mismatch) {
       best_match.times++;

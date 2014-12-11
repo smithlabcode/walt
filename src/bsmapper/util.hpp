@@ -20,9 +20,29 @@ using std::ostream;
 using std::cerr;
 using std::endl;
 
-//#define HASHLEN 13
-#define MAX_LINE_LEN 100000
+#define HASHLEN 21
+const uint32_t F2SEEDPATTERN_WIGTH = 12;
 
+
+const uint32_t F2SEEDPATTERN[] = {
+                       /* 1 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 2 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 3 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 4 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 5 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 6 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 7 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 8 */  1, 1, 1, 0, 1, 0, 0, //
+                       /* 9 */  1, 1, 1, 0, 1, 0, 0, //
+                      /* 10 */  1, 1, 1, 0, 1, 0, 0, //
+                      /* 11 */  1, 1, 1, 0, 1, 0, 0, //
+                      /* 12 */  1, 1, 1, 0, 1, 0, 0, //
+                      /* 13 */  1, 1, 1, 0, 1, 0, 0, //
+                      /* 14 */  1, 1, 1, 0, 1, 0, 0, //
+                    };
+
+
+#define MAX_LINE_LEN 100000
 const double GB = 1024 * 1024 * 1024;
 
 inline void MemoryAllocateCheck(void* pointer, const char* file, int line) {
@@ -114,9 +134,10 @@ inline char complimentBase(const char& nt) {
 }
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
-inline uint64_t getHashValue(const char* nucleotides, const uint32_t& HASHLEN) {
-  uint64_t hash_value = 0;
+inline uint32_t getHashValue(const char* nucleotides) {
+  uint32_t hash_value = 0;
   for (uint32_t i = 0; i < HASHLEN; ++i) {
+    if(!F2SEEDPATTERN[i]) continue;
     hash_value <<= 2;
     hash_value += getBits(nucleotides[i]);
   }

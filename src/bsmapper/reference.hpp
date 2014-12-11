@@ -41,11 +41,20 @@ struct Chromosome {
 /* Genome contains several Chromosomes */
 typedef vector<Chromosome> Genome;
 
-/* GenomePosition is a pair, the first indicates the chrom_id and
- * the second indicates the position in the chromosome */
-typedef pair<uint8_t, uint32_t> GenomePosition;
+struct GenomePosition {
+  GenomePosition(const uint32_t& _chrom_id, const uint32_t& _chrom_pos)
+      : chrom_id(_chrom_id),
+        chrom_pos(_chrom_pos) {
+  }
+  GenomePosition() {
+    chrom_id = 0;
+    chrom_pos = 0;
+  }
+  uint32_t chrom_id;
+  uint32_t chrom_pos;
+};
 
-typedef std::tr1::unordered_map<uint64_t, vector<GenomePosition> > HashTable;
+typedef std::tr1::unordered_map<uint32_t, vector<GenomePosition> > HashTable;
 
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
@@ -54,16 +63,15 @@ void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
  * from the chrom_files, then build hash tables for them, each chromosome has their
  * own hash table */
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
-                             HashTable* hash_table, const uint32_t& HASHLEN);
+                             HashTable* hash_table);
 
 /* After building the hash table for all the chromosomes, write them to the disk.
  * Next time when mapping the reads, first should using ReadIndex function to read
  * the chromosomes and hash tables */
 void WriteIndex(const string& index_file, const Genome& genome,
-                const HashTable& hash_table, const uint32_t& HASHLEN);
+                const HashTable& hash_table);
 
 /* read the chromosomes and hash tables from the disk */
-void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table,
-               uint32_t& HASHLEN);
+void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table);
 
 #endif /* REFERENCE_H_ */
