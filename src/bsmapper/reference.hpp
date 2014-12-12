@@ -64,6 +64,10 @@ void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
  * own hash table */
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
                              HashTable* hash_table);
+/* Sort each bucket, if the seed lenght is more than 12, then use binary search for
+ * the left part of the seed */
+void SortHashTableBucket(const Genome* genome, HashTable * hash_table);
+
 
 /* After building the hash table for all the chromosomes, write them to the disk.
  * Next time when mapping the reads, first should using ReadIndex function to read

@@ -73,12 +73,12 @@ struct SortHashTableBucketCMP {
     uint32_t l2 = (*genome)[p2.chrom_id].length;
     char c1, c2;
     uint32_t end = 2 * HASHLEN;
-    for (uint32_t j = 0; j < end; j++) {
+    for (uint32_t j = 0; j < end; j++, s1++, s2++) {
       if (!F2SEEDPATTERN[j])
         continue;
-      if (s1 == l1)
+      if (s1 >= l1)
         return true;
-      if (s2 == l2)
+      if (s2 >= l2)
         return false;
 
       c1 = (*genome)[p1.chrom_id].sequence[s1];
@@ -87,9 +87,6 @@ struct SortHashTableBucketCMP {
         return true;
       else if (c1 > c2)
         return false;
-
-      s1++;
-      s2++;
     }
     return false;
   }
@@ -166,8 +163,6 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
     BuildHashTable(&chrom_rc, 2 * i + 1, hash_table);
   }
   cerr << endl;
-
-  TIME_INFO(SortHashTableBucket(genome, hash_table), "SORT BUCKETS");
 }
 
 void WriteIndex(const string& index_file, const Genome& genome,
