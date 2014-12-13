@@ -147,6 +147,8 @@ int main(int argc, const char **argv) {
     clock_t start_t, end_t;
     start_t = clock();
 
+    cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
+
     ifstream fin(reads_file.c_str());
     if (!fin) {
       throw SMITHLABException("cannot open input file " + reads_file);
@@ -163,6 +165,7 @@ int main(int argc, const char **argv) {
       uint32_t read_width = read_seqs[0].size();
       if (max_mismatches == std::numeric_limits<size_t>::max()) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
+        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]" << endl;
       }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {

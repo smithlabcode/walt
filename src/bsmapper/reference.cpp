@@ -232,7 +232,7 @@ void ReadIndex(const string& index_file, Genome* genome,
   char chrom_name[256];
   uint32_t chrom_name_len, chrom_length;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cerr << "[" << i << "/" << num_of_chroms << "]";
+    cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
     /* read chromosome from disk */
     FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
@@ -255,7 +255,13 @@ void ReadIndex(const string& index_file, Genome* genome,
   uint32_t num_of_keys = 0, num_of_values = 0;
   uint32_t hash_key = 0;
   FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
+  uint32_t precent = 10;
+  cerr << "[READING HASH TABLE] ";
   for (uint32_t j = 0; j < num_of_keys; ++j) {
+    if(100 * j /  num_of_keys > precent) {
+      cerr << precent << "%..";
+      precent += 10;
+    }
     FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
     vector<GenomePosition> hash_values(num_of_values);
@@ -265,6 +271,7 @@ void ReadIndex(const string& index_file, Genome* genome,
 
     hash_table->insert(make_pair(hash_key, hash_values));
   }
-
+  cerr << "100%" << endl;
+  
   fclose(fin);
 }
