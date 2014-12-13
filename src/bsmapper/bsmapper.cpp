@@ -74,8 +74,7 @@ int main(int argc, const char **argv) {
     string outfile;
     size_t max_mismatches = std::numeric_limits<size_t>::max();
     size_t n_reads_to_process = std::numeric_limits<size_t>::max();
-    int num_top_diags = 50;
-    int num_of_threads = 1;
+    uint32_t seed_length = 14;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
@@ -91,14 +90,18 @@ int main(int argc, const char **argv) {
         true, reads_file);
 
     opt_parse.add_opt("output", 'o', "output file name", true, outfile);
+    opt_parse.add_opt("seedlength", 'l', "the length of the space seed", false,
+                      seed_length);
     opt_parse.add_opt("mismatch", 'm', "maximum allowed mismatches", false,
                       max_mismatches);
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
-    opt_parse.add_opt("diag", 'd', "number of diags for linear check", false,
-                      num_top_diags);
-    opt_parse.add_opt("thread", 't', "number of threads", false,
-                      num_of_threads);
+
+    if (seed_length < F2SEEDWIGTH) {
+      cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
+      return EXIT_SUCCESS;
+    }
+
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
@@ -168,7 +171,8 @@ int main(int argc, const char **argv) {
 
       cerr << "[START MAPPING]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j]);
+        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
+                         seed_length);
       }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {

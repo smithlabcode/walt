@@ -68,6 +68,8 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
  * the left part of the seed */
 void SortHashTableBucket(const Genome* genome, HashTable * hash_table);
 
+/* Output the Hash Table to a human readable file for testing */
+void TestHashTable(const Genome& genome, const HashTable& hash_table);
 
 /* After building the hash table for all the chromosomes, write them to the disk.
  * Next time when mapping the reads, first should using ReadIndex function to read

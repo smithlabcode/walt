@@ -5,6 +5,7 @@
 #include "reference.hpp"
 #include "smithlab_os.hpp"
 
+#include <fstream>
 #include <algorithm>
 
 void IdentifyChromosomes(const string& chrom_file,
@@ -67,25 +68,20 @@ struct SortHashTableBucketCMP {
       : genome(_genome) {
   }
   bool operator()(const GenomePosition& p1, const GenomePosition& p2) {
-    uint32_t s1 = p1.chrom_pos + HASHLEN;
-    uint32_t s2 = p2.chrom_pos + HASHLEN;
+    const char* c_seq1 = &((*genome)[p1.chrom_id].sequence[p1.chrom_pos]);
+    const char* c_seq2 = &((*genome)[p2.chrom_id].sequence[p2.chrom_pos]);
     uint32_t l1 = (*genome)[p1.chrom_id].length;
     uint32_t l2 = (*genome)[p2.chrom_id].length;
-    char c1, c2;
-    uint32_t end = 2 * HASHLEN;
-    for (uint32_t j = 0; j < end; j++, s1++, s2++) {
-      if (!F2SEEDPATTERN[j])
-        continue;
-      if (s1 >= l1)
+
+    for (uint32_t j = F2SEEDWIGTH; j < 32; ++j) {
+      if (F2SEEDPAOSITION[j] >= l1)
         return true;
-      if (s2 >= l2)
+      if (F2SEEDPAOSITION[j] >= l2)
         return false;
 
-      c1 = (*genome)[p1.chrom_id].sequence[s1];
-      c2 = (*genome)[p2.chrom_id].sequence[s2];
-      if (c1 < c2)
+      if (c_seq1[F2SEEDPAOSITION[j]] < c_seq2[F2SEEDPAOSITION[j]])
         return true;
-      else if (c1 > c2)
+      else if (c_seq1[F2SEEDPAOSITION[j]] > c_seq2[F2SEEDPAOSITION[j]])
         return false;
     }
     return false;
@@ -94,12 +90,30 @@ struct SortHashTableBucketCMP {
 };
 
 void SortHashTableBucket(const Genome* genome, HashTable * hash_table) {
-  cerr << "[SORTING HASH TABLE BUCKETS] " << endl;
+  cerr << "[SORTING BUCKETS FOR HASH TABLE] " << endl;
   for (HashTable::iterator it = hash_table->begin(); it != hash_table->end();
       ++it) {
     std::sort(it->second.begin(), it->second.end(),
               SortHashTableBucketCMP(genome));
   }
+}
+
+void TestHashTable(const Genome& genome, const HashTable& hash_table) {
+  cerr << "[TEST HASH TABLE] " << endl;
+  std::ofstream fout("test.txt");
+  for (HashTable::const_iterator it = hash_table.begin();
+      it != hash_table.end(); ++it) {
+    for (uint32_t i = 0; i < it->second.size(); ++i) {
+      const char* seq = &(genome[it->second[i].chrom_id].sequence[it->second[i]
+          .chrom_pos]);
+      for (uint32_t k = 0; k < 32; ++k) {
+        fout << seq[F2SEEDPAOSITION[k]];
+      }
+      fout << " " << it->first << " " << it->second[i].chrom_pos << std::endl;
+    }
+    fout << "-----------------------------------" << endl;
+  }
+  fout.close();
 }
 
 void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
