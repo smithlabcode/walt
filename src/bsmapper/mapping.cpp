@@ -107,8 +107,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
     /* check the position */
     uint32_t num_of_mismatch = 0;
-    for (uint32_t q = it->second[j].chrom_pos + HASHLEN, p = HASHLEN;
-        p < read_len; ++q, ++p) {
+    for (uint32_t q = it->second[j].chrom_pos, p = 0; p < read_len; ++q, ++p) {
       if (chrom.sequence[q] != read[p]) {
         num_of_mismatch++;
       }
