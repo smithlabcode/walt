@@ -165,7 +165,8 @@ int main(int argc, const char **argv) {
       uint32_t read_width = read_seqs[0].size();
       if (max_mismatches == std::numeric_limits<size_t>::max()) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
-        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]" << endl;
+        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
+             << endl;
       }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {

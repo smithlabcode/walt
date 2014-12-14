@@ -26,14 +26,14 @@ void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
 }
 
 uint32_t LowerBound(uint32_t low, uint32_t high, const char& chr,
-                    const uint32_t& cmp_pos,
-                    const vector<GenomePosition>& positions,
+                    const uint32_t& cmp_pos, const HashTable& hash_table,
                     const Genome& genome) {
   uint32_t mid = 0;
   while (low < high) {
     mid = (low + high) / 2;
-    char c = genome[positions[mid].chrom_id].sequence[positions[mid].chrom_pos
-        + F2SEEDPAOSITION[cmp_pos]];
+    char c =
+        genome[hash_table.index[mid].chrom_id].sequence[hash_table.index[mid]
+            .chrom_pos + F2SEEDPAOSITION[cmp_pos]];
     if (c >= chr) {
       high = mid;
     } else {
@@ -44,14 +44,14 @@ uint32_t LowerBound(uint32_t low, uint32_t high, const char& chr,
 }
 
 uint32_t UpperBound(uint32_t low, uint32_t high, const char& chr,
-                    const uint32_t& cmp_pos,
-                    const vector<GenomePosition>& positions,
+                    const uint32_t& cmp_pos, const HashTable& hash_table,
                     const Genome& genome) {
   uint32_t mid = 0;
   while (low < high) {
     mid = (low + high + 1) / 2;
-    char c = genome[positions[mid].chrom_id].sequence[positions[mid].chrom_pos
-        + F2SEEDPAOSITION[cmp_pos]];
+    char c =
+        genome[hash_table.index[mid].chrom_id].sequence[hash_table.index[mid]
+            .chrom_pos + F2SEEDPAOSITION[cmp_pos]];
     if (c <= chr) {
       low = mid;
     } else {
@@ -61,19 +61,26 @@ uint32_t UpperBound(uint32_t low, uint32_t high, const char& chr,
   return low;
 }
 
-void GetRegion(const string& read, const vector<GenomePosition>& positions,
-               const Genome& genome, const uint32_t& seed_length,
+void GetRegion(const string& read, const Genome& genome,
+               const HashTable& hash_table, const uint32_t& seed_length,
                pair<uint32_t, uint32_t>& region) {
   region.first = 1;
   region.second = 0;
 
-  if (positions.size() == 0)
+  uint32_t hash_value = getHashValue(read.c_str());
+
+  uint64_t l = hash_table.counter[hash_value];
+  if (hash_table.counter[hash_value + 1] == 0)
     return;
 
-  uint32_t l = 0, u = positions.size() - 1;
+  uint64_t u = hash_table.counter[hash_value + 1] - 1;
+
+  if (l > u)
+    return;
+
   for (uint32_t p = F2SEEDWIGTH; p < seed_length; ++p) {
-    l = LowerBound(l, u, read[F2SEEDPAOSITION[p]], p, positions, genome);
-    u = UpperBound(l, u, read[F2SEEDPAOSITION[p]], p, positions, genome);
+    l = LowerBound(l, u, read[F2SEEDPAOSITION[p]], p, hash_table, genome);
+    u = UpperBound(l, u, read[F2SEEDPAOSITION[p]], p, hash_table, genome);
   }
   if (l > u)
     return;
@@ -92,22 +99,18 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
   string read;
   C2T(orginal_read, read_len, read);
 
-  uint32_t hash_value = getHashValue(read.c_str());
-  HashTable::const_iterator it = hash_table.find(hash_value);
-  if (it == hash_table.end())
-    return;
-
   pair<uint32_t, uint32_t> region;
-  GetRegion(read, it->second, genome, seed_length, region);
+  GetRegion(read, genome, hash_table, seed_length, region);
 
   for (uint32_t j = region.first; j <= region.second; ++j) {
-    const Chromosome& chrom = genome[it->second[j].chrom_id];
-    if (it->second[j].chrom_pos + read_len >= chrom.length)
+    GenomePosition pos = hash_table.index[j];
+    const Chromosome& chrom = genome[pos.chrom_id];
+    if (pos.chrom_pos + read_len >= chrom.length)
       return;
 
     /* check the position */
     uint32_t num_of_mismatch = 0;
-    for (uint32_t q = it->second[j].chrom_pos, p = 0; p < read_len; ++q, ++p) {
+    for (uint32_t q = pos.chrom_pos, p = 0; p < read_len; ++q, ++p) {
       if (chrom.sequence[q] != read[p]) {
         num_of_mismatch++;
       }
@@ -116,8 +119,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
     }
 
     if (num_of_mismatch < best_match.mismatch) {
-      best_match = BestMatch(it->second[j].chrom_id, it->second[j].chrom_pos, 1,
-                             num_of_mismatch);
+      best_match = BestMatch(pos.chrom_id, pos.chrom_pos, 1, num_of_mismatch);
     } else if (best_match.mismatch == num_of_mismatch) {
       best_match.times++;
     }

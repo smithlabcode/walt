@@ -15,13 +15,11 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <tr1/unordered_map>
 
 using std::string;
 using std::vector;
 using std::pair;
 using std::make_pair;
-using std::tr1::unordered_map;
 
 struct Chromosome {
   /* chromoseome name */
@@ -54,7 +52,24 @@ struct GenomePosition {
   uint32_t chrom_pos;
 };
 
-typedef std::tr1::unordered_map<uint32_t, vector<GenomePosition> > HashTable;
+/*
+ * HashTable stores positions in the genome for each k-mer
+ */
+struct HashTable {
+  /* counter_size is the size of counter array */
+  uint32_t counter_size;
+
+  /* index_size is the size of index array */
+  uint64_t index_size;
+
+  /* counter is an array which indicates the start position of k-mers in index array.
+   * So the hash key is the k-mer (transfered to integer), and the hash value is the
+   * start position for the partiular k-mer in the index array */
+  vector<uint64_t> counter;
+
+  /* index array stores positions for all k-mer */
+  vector<GenomePosition> index;
+};
 
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
@@ -62,11 +77,12 @@ void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
 /* get the data for the struct of Chromosome, first read the chromosome sequence
  * from the chrom_files, then build hash tables for them, each chromosome has their
  * own hash table */
-void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
-                             HashTable* hash_table);
-/* Sort each bucket, if the seed lenght is more than 12, then use binary search for
- * the left part of the seed */
-void SortHashTableBucket(const Genome* genome, HashTable * hash_table);
+void ReadGenome(const vector<string>& chrom_files, Genome* genome);
+
+/* build hash table contains three parts, first count how many position for each
+ * k-mer, and then put the position to the index array, and finally sort each
+ * bucket */
+void BuildHashTable(const Genome& genome, HashTable* hash_table);
 
 /* Output the Hash Table to a human readable file for testing */
 void TestHashTable(const Genome& genome, const HashTable& hash_table);

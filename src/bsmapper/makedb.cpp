@@ -59,12 +59,10 @@ int main(int argc, const char **argv) {
 
     Genome genome;
     HashTable hash_table;
-    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, &hash_table),
-              "READ CHROMOSOMES AND BUILD INDEX");
-    TIME_INFO(SortHashTableBucket(&genome, &hash_table), "SORT BUCKETS");
+    TIME_INFO(ReadGenome(chrom_files, &genome), "READ CHROMOSOMES");
+    TIME_INFO(BuildHashTable(genome, &hash_table), "BUILD HASH TABLE");
     TIME_INFO(WriteIndex(outfile, genome, hash_table), "WRITE INDEX");
     //TIME_INFO(TestHashTable(genome, hash_table), "TEST HASH TABLE");
-
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;
