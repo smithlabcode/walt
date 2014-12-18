@@ -73,7 +73,7 @@ struct SortHashTableBucketCMP {
     uint32_t l1 = (*genome)[p1.chrom_id].length;
     uint32_t l2 = (*genome)[p2.chrom_id].length;
 
-    for (uint32_t j = F2SEEDWIGTH; j < 32; ++j) {
+    for (uint32_t j = F2SEEDWIGTH; j < F2SEEDPOSITION_SIZE; ++j) {
       if (F2SEEDPOSITION[j] >= l1)
         return true;
       if (F2SEEDPOSITION[j] >= l2)

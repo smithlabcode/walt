@@ -23,8 +23,8 @@ using std::endl;
 //#define DEBUG
 #define HASHLEN 21
 const uint32_t F2SEEDWIGTH = 12;
-
-const uint32_t F2SEEDPATTERNx[] = {
+const uint32_t F2SEEDPOSITION_SIZE = 60;
+const uint32_t F2SEEDPATTERN[] = {
      /* 1 */1, 1, 1, 0, 1, 0, 0,  //
      /* 2 */1, 1, 1, 0, 1, 0, 0,  //
      /* 3 */1, 1, 1, 0, 1, 0, 0,  //
@@ -39,6 +39,7 @@ const uint32_t F2SEEDPATTERNx[] = {
     /* 12 */1, 1, 1, 0, 1, 0, 0,  //
     /* 13 */1, 1, 1, 0, 1, 0, 0,  //
     /* 14 */1, 1, 1, 0, 1, 0, 0,  //
+    /* 15 */1, 1, 1, 0, 1, 0, 0   //
     };
 
 const uint32_t F2SEEDPOSITION[] = {
@@ -56,6 +57,7 @@ const uint32_t F2SEEDPOSITION[] = {
     /* 12 */77, 78, 79, 81,  //
     /* 13 */84, 85, 86, 88,  //
     /* 14 */91, 92, 93, 95,  //
+    /* 15 */98, 99, 100, 102 //
     };
 
 #define MAX_LINE_LEN 100000

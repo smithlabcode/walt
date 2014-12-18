@@ -27,8 +27,7 @@ void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
                             vector<string>& read_seqs,
                             vector<string>& read_scores) {
 
-  cerr << "[LOADING READS FROM " << read_start_idx << " TO "
-       << n_reads_to_process + read_start_idx << "]" << endl;
+  cerr << "[LOADING READS]" << endl;
 
   string line;
   int line_code = 0;
@@ -173,7 +172,8 @@ int main(int argc, const char **argv) {
         map_results[j] = best_match;
       }
 
-      cerr << "[START MAPPING]" << endl;
+      cerr << "[START MAPPING READS FROM " << i << " TO "
+       << num_of_reads + i << "]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         DEBUG_INFO(read_names[j], "\n");
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],

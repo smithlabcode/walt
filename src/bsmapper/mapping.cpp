@@ -1,8 +1,5 @@
 #include "mapping.hpp"
 
-#include <queue>
-using std::priority_queue;
-
 string ReverseComplimentStrand(const string& read) {
   string reverse_complement_read;
   uint32_t read_len = read.size();
