@@ -160,14 +160,10 @@ inline char complimentBase(const char& nt) {
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
-  DEBUG_INFO("HASHVALUE: ", "");
   for (uint32_t i = 0; i < F2SEEDWIGTH; ++i) {
-    DEBUG_INFO(nucleotides[F2SEEDPOSITION[i]], "");
     hash_value <<= 2;
     hash_value += getBits(nucleotides[F2SEEDPOSITION[i]]);
   }
-  DEBUG_INFO("\n", "");
-  DEBUG_INFO(hash_value, "\n");
   return hash_value;
 }
 

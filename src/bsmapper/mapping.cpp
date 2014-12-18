@@ -91,7 +91,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
   string read;
   C2T(orginal_read, read_len, read);
-  for (int seed_i = 0; seed_i < 7; ++seed_i) {
+  for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     HashTable::const_iterator it = hash_table.find(hash_value);
@@ -101,14 +101,17 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
     pair<uint32_t, uint32_t> region;
     GetRegion(read_seed, it->second, genome, seed_length, region);
     for (uint32_t j = region.first; j <= region.second; ++j) {
+      if(it->second[j].chrom_pos < seed_i)
+        continue;
       uint32_t chrom_pos = it->second[j].chrom_pos - seed_i;
       const Chromosome& chrom = genome[it->second[j].chrom_id];
       if (chrom_pos + read_len >= chrom.length)
-        return;
-
+        continue;
+        
       /* check the position */
       uint32_t num_of_mismatch = 0;
       for (uint32_t q = chrom_pos, p = 0; p < read_len; ++q, ++p) {
+
         if (chrom.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
