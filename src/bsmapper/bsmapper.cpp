@@ -175,7 +175,6 @@ int main(int argc, const char **argv) {
 
       cerr << "[START MAPPING]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        cerr  << "j = " << j << endl;
         DEBUG_INFO(read_names[j], "\n");
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
                          seed_length);
