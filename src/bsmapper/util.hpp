@@ -20,19 +20,20 @@ using std::ostream;
 using std::cerr;
 using std::endl;
 
+//#define DEBUG
 #define HASHLEN 21
 const uint32_t F2SEEDWIGTH = 12;
 
 const uint32_t F2SEEDPATTERNx[] = {
-/* 1 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 2 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 3 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 4 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 5 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 6 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 7 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 8 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 9 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 1 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 2 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 3 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 4 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 5 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 6 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 7 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 8 */1, 1, 1, 0, 1, 0, 0,  //
+     /* 9 */1, 1, 1, 0, 1, 0, 0,  //
     /* 10 */1, 1, 1, 0, 1, 0, 0,  //
     /* 11 */1, 1, 1, 0, 1, 0, 0,  //
     /* 12 */1, 1, 1, 0, 1, 0, 0,  //
@@ -40,16 +41,16 @@ const uint32_t F2SEEDPATTERNx[] = {
     /* 14 */1, 1, 1, 0, 1, 0, 0,  //
     };
 
-const uint32_t F2SEEDPAOSITION[] = {
-/* 1 */0, 1, 2, 4,  //
-    /* 2 */7, 8, 9, 11,  //
-    /* 3 */14, 15, 16, 18,  //
-    /* 4 */21, 22, 23, 25,  //
-    /* 5 */28, 29, 30, 32,  //
-    /* 6 */35, 36, 37, 39,  //
-    /* 7 */42, 43, 44, 46,  //
-    /* 8 */49, 50, 51, 53,  //
-    /* 9 */56, 57, 58, 60,  //
+const uint32_t F2SEEDPOSITION[] = {
+     /* 1 */0,   1,  2, 4,  //
+     /* 2 */7,   8,  9, 11,  //
+     /* 3 */14, 15, 16, 18,  //
+     /* 4 */21, 22, 23, 25,  //
+     /* 5 */28, 29, 30, 32,  //
+     /* 6 */35, 36, 37, 39,  //
+     /* 7 */42, 43, 44, 46,  //
+     /* 8 */49, 50, 51, 53,  //
+     /* 9 */56, 57, 58, 60,  //
     /* 10 */63, 64, 65, 67,  //
     /* 11 */70, 71, 72, 74,  //
     /* 12 */77, 78, 79, 81,  //
@@ -84,6 +85,14 @@ inline void FileOpenCheck(FILE* pfile, const char* file, int line) {
     exit(EXIT_FAILURE); \
   } \
 }
+
+#ifdef DEBUG
+#define DEBUG_INFO(msg, delim) { \
+  cerr << msg << delim; \
+}
+#else
+#define DEBUG_INFO(msg, delim)
+#endif
 
 #define TIME_INFO(func, msg) { \
   clock_t start_t, end_t; \
@@ -151,10 +160,14 @@ inline char complimentBase(const char& nt) {
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
+  DEBUG_INFO("HASHVALUE: ", "");
   for (uint32_t i = 0; i < F2SEEDWIGTH; ++i) {
+    DEBUG_INFO(nucleotides[F2SEEDPOSITION[i]], "");
     hash_value <<= 2;
-    hash_value += getBits(nucleotides[F2SEEDPAOSITION[i]]);
+    hash_value += getBits(nucleotides[F2SEEDPOSITION[i]]);
   }
+  DEBUG_INFO("\n", "");
+  DEBUG_INFO(hash_value, "\n");
   return hash_value;
 }
 

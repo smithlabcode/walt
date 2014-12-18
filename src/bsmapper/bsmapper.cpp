@@ -155,7 +155,6 @@ int main(int argc, const char **argv) {
     }
     ofstream fout(outfile.c_str());
     uint32_t num_of_reads;
-    BestMatch best_match(0, 0, 0, max_mismatches);
     vector<BestMatch> map_results(n_reads_to_process);
     for (uint64_t i = 0;; i += n_reads_to_process) {
       LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads,
@@ -165,15 +164,18 @@ int main(int argc, const char **argv) {
       uint32_t read_width = read_seqs[0].size();
       if (max_mismatches == std::numeric_limits<size_t>::max()) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
-        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]" << endl;
+        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
+             << endl;
       }
 
+      BestMatch best_match(0, 0, 0, max_mismatches);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         map_results[j] = best_match;
       }
 
       cerr << "[START MAPPING]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
+        DEBUG_INFO(read_names[j], "\n");
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
                          seed_length);
       }

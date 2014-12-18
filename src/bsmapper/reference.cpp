@@ -74,14 +74,14 @@ struct SortHashTableBucketCMP {
     uint32_t l2 = (*genome)[p2.chrom_id].length;
 
     for (uint32_t j = F2SEEDWIGTH; j < 32; ++j) {
-      if (F2SEEDPAOSITION[j] >= l1)
+      if (F2SEEDPOSITION[j] >= l1)
         return true;
-      if (F2SEEDPAOSITION[j] >= l2)
+      if (F2SEEDPOSITION[j] >= l2)
         return false;
 
-      if (c_seq1[F2SEEDPAOSITION[j]] < c_seq2[F2SEEDPAOSITION[j]])
+      if (c_seq1[F2SEEDPOSITION[j]] < c_seq2[F2SEEDPOSITION[j]])
         return true;
-      else if (c_seq1[F2SEEDPAOSITION[j]] > c_seq2[F2SEEDPAOSITION[j]])
+      else if (c_seq1[F2SEEDPOSITION[j]] > c_seq2[F2SEEDPOSITION[j]])
         return false;
     }
     return false;
@@ -107,9 +107,14 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
       const char* seq = &(genome[it->second[i].chrom_id].sequence[it->second[i]
           .chrom_pos]);
       for (uint32_t k = 0; k < 32; ++k) {
-        fout << seq[F2SEEDPAOSITION[k]];
+        fout << seq[F2SEEDPOSITION[k]];
       }
-      fout << " " << it->first << " " << it->second[i].chrom_pos << std::endl;
+      fout << " ";
+      for (uint32_t k = 0; k < 32; ++k) {
+        fout << seq[k];
+      }
+      fout << " " << i << " " << it->first << " " << it->second[i].chrom_pos
+           << std::endl;
     }
     fout << "-----------------------------------" << endl;
   }
@@ -258,7 +263,7 @@ void ReadIndex(const string& index_file, Genome* genome,
   uint32_t precent = 10;
   cerr << "[READING HASH TABLE] ";
   for (uint32_t j = 0; j < num_of_keys; ++j) {
-    if(100 * j /  num_of_keys > precent) {
+    if (100 * j / num_of_keys > precent) {
       cerr << precent << "%..";
       precent += 10;
     }
@@ -272,6 +277,6 @@ void ReadIndex(const string& index_file, Genome* genome,
     hash_table->insert(make_pair(hash_key, hash_values));
   }
   cerr << "100%" << endl;
-  
+
   fclose(fin);
 }
