@@ -104,18 +104,17 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
       const Chromosome& chrom = genome[it->second[j].chrom_id];
       if (chrom_pos + read_len >= chrom.length)
         continue;
-        
+
       /* check the position */
       uint32_t num_of_mismatch = 0;
       for (uint32_t q = chrom_pos, p = 0; p < read_len; ++q, ++p) {
-
         if (chrom.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
         if (num_of_mismatch > best_match.mismatch)
           break;
       }
-
+      
       if (num_of_mismatch < best_match.mismatch) {
         best_match = BestMatch(it->second[j].chrom_id, chrom_pos, 1,
                                num_of_mismatch);

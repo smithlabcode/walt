@@ -146,8 +146,6 @@ int main(int argc, const char **argv) {
     clock_t start_t, end_t;
     start_t = clock();
 
-    cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
-
     ifstream fin(reads_file.c_str());
     if (!fin) {
       throw SMITHLABException("cannot open input file " + reads_file);
@@ -167,6 +165,15 @@ int main(int argc, const char **argv) {
              << endl;
       }
 
+
+      if(F2SEEDPOSITION[seed_length - 1] >= read_width - 6) {
+        cerr << "[THE SEED LENGHT SHOULD BE LESS FOR THIS READ LENGTH]" << endl;
+        fin.close();
+        fout.close();
+        return EXIT_FAILURE;
+      } else {
+        cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
+      }
       BestMatch best_match(0, 0, 0, max_mismatches);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         map_results[j] = best_match;
