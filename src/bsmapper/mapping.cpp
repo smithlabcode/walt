@@ -107,12 +107,11 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
       /* check the position */
       uint32_t num_of_mismatch = 0;
-      for (uint32_t q = chrom_pos, p = 0; p < read_len; ++q, ++p) {
+      int p = read_len - 1;
+      for(uint32_t q = chrom_pos + read_len - 1; p >= 0 && num_of_mismatch <= best_match.mismatch;q--, p--) { 
         if (chrom.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
-        if (num_of_mismatch > best_match.mismatch)
-          break;
       }
       
       if (num_of_mismatch < best_match.mismatch) {
