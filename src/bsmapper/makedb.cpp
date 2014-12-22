@@ -1,5 +1,6 @@
 /*
  * This is the main function for building index for reference genome.
+ * Copyright [2014] < >
  */
 #include <string>
 #include <vector>

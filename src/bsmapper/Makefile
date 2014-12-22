@@ -9,7 +9,7 @@ endif
 PROGS = makedb bsmapper
 
 CXX = g++
-CFLAGS = -Wall -O3 -fPIC -fmessage-length=50 -g
+CFLAGS = -Wall -O3 -fPIC -fmessage-length=50
 
 TEST_DIR = $(SRC_ROOT)/test
 

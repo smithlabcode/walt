@@ -48,7 +48,7 @@ void N2ACGT(Chromosome* chrom) {
   srand(time(NULL));
   for (uint32_t i = 0; i < chrom->length; ++i) {
     if ('N' == chrom->sequence[i]) {
-      //int r = rand() % 4;
+      // int r = rand() % 4;
       int r = 3;
       chrom->sequence[i] = getNT(r);
     }
@@ -64,7 +64,7 @@ void C2T(Chromosome* chrom) {
 }
 
 struct SortHashTableBucketCMP {
-  SortHashTableBucketCMP(const Genome* _genome)
+  explicit SortHashTableBucketCMP(const Genome* _genome)
       : genome(_genome) {
   }
   bool operator()(const GenomePosition& p1, const GenomePosition& p2) {
@@ -191,7 +191,6 @@ void WriteIndex(const string& index_file, const Genome& genome,
 
   uint32_t num_of_chroms = genome.size();
   fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
-  char chrom_name[256];
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
     /* write chromosome to disk */
     uint32_t chrom_name_len = genome[i].name.size();
@@ -199,8 +198,7 @@ void WriteIndex(const string& index_file, const Genome& genome,
       chrom_name_len = 255;
     }
     fwrite(&chrom_name_len, sizeof(uint32_t), 1, fout);
-    strcpy(chrom_name, genome[i].name.substr(0, chrom_name_len).c_str());
-    fwrite(chrom_name, sizeof(char), chrom_name_len, fout);
+    fwrite(genome[i].name.c_str(), sizeof(char), chrom_name_len, fout);
     fwrite(&(genome[i].length), sizeof(uint32_t), 1, fout);
     fwrite(&(genome[i].strand), sizeof(char), 1, fout);
     fwrite(&(genome[i].sequence[0]), sizeof(char), genome[i].length, fout);

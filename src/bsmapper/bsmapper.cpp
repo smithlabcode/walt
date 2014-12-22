@@ -1,5 +1,6 @@
 /*
  * This is the main function for bsmapper.
+ * Copyright [2014] < >
  */
 
 #include <vector>
@@ -81,7 +82,8 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt(
         "index",
         'i',
-        "index file created by build command (the suffix of the index file should be '.dbindex')",
+        "index file created by build command \
+        (the suffix of the index file should be '.dbindex')",
         true, index_file);
     opt_parse.add_opt(
         "reads", 'r',
@@ -121,8 +123,7 @@ int main(int argc, const char **argv) {
     }
     if (!is_valid_filename(reads_file, "fastq")
         && !is_valid_filename(reads_file, "fq")) {
-      cerr
-          << "The suffix of the reads file should be '.fastq', '.fq', '.fasta' or '.fa'"
+      cerr << "The suffix of the reads file should be '.fastq', '.fq'"
           << endl;
       return EXIT_SUCCESS;
     }
@@ -212,7 +213,7 @@ int main(int argc, const char **argv) {
 
     end_t = clock();
     fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
-            (double) ((end_t - start_t) / CLOCKS_PER_SEC));
+            static_cast<double>((end_t - start_t) / CLOCKS_PER_SEC));
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

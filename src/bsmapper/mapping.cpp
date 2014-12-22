@@ -1,3 +1,7 @@
+#include <utility>
+#include <string>
+#include <vector>
+
 #include "mapping.hpp"
 
 string ReverseComplimentStrand(const string& read) {
@@ -98,7 +102,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
     pair<uint32_t, uint32_t> region;
     GetRegion(read_seed, it->second, genome, seed_length, region);
     for (uint32_t j = region.first; j <= region.second; ++j) {
-      if(it->second[j].chrom_pos < seed_i)
+      if (it->second[j].chrom_pos < seed_i)
         continue;
       uint32_t chrom_pos = it->second[j].chrom_pos - seed_i;
       const Chromosome& chrom = genome[it->second[j].chrom_id];
@@ -107,13 +111,13 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
       /* check the position */
       uint32_t num_of_mismatch = 0;
-      int p = read_len - 1;
-      for(uint32_t q = chrom_pos + read_len - 1; p >= 0 && num_of_mismatch <= best_match.mismatch;q--, p--) { 
+      for (uint32_t q = chrom_pos, p = 0; p < read_len &&
+          num_of_mismatch <= best_match.mismatch; ++q, ++p) {
         if (chrom.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
       }
-      
+
       if (num_of_mismatch < best_match.mismatch) {
         best_match = BestMatch(it->second[j].chrom_id, chrom_pos, 1,
                                num_of_mismatch);
