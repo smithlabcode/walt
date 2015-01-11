@@ -22,6 +22,7 @@ using std::endl;
 
 //#define DEBUG
 #define HASHLEN 21
+#define HASHLEN2 42
 const uint32_t F2SEEDWIGTH = 12;
 const uint32_t F2SEEDPOSITION_SIZE = 60;
 const uint32_t F2SEEDPATTERN[] = {

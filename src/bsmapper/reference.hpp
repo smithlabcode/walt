@@ -27,8 +27,11 @@ struct Chromosome {
   /* chromoseome name */
   string name;
 
-  /* chromoseome length */
+  /* chromosome length */
   uint32_t length;
+
+  /* chromosome start position in the Genome */
+  uint64_t start_pos;
 
   /* There are two different strands, '+' and '-'. The one read from reference
    * file is '+', and the one got from reverse compliment rule is '-'.  */
@@ -50,6 +53,7 @@ struct GenomePosition {
     chrom_id = 0;
     chrom_pos = 0;
   }
+
   uint32_t chrom_id;
   uint32_t chrom_pos;
 };

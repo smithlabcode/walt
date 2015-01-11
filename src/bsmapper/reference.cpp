@@ -156,6 +156,13 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
 
     chrom.name = chrom_names[i];
     chrom.length = chrom_seqs[i].size();
+    if (i == 0) {
+      chrom.start_pos = 0;
+    } else {
+      chrom.start_pos = (*genome)[2 * i - 1].start_pos
+          + (*genome)[2 * i - 1].length;
+    }
+
     chrom.strand = '+';
     chrom.sequence.resize(chrom.length);
     for (uint32_t j = 0; j < chrom.length; ++j) {
@@ -167,6 +174,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
     /* reverse compliment strand */
     chrom_rc.name = chrom_names[i];
     chrom_rc.length = chrom_seqs[i].size();
+    chrom_rc.start_pos = chrom.start_pos + chrom.length;
     chrom_rc.strand = '-';
     chrom_rc.sequence.resize(chrom_rc.length);
     for (uint32_t j = 0; j < chrom_rc.length; ++j) {

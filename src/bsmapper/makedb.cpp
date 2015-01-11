@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
     HashTable hash_table;
     TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, &hash_table),
               "READ CHROMOSOMES AND BUILD INDEX");
-    TIME_INFO(SortHashTableBucket(&genome, &hash_table), "SORT BUCKETS");
+ //   TIME_INFO(SortHashTableBucket(&genome, &hash_table), "SORT BUCKETS");
     TIME_INFO(WriteIndex(outfile, genome, hash_table), "WRITE INDEX");
     //TIME_INFO(TestHashTable(genome, hash_table), "TEST HASH TABLE");
 
