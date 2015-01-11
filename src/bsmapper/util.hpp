@@ -21,9 +21,9 @@ using std::cerr;
 using std::endl;
 
 //#define DEBUG
-#define HASHLEN 21
-#define HASHLEN2 42
-const uint32_t F2SEEDWIGTH = 12;
+#define HASHLEN 42
+//#define HASHLEN2 42
+const uint32_t F2SEEDWIGTH = 24;
 const uint32_t F2SEEDPOSITION_SIZE = 60;
 const uint32_t F2SEEDPATTERN[] = {
      /* 1 */1, 1, 1, 0, 1, 0, 0,  //
@@ -161,8 +161,8 @@ inline char complimentBase(const char& nt) {
 }
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
-inline uint32_t getHashValue(const char* nucleotides) {
-  uint32_t hash_value = 0;
+inline uint64_t getHashValue(const char* nucleotides) {
+  uint64_t hash_value = 0;
   for (uint32_t i = 0; i < F2SEEDWIGTH; ++i) {
     hash_value <<= 2;
     hash_value += getBits(nucleotides[F2SEEDPOSITION[i]]);

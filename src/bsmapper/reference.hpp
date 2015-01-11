@@ -58,7 +58,7 @@ struct GenomePosition {
   uint32_t chrom_pos;
 };
 
-typedef std::tr1::unordered_map<uint32_t, vector<GenomePosition> > HashTable;
+typedef std::tr1::unordered_map<uint64_t, vector<GenomePosition> > HashTable;
 
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);

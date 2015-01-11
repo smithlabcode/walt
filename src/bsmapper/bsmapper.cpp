@@ -74,7 +74,6 @@ int main(int argc, const char **argv) {
     string outfile;
     size_t max_mismatches = std::numeric_limits<size_t>::max();
     size_t n_reads_to_process = std::numeric_limits<size_t>::max();
-    uint32_t seed_length = 14;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
@@ -91,17 +90,10 @@ int main(int argc, const char **argv) {
         true, reads_file);
 
     opt_parse.add_opt("output", 'o', "output file name", true, outfile);
-    opt_parse.add_opt("seedlength", 'l', "the length of the space seed", false,
-                      seed_length);
     opt_parse.add_opt("mismatch", 'm', "maximum allowed mismatches", false,
                       max_mismatches);
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
-
-    if (seed_length < F2SEEDWIGTH) {
-      cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
-      return EXIT_SUCCESS;
-    }
 
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
@@ -123,8 +115,7 @@ int main(int argc, const char **argv) {
     }
     if (!is_valid_filename(reads_file, "fastq")
         && !is_valid_filename(reads_file, "fq")) {
-      cerr << "The suffix of the reads file should be '.fastq', '.fq'"
-          << endl;
+      cerr << "The suffix of the reads file should be '.fastq', '.fq'" << endl;
       return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -166,26 +157,15 @@ int main(int argc, const char **argv) {
              << endl;
       }
 
-
-      if(F2SEEDPOSITION[seed_length - 1] >= read_width - 6) {
-        cerr << "[THE SEED LENGHT SHOULD BE LESS FOR THIS READ LENGTH]" << endl;
-        fin.close();
-        fout.close();
-        return EXIT_FAILURE;
-      } else {
-        cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
-      }
       BestMatch best_match(0, 0, 0, max_mismatches);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         map_results[j] = best_match;
       }
 
-      cerr << "[START MAPPING READS FROM " << i << " TO "
-       << num_of_reads + i << "]" << endl;
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        DEBUG_INFO(read_names[j], "\n");
-        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j]);
-      }
+      cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
+           << "]" << endl;
+
+      MappingAllReads(read_seqs, num_of_reads, genome, hash_table, map_results);
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         if (map_results[j].times == 0 || map_results[j].times > 1)

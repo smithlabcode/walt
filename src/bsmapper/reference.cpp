@@ -28,7 +28,7 @@ void IdentifyChromosomes(const string& chrom_file,
 void BuildHashTable(const Chromosome* chrom, const uint32_t& chrom_id,
                     HashTable* hash_table) {
   uint32_t size = 0;
-  uint32_t hash_value = 0;
+  uint64_t hash_value = 0;
   if (chrom->length < HASHLEN)
     return;
   size = chrom->length - HASHLEN;
@@ -217,8 +217,8 @@ void WriteIndex(const string& index_file, const Genome& genome,
   fwrite(&(num_of_keys), sizeof(uint32_t), 1, fout);
   for (HashTable::const_iterator it = hash_table.begin();
       it != hash_table.end(); ++it) {
-    uint32_t hash_key = it->first;
-    fwrite(&(hash_key), sizeof(uint32_t), 1, fout);
+    uint64_t hash_key = it->first;
+    fwrite(&(hash_key), sizeof(uint64_t), 1, fout);
     uint32_t num_of_values = it->second.size();
     fwrite(&(num_of_values), sizeof(uint32_t), 1, fout);
     fwrite(&(it->second[0]), sizeof(GenomePosition), num_of_values, fout);
@@ -264,7 +264,7 @@ void ReadIndex(const string& index_file, Genome* genome,
 
   /* read hash table from disk */
   uint32_t num_of_keys = 0, num_of_values = 0;
-  uint32_t hash_key = 0;
+  uint64_t hash_key = 0;
   FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
   uint32_t precent = 10;
   cerr << "[READING HASH TABLE] ";
@@ -273,7 +273,7 @@ void ReadIndex(const string& index_file, Genome* genome,
       cerr << precent << "%..";
       precent += 10;
     }
-    FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
+    FREAD_CHECK(fread(&hash_key, sizeof(uint64_t), 1, fin), 1);
     FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
     vector<GenomePosition> hash_values(num_of_values);
     FREAD_CHECK(
