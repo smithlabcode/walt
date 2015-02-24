@@ -27,11 +27,8 @@ struct Chromosome {
   /* chromoseome name */
   string name;
 
-  /* chromosome length */
+  /* chromoseome length */
   uint32_t length;
-
-  /* chromosome start position in the Genome */
-  uint64_t start_pos;
 
   /* There are two different strands, '+' and '-'. The one read from reference
    * file is '+', and the one got from reverse compliment rule is '-'.  */
@@ -53,12 +50,11 @@ struct GenomePosition {
     chrom_id = 0;
     chrom_pos = 0;
   }
-
   uint32_t chrom_id;
   uint32_t chrom_pos;
 };
 
-typedef std::tr1::unordered_map<uint64_t, vector<GenomePosition> > HashTable;
+typedef std::tr1::unordered_map<uint32_t, vector<GenomePosition> > HashTable;
 
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);

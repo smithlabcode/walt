@@ -25,9 +25,8 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
-void MappingAllReads(const vector<string>& read_seqs,
-                     const uint32_t& num_of_reads, const Genome& genome,
-                     const HashTable& hash_table,
-                     vector<BestMatch>& map_results);
+void SingleEndMapping(const string& orginal_read, const Genome& genome,
+                      const HashTable& hash_table, BestMatch& best_match,
+                      const uint32_t& seed_length);
 
 #endif /* MAPPING_HPP_ */

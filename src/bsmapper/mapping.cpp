@@ -4,9 +4,6 @@
 
 #include "mapping.hpp"
 
-#include <tr1/unordered_set>
-using std::tr1::unordered_set;
-
 string ReverseComplimentStrand(const string& read) {
   string reverse_complement_read;
   uint32_t read_len = read.size();
@@ -29,87 +26,110 @@ void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
   }
 }
 
-int smaller(const GenomePosition& a, const uint32_t& seed_i,
-            const GenomePosition& b, const uint32_t& seed_j) {
-  if (a.chrom_id < b.chrom_id)
-    return 1;
-  else if (a.chrom_id > b.chrom_id)
-    return -1;
-  else {
-    if (a.chrom_pos - seed_i < b.chrom_pos - seed_j - HASHLEN)
-      return 1;
-    else if (a.chrom_pos - seed_i > b.chrom_pos - seed_j - HASHLEN)
-      return -1;
-    return 0;
+uint32_t LowerBound(uint32_t low, uint32_t high, const char& chr,
+                    const uint32_t& cmp_pos,
+                    const vector<GenomePosition>& positions,
+                    const Genome& genome) {
+  uint32_t mid = 0;
+  while (low < high) {
+    mid = (low + high) / 2;
+    char c = genome[positions[mid].chrom_id].sequence[positions[mid].chrom_pos
+        + F2SEEDPOSITION[cmp_pos]];
+    if (c >= chr) {
+      high = mid;
+    } else {
+      low = mid + 1;
+    }
   }
+  return low;
 }
 
-void Validation(
-    const vector<string>& c2t_read_seqs, const Genome& genome,
-    const HashTable& hash_table,
-    const unordered_map<uint64_t, vector<uint32_t> >& hash_value_map2_reads,
-    const uint32_t& seed_i, vector<BestMatch>& map_results) {
-  for (unordered_map<uint64_t, vector<uint32_t> >::const_iterator it =
-      hash_value_map2_reads.begin(); it != hash_value_map2_reads.end(); ++it) {
-    HashTable::const_iterator it2 = hash_table.find(it->first);
-    for (uint32_t j = 0; j < it2->second.size(); ++j) {
-      for (uint32_t i = 0; i < it->second.size(); ++i) {
-        const GenomePosition& gp = it2->second[j];
-        const Chromosome& chrom = genome[gp.chrom_id];
-        const uint32_t& read_id = it->second[i];
-        if (gp.chrom_pos >= seed_i) {
-          uint32_t chrom_pos = gp.chrom_pos - seed_i;
-          uint32_t read_len = c2t_read_seqs[read_id].size();
-          if (chrom_pos + read_len < chrom.length) {
-            /* check the position */
-            uint32_t num_of_mismatch = 0;
-            for (uint32_t q = chrom_pos, p = 0;
-                p < read_len && num_of_mismatch <= map_results[read_id].mismatch;
-                ++q, ++p) {
-              if (chrom.sequence[q] != c2t_read_seqs[it->second[i]][p]) {
-                num_of_mismatch++;
-              }
-            }
-            if (num_of_mismatch < map_results[read_id].mismatch) {
-              map_results[read_id] = BestMatch(gp.chrom_id, chrom_pos, 1,
-                                               num_of_mismatch);
-            } else if (map_results[read_id].mismatch == num_of_mismatch) {
-              if (map_results[read_id].chrom_id != gp.chrom_id
-                  || map_results[read_id].chrom_pos != chrom_pos) {
-                map_results[read_id].chrom_id = gp.chrom_id;
-                map_results[read_id].chrom_pos = chrom_pos;
-                map_results[read_id].times++;
-              }
-            }
-          }
+uint32_t UpperBound(uint32_t low, uint32_t high, const char& chr,
+                    const uint32_t& cmp_pos,
+                    const vector<GenomePosition>& positions,
+                    const Genome& genome) {
+  uint32_t mid = 0;
+  while (low < high) {
+    mid = (low + high + 1) / 2;
+    char c = genome[positions[mid].chrom_id].sequence[positions[mid].chrom_pos
+        + F2SEEDPOSITION[cmp_pos]];
+    if (c <= chr) {
+      low = mid;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return low;
+}
+
+void GetRegion(const string& read, const vector<GenomePosition>& positions,
+               const Genome& genome, const uint32_t& seed_length,
+               pair<uint32_t, uint32_t>& region) {
+  region.first = 1;
+  region.second = 0;
+
+  if (positions.size() == 0)
+    return;
+
+  uint32_t l = 0, u = positions.size() - 1;
+  for (uint32_t p = F2SEEDWIGTH; p < seed_length; ++p) {
+    l = LowerBound(l, u, read[F2SEEDPOSITION[p]], p, positions, genome);
+    u = UpperBound(l, u, read[F2SEEDPOSITION[p]], p, positions, genome);
+  }
+  if (l > u)
+    return;
+
+  region.first = l;
+  region.second = u;
+}
+
+void SingleEndMapping(const string& orginal_read, const Genome& genome,
+                      const HashTable& hash_table, BestMatch& best_match,
+                      const uint32_t& seed_length) {
+  uint32_t read_len = orginal_read.size();
+  if (read_len < HASHLEN)
+    return;
+
+  string read;
+  C2T(orginal_read, read_len, read);
+  for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
+    if(best_match.mismatch == 0) break;
+    string read_seed = read.substr(seed_i);
+    uint32_t hash_value = getHashValue(read_seed.c_str());
+    HashTable::const_iterator it = hash_table.find(hash_value);
+    if (it == hash_table.end())
+      continue;
+
+    pair<uint32_t, uint32_t> region;
+    GetRegion(read_seed, it->second, genome, seed_length, region);
+    for (uint32_t j = region.first; j <= region.second; ++j) {
+      if (it->second[j].chrom_pos < seed_i)
+        continue;
+      uint32_t chrom_pos = it->second[j].chrom_pos - seed_i;
+      const Chromosome& chrom = genome[it->second[j].chrom_id];
+      if (chrom_pos + read_len >= chrom.length)
+        continue;
+
+      /* check the position */
+      uint32_t num_of_mismatch = 0;
+      for (uint32_t q = chrom_pos, p = 0; p < read_len &&
+          num_of_mismatch <= best_match.mismatch; ++q, ++p) {
+        if (chrom.sequence[q] != read[p]) {
+          num_of_mismatch++;
+        }
+      }
+
+      if (num_of_mismatch < best_match.mismatch) {
+        best_match = BestMatch(it->second[j].chrom_id, chrom_pos, 1,
+                               num_of_mismatch);
+      } else if (best_match.mismatch == num_of_mismatch) {
+        if (best_match.chrom_id != it->second[j].chrom_id
+            || best_match.chrom_pos != chrom_pos) {
+          best_match.chrom_id = it->second[j].chrom_id;
+          best_match.chrom_pos = chrom_pos;
+          best_match.times++;
         }
       }
     }
-  }
-}
-
-void MappingAllReads(const vector<string>& read_seqs,
-                     const uint32_t& num_of_reads, const Genome& genome,
-                     const HashTable& hash_table,
-                     vector<BestMatch>& map_results) {
-  vector<string> c2t_read_seqs(num_of_reads);
-  for (uint32_t i = 0; i < num_of_reads; ++i) {
-    C2T(read_seqs[i], read_seqs[i].size(), c2t_read_seqs[i]);
-    //cerr << c2t_read_seqs[i] << endl;
-  }
-
-  for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
-    //cerr << seed_i << " 7 " << endl;
-    unordered_map<uint64_t, vector<uint32_t> > hash_value_map2_reads;
-    for (uint32_t i = 0; i < num_of_reads; ++i) {
-      string read_seed = c2t_read_seqs[i].substr(seed_i);
-      uint64_t hash_value = getHashValue(read_seed.c_str());
-      HashTable::const_iterator it = hash_table.find(hash_value);
-      if (it == hash_table.end())
-        continue;
-      hash_value_map2_reads[hash_value].push_back(i);
-    }
-    Validation(c2t_read_seqs, genome, hash_table, hash_value_map2_reads, seed_i,
-               map_results);
   }
 }
