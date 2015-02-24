@@ -123,8 +123,7 @@ int main(int argc, const char **argv) {
     }
     if (!is_valid_filename(reads_file, "fastq")
         && !is_valid_filename(reads_file, "fq")) {
-      cerr << "The suffix of the reads file should be '.fastq', '.fq'"
-          << endl;
+      cerr << "The suffix of the reads file should be '.fastq', '.fq'" << endl;
       return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -147,6 +146,8 @@ int main(int argc, const char **argv) {
     clock_t start_t, end_t;
     start_t = clock();
 
+    TEST_TIME test_time;
+
     ifstream fin(reads_file.c_str());
     if (!fin) {
       throw SMITHLABException("cannot open input file " + reads_file);
@@ -163,11 +164,10 @@ int main(int argc, const char **argv) {
       if (max_mismatches == std::numeric_limits<size_t>::max()) {
         max_mismatches = static_cast<size_t>(0.07 * read_width);
         cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
-             << endl;
+            << endl;
       }
 
-
-      if(F2SEEDPOSITION[seed_length - 1] >= read_width - 6) {
+      if (F2SEEDPOSITION[seed_length - 1] >= read_width - 6) {
         cerr << "[THE SEED LENGHT SHOULD BE LESS FOR THIS READ LENGTH]" << endl;
         fin.close();
         fout.close();
@@ -180,12 +180,12 @@ int main(int argc, const char **argv) {
         map_results[j] = best_match;
       }
 
-      cerr << "[START MAPPING READS FROM " << i << " TO "
-       << num_of_reads + i << "]" << endl;
+      cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
+          << "]" << endl;
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         DEBUG_INFO(read_names[j], "\n");
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         seed_length);
+                         seed_length, test_time);
       }
 
       for (uint32_t j = 0; j < num_of_reads; ++j) {
@@ -199,10 +199,10 @@ int main(int argc, const char **argv) {
         uint32_t end_pos = start_pos + read_seqs[j].size();
 
         fout << genome[map_results[j].chrom_id].name << "\t" << start_pos
-             << "\t" << end_pos << "\t" << read_names[j] << "\t"
-             << map_results[j].mismatch << "\t"
-             << genome[map_results[j].chrom_id].strand << "\t" << read_seqs[j]
-             << "\t" << read_scores[j] << endl;
+            << "\t" << end_pos << "\t" << read_names[j] << "\t"
+            << map_results[j].mismatch << "\t"
+            << genome[map_results[j].chrom_id].strand << "\t" << read_seqs[j]
+            << "\t" << read_scores[j] << endl;
       }
 
       if (num_of_reads < n_reads_to_process)
@@ -214,6 +214,15 @@ int main(int argc, const char **argv) {
     end_t = clock();
     fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
             static_cast<double>((end_t - start_t) / CLOCKS_PER_SEC));
+    /////////////////////////////////////////////
+    cerr << "GETREGIONTIME: "
+        << static_cast<double>(test_time.get_region_start_sum_time)
+            / CLOCKS_PER_SEC << endl;
+    cerr << "NUMOFFULLCHECKT:" << test_time.num_of_full_check << endl;
+    cerr << "FULLCHECKTIME:"
+        << static_cast<double>(test_time.full_check_sum_time) / CLOCKS_PER_SEC
+        << endl;
+    ///////////////////////////////////////////////////////////////
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

@@ -64,7 +64,8 @@ uint32_t UpperBound(uint32_t low, uint32_t high, const char& chr,
 
 void GetRegion(const string& read, const vector<GenomePosition>& positions,
                const Genome& genome, const uint32_t& seed_length,
-               pair<uint32_t, uint32_t>& region) {
+               pair<uint32_t, uint32_t>& region, TEST_TIME& test_time) {
+  test_time.get_region_start_t = clock();
   region.first = 1;
   region.second = 0;
 
@@ -76,6 +77,8 @@ void GetRegion(const string& read, const vector<GenomePosition>& positions,
     l = LowerBound(l, u, read[F2SEEDPOSITION[p]], p, positions, genome);
     u = UpperBound(l, u, read[F2SEEDPOSITION[p]], p, positions, genome);
   }
+  test_time.get_region_start_sum_time +=
+      (clock() - test_time.get_region_start_t);
   if (l > u)
     return;
 
@@ -85,7 +88,7 @@ void GetRegion(const string& read, const vector<GenomePosition>& positions,
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       const HashTable& hash_table, BestMatch& best_match,
-                      const uint32_t& seed_length) {
+                      const uint32_t& seed_length, TEST_TIME& test_time) {
   uint32_t read_len = orginal_read.size();
   if (read_len < HASHLEN)
     return;
@@ -93,7 +96,8 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
   string read;
   C2T(orginal_read, read_len, read);
   for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
-    if(best_match.mismatch == 0) break;
+    if (best_match.mismatch == 0)
+      break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     HashTable::const_iterator it = hash_table.find(hash_value);
@@ -101,7 +105,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
       continue;
 
     pair<uint32_t, uint32_t> region;
-    GetRegion(read_seed, it->second, genome, seed_length, region);
+    GetRegion(read_seed, it->second, genome, seed_length, region, test_time);
     for (uint32_t j = region.first; j <= region.second; ++j) {
       if (it->second[j].chrom_pos < seed_i)
         continue;
@@ -111,14 +115,15 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
         continue;
 
       /* check the position */
+      test_time.full_check_time_t = clock();
       uint32_t num_of_mismatch = 0;
-      for (uint32_t q = chrom_pos, p = 0; p < read_len &&
-          num_of_mismatch <= best_match.mismatch; ++q, ++p) {
+      for (uint32_t q = chrom_pos, p = 0;
+          p < read_len && num_of_mismatch <= best_match.mismatch; ++q, ++p) {
         if (chrom.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
       }
-
+      test_time.num_of_full_check++;
       if (num_of_mismatch < best_match.mismatch) {
         best_match = BestMatch(it->second[j].chrom_id, chrom_pos, 1,
                                num_of_mismatch);
@@ -130,6 +135,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
           best_match.times++;
         }
       }
+      test_time.full_check_sum_time += (clock() - test_time.full_check_time_t);
     }
   }
 }

@@ -4,12 +4,31 @@
 #include <limits>
 #include "reference.hpp"
 
+struct TEST_TIME {
+  TEST_TIME() {
+    get_region_start_t = 0;
+    get_region_start_sum_time = 0;
+
+    full_check_time_t = 0;
+    full_check_sum_time = 0;
+
+    num_of_full_check = 0;
+  }
+  clock_t get_region_start_t;
+  uint64_t get_region_start_sum_time;
+
+  clock_t full_check_time_t;
+  uint64_t full_check_sum_time;
+
+  uint64_t num_of_full_check;
+};
+
 struct BestMatch {
   BestMatch() {
     chrom_id = 0;
     chrom_pos = 0;
     times = 0;
-    mismatch = std::numeric_limits<uint32_t>::max();
+    mismatch = std::numeric_limits < uint32_t > ::max();
   }
   BestMatch(const uint32_t&_chrom_id, const uint32_t& _chrom_pos,
             const uint32_t& _times, const uint32_t& _mismatch)
@@ -26,7 +45,7 @@ struct BestMatch {
 };
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
-                      const HashTable& hash_table, BestMatch& best_match,
-                      const uint32_t& seed_length);
+    const HashTable& hash_table, BestMatch& best_match,
+    const uint32_t& seed_length, TEST_TIME& test_time);
 
 #endif /* MAPPING_HPP_ */
