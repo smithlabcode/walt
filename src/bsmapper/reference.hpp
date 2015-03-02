@@ -50,6 +50,7 @@ struct GenomePosition {
     chrom_id = 0;
     chrom_pos = 0;
   }
+
   uint32_t chrom_id;
   uint32_t chrom_pos;
 };

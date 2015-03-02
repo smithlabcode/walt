@@ -93,7 +93,6 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
   if (read_len < HASHLEN)
     return;
 
-  unordered_set<uint64_t> checked_pos;
   string read;
   C2T(orginal_read, read_len, read);
   for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
@@ -114,14 +113,6 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
       const Chromosome& chrom = genome[it->second[j].chrom_id];
       if (chrom_pos + read_len >= chrom.length)
         continue;
-
-      /* check whether this position already did full check */
-      uint64_t check_pos = it->second[j].chrom_id;
-      check_pos <<= 32;
-      check_pos += chrom_pos;
-      if (checked_pos.find(check_pos) != checked_pos.end())
-        continue;
-      checked_pos.insert(check_pos);
 
       /* check the position */
       test_time.full_check_time_t = clock();

@@ -74,7 +74,7 @@ int main(int argc, const char **argv) {
     string outfile;
     size_t max_mismatches = std::numeric_limits<size_t>::max();
     size_t n_reads_to_process = std::numeric_limits<size_t>::max();
-    uint32_t seed_length = 14;
+    uint32_t seed_length = 20;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",

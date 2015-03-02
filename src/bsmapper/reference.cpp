@@ -20,7 +20,7 @@ void IdentifyChromosomes(const string& chrom_file,
   cerr << "[DONE]" << endl << "chromosome files found (approx size):" << endl;
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
     cerr << chrom_files[i] << " ("
-         << roundf(get_filesize(chrom_files[i]) / 1e06) << "Mbp)" << endl;
+        << roundf(get_filesize(chrom_files[i]) / 1e06) << "Mbp)" << endl;
   }
   cerr << endl;
 }
@@ -70,8 +70,8 @@ struct SortHashTableBucketCMP {
   bool operator()(const GenomePosition& p1, const GenomePosition& p2) {
     const char* c_seq1 = &((*genome)[p1.chrom_id].sequence[p1.chrom_pos]);
     const char* c_seq2 = &((*genome)[p2.chrom_id].sequence[p2.chrom_pos]);
-    uint32_t l1 = (*genome)[p1.chrom_id].length;
-    uint32_t l2 = (*genome)[p2.chrom_id].length;
+    uint32_t l1 = (*genome)[p1.chrom_id].length - p1.chrom_pos;
+    uint32_t l2 = (*genome)[p2.chrom_id].length - p2.chrom_pos;
 
     for (uint32_t j = F2SEEDWIGTH; j < F2SEEDPOSITION_SIZE; ++j) {
       if (F2SEEDPOSITION[j] >= l1)
@@ -113,8 +113,8 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
       for (uint32_t k = 0; k < 32; ++k) {
         fout << seq[k];
       }
-      fout << " " << i << " " << it->first << " " << it->second[i].chrom_pos
-           << std::endl;
+      fout << " " << i << " " << it->first << " " << it->second[i].chrom_id
+          << " " << it->second[i].chrom_pos << std::endl;
     }
     fout << "-----------------------------------" << endl;
   }
@@ -146,7 +146,7 @@ void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
   genome->resize(2 * num_of_chroms);
   cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES]" << endl;
   cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
-       << endl;
+      << endl;
   cerr << "[USING FIRST " << HASHLEN << " NUCLEOTIDES AS THE HASH KEY]" << endl;
   cerr << "[BUILD HASH TABLE FOR EACH CHROMOSOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
@@ -229,7 +229,7 @@ void ReadIndex(const string& index_file, Genome* genome,
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
   genome->resize(num_of_chroms);
   cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
-       << endl;
+      << endl;
 
   char chrom_strand;
   char chrom_name[256];
