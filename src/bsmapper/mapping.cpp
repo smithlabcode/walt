@@ -95,7 +95,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
   string read;
   C2T(orginal_read, read_len, read);
-  for (uint32_t seed_i = 0; seed_i < 7; ++seed_i) {
+  for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
     if (best_match.mismatch == 0)
       break;
     string read_seed = read.substr(seed_i);

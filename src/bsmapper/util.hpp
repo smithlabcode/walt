@@ -21,6 +21,7 @@ using std::cerr;
 using std::endl;
 
 #ifdef SEEDPATTERN7
+#define SEEPATTERNLEN 7
 #define HASHLEN 21
 const uint32_t F2SEEDWIGTH = 12;
 const uint32_t F2SEEDPOSITION_SIZE = 60;
@@ -63,6 +64,7 @@ const uint32_t F2SEEDPOSITION[] = {
 
 #define SEEDPATTERN3
 #ifdef SEEDPATTERN3
+#define SEEPATTERNLEN 3
 #define HASHLEN 39
 const uint32_t F2SEEDWIGTH = 13;
 const uint32_t F2SEEDPATTERN[] = {

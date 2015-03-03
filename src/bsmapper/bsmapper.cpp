@@ -167,7 +167,7 @@ int main(int argc, const char **argv) {
             << endl;
       }
 
-      if (F2SEEDPOSITION[seed_length - 1] >= read_width - 6) {
+      if (F2SEEDPOSITION[seed_length - 1] >= read_width - SEEPATTERNLEN) {
         cerr << "[THE SEED LENGHT SHOULD BE LESS FOR THIS READ LENGTH]" << endl;
         fin.close();
         fout.close();
