@@ -63,6 +63,22 @@ void C2T(Chromosome* chrom) {
   }
 }
 
+void EraseExtremalLargeBucket(HashTable* hash_table) {
+  vector<uint32_t> erase_keys;
+  for (HashTable::iterator it = hash_table->begin(); it != hash_table->end();
+      ++it) {
+    if (it->second.size() >= 5000000) {
+      cerr << "ERASE THE BUCKET " << it->first << " SINCE ITS SIZE IS "
+          << it->second.size() << endl;
+      erase_keys.push_back(it->first);
+    }
+  }
+
+  for (uint32_t i = 0; i < erase_keys.size(); ++i) {
+    hash_table->erase(erase_keys[i]);
+  }
+}
+
 struct SortHashTableBucketCMP {
   explicit SortHashTableBucketCMP(const Genome* _genome)
       : genome(_genome) {
@@ -91,11 +107,27 @@ struct SortHashTableBucketCMP {
 
 void SortHashTableBucket(const Genome* genome, HashTable * hash_table) {
   cerr << "[SORTING BUCKETS FOR HASH TABLE] " << endl;
+  EraseExtremalLargeBucket(hash_table);
+
   for (HashTable::iterator it = hash_table->begin(); it != hash_table->end();
       ++it) {
     std::sort(it->second.begin(), it->second.end(),
               SortHashTableBucketCMP(genome));
   }
+}
+
+void TestHashTableBucketSize(const HashTable * hash_table) {
+  std::ofstream fout("bucket_size.txt");
+  unordered_map<uint32_t, uint32_t> bucket_size;
+  for (HashTable::const_iterator it = hash_table->begin();
+      it != hash_table->end(); ++it) {
+    bucket_size[it->second.size()]++;
+  }
+  for (unordered_map<uint32_t, uint32_t>::const_iterator it =
+      bucket_size.begin(); it != bucket_size.end(); ++it) {
+    fout << it->first << " " << it->second << endl;
+  }
+  fout.close();
 }
 
 void TestHashTable(const Genome& genome, const HashTable& hash_table) {

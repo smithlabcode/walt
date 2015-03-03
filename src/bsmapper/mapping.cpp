@@ -106,6 +106,10 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
     pair<uint32_t, uint32_t> region;
     GetRegion(read_seed, it->second, genome, seed_length, region, test_time);
+    if (region.second - region.first + 1 > 500000) {
+      std::cerr << "TOO MANY CANDIDATE POSITIONS FOR THIS SEED." << endl;
+    }
+
     for (uint32_t j = region.first; j <= region.second; ++j) {
       if (it->second[j].chrom_pos < seed_i)
         continue;
