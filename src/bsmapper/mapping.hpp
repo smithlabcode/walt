@@ -28,7 +28,7 @@ struct BestMatch {
     chrom_id = 0;
     chrom_pos = 0;
     times = 0;
-    mismatch = std::numeric_limits < uint32_t > ::max();
+    mismatch = std::numeric_limits<uint32_t>::max();
   }
   BestMatch(const uint32_t&_chrom_id, const uint32_t& _chrom_pos,
             const uint32_t& _times, const uint32_t& _mismatch)

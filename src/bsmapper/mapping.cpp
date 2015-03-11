@@ -4,20 +4,11 @@
 
 #include "mapping.hpp"
 
-string ReverseComplimentStrand(const string& read) {
-  string reverse_complement_read;
-  uint32_t read_len = read.size();
-  for (uint32_t i = 0; i < read_len; ++i) {
-    reverse_complement_read += complimentBase(read[read_len - i - 1]);
-  }
-  return reverse_complement_read;
-}
-
 /* for bisulfite sequence mapping, Cs are transfered to Ts*/
 void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
     if ('N' == orginal_read[i]) {
-      read += getNT(3);  // in rampbs N set to 3.
+      read += getNT(3);  // in rmapbs N set to 3.
     } else if ('C' == orginal_read[i]) {
       read += 'T';
     } else {
@@ -106,9 +97,11 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
     pair<uint32_t, uint32_t> region;
     GetRegion(read_seed, it->second, genome, seed_length, region, test_time);
+    /********************************
     if (region.second - region.first + 1 > 500000) {
       std::cerr << "TOO MANY CANDIDATE POSITIONS FOR THIS SEED." << endl;
     }
+    ********************************/
 
     for (uint32_t j = region.first; j <= region.second; ++j) {
       if (it->second[j].chrom_pos < seed_i)
