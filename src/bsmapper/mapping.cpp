@@ -81,8 +81,6 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       const HashTable& hash_table, BestMatch& best_match,
                       const uint32_t& seed_length, TEST_TIME& test_time) {
   uint32_t read_len = orginal_read.size();
-  if (read_len < HASHLEN)
-    return;
 
   string read;
   C2T(orginal_read, read_len, read);

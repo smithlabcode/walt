@@ -260,15 +260,15 @@ void ReadIndex(const string& index_file, Genome* genome,
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
   genome->resize(num_of_chroms);
-  cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
-      << endl;
+  cerr << "[THERE ARE " << num_of_chroms
+      << " CHROMOSOMES (FORWARD & BACKWARD) IN THE GENOME]" << endl;
 
+  /* read chromosome from disk */
   char chrom_strand;
   char chrom_name[256];
   uint32_t chrom_name_len, chrom_length;
+  cerr << "[READING GENOME]" << endl;
   for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    cerr << "[" << i + 1 << "/" << num_of_chroms << "]";
-    /* read chromosome from disk */
     FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
                 chrom_name_len);
@@ -284,29 +284,21 @@ void ReadIndex(const string& index_file, Genome* genome,
         fread(&((*genome)[i].sequence[0]), sizeof(char), chrom_length, fin),
         chrom_length);
   }
-  cerr << endl;
 
   /* read hash table from disk */
   uint32_t num_of_keys = 0, num_of_values = 0;
   uint32_t hash_key = 0;
   FREAD_CHECK(fread(&num_of_keys, sizeof(uint32_t), 1, fin), 1);
-  uint32_t precent = 10;
-  cerr << "[READING HASH TABLE] ";
+  cerr << "[READING HASH TABLE]" << endl;
   for (uint32_t j = 0; j < num_of_keys; ++j) {
-    if (100 * j / num_of_keys > precent) {
-      cerr << precent << "%..";
-      precent += 10;
-    }
     FREAD_CHECK(fread(&hash_key, sizeof(uint32_t), 1, fin), 1);
     FREAD_CHECK(fread(&num_of_values, sizeof(uint32_t), 1, fin), 1);
-    vector<GenomePosition> hash_values(num_of_values);
+    (*hash_table)[hash_key].resize(num_of_values);
     FREAD_CHECK(
-        fread(&(hash_values[0]), sizeof(GenomePosition), num_of_values, fin),
+        fread(&((*hash_table)[hash_key][0]), sizeof(GenomePosition),
+              num_of_values, fin),
         num_of_values);
-
-    hash_table->insert(make_pair(hash_key, hash_values));
   }
-  cerr << "100%" << endl;
 
   fclose(fin);
 }
