@@ -125,17 +125,6 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
 
-    if (seed_length < F2SEEDWIGTH) {
-      cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
-      return EXIT_FAILURE;;
-    }
-
-    if (seed_length > F2SEEDPOSITION_SIZE) {
-      cerr << "The seed length should be no more than " << F2SEEDPOSITION_SIZE
-          << endl;
-      return EXIT_FAILURE;;
-    }
-
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
@@ -163,6 +152,17 @@ int main(int argc, const char **argv) {
 
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
+    if (seed_length < F2SEEDWIGTH) {
+      cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
+      return EXIT_FAILURE;
+    }
+
+    if (seed_length > F2SEEDPOSITION_SIZE) {
+      cerr << "The seed length should be no more than " << F2SEEDPOSITION_SIZE
+          << endl;
+      return EXIT_FAILURE;
+    }
+
     uint32_t read_length = GetReadLength(reads_file);
     cerr << "[READ LENGTH IS " << read_length << "]" << endl;
 
@@ -178,9 +178,8 @@ int main(int argc, const char **argv) {
     }
 
     if (F2SEEDPOSITION[seed_length - 1] >= read_length - SEEPATTERNLEN) {
-      cerr << F2SEEDPOSITION[seed_length - 1]  << endl;
-      cerr << read_length - SEEPATTERNLEN << endl;
-      cerr << "[THE SEED LENGTH SHOULD BE SHORTER FOR THIS READ LENGTH]" << endl;
+      cerr << "[THE SEED LENGTH SHOULD BE SHORTER FOR THIS READ LENGTH]"
+          << endl;
       return EXIT_FAILURE;
     } else {
       cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
