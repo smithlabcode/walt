@@ -27,9 +27,6 @@ void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
                             uint32_t& num_of_reads, vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores) {
-
-  cerr << "[LOADING READS]" << endl;
-
   string line;
   int line_code = 0;
   uint64_t line_count = 0;
@@ -67,6 +64,36 @@ void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
   }
 }
 
+/* get the length of the reads in the fastq file */
+uint32_t GetReadLength(const string& reads_file) {
+  ifstream fin(reads_file.c_str());
+  if (!fin) {
+    throw SMITHLABException("cannot open input file " + reads_file);
+  }
+  srand(time(NULL));
+  int rand_num_reads = rand() % 100 + 10;
+  vector<string> read_names(rand_num_reads);
+  vector<string> read_seqs(rand_num_reads);
+  vector<string> read_scores(rand_num_reads);
+  uint32_t num_of_reads = 0;
+  LoadReadsFromFastqFile(fin, 0, rand_num_reads, num_of_reads, read_names,
+                         read_seqs, read_scores);
+  if (read_seqs.size() == 0)
+    return 0;
+  uint32_t read_length = read_seqs[0].size();
+  for (uint32_t i = 1; i < num_of_reads; ++i) {
+    if (read_seqs[i].size() != read_length) {
+      cerr << "All the reads should have the same length. "
+          << "Please check the reads file." << endl;
+      return EXIT_FAILURE;
+    }
+  }
+
+  fin.close();
+
+  return read_length;
+}
+
 int main(int argc, const char **argv) {
   try {
     string reads_file;
@@ -100,7 +127,13 @@ int main(int argc, const char **argv) {
 
     if (seed_length < F2SEEDWIGTH) {
       cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
-      return EXIT_SUCCESS;
+      return EXIT_FAILURE;;
+    }
+
+    if (seed_length > F2SEEDPOSITION_SIZE) {
+      cerr << "The seed length should be no more than " << F2SEEDPOSITION_SIZE
+          << endl;
+      return EXIT_FAILURE;;
     }
 
     vector<string> leftover_args;
@@ -118,7 +151,7 @@ int main(int argc, const char **argv) {
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(index_file, "dbindex")) {
-      cerr << "The suffix of the index file should be '.dbindex' " << endl;
+      cerr << "The suffix of the index file should be '.dbindex'" << endl;
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(reads_file, "fastq")
@@ -127,6 +160,31 @@ int main(int argc, const char **argv) {
       return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
+
+    //////////////////////////////////////////////////////////////
+    // CHECK OPTIONS
+    uint32_t read_length = GetReadLength(reads_file);
+    cerr << "[READ LENGTH IS " << read_length << "]" << endl;
+
+    if (read_length < HASHLEN) {
+      cerr << "The length of the reads should be at least " << HASHLEN << endl;
+      return EXIT_FAILURE;
+    }
+
+    if (max_mismatches == std::numeric_limits<size_t>::max()) {
+      max_mismatches = static_cast<size_t>(0.07 * read_length);
+      cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
+          << endl;
+    }
+
+    if (F2SEEDPOSITION[seed_length - 1] >= read_length - SEEPATTERNLEN) {
+      cerr << F2SEEDPOSITION[seed_length - 1]  << endl;
+      cerr << read_length - SEEPATTERNLEN << endl;
+      cerr << "[THE SEED LENGTH SHOULD BE SHORTER FOR THIS READ LENGTH]" << endl;
+      return EXIT_FAILURE;
+    } else {
+      cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
+    }
 
     //////////////////////////////////////////////////////////////
     // LOAD THE INDEX
@@ -160,21 +218,7 @@ int main(int argc, const char **argv) {
                              read_names, read_seqs, read_scores);
       if (num_of_reads == 0)
         break;
-      uint32_t read_width = read_seqs[0].size();
-      if (max_mismatches == std::numeric_limits<size_t>::max()) {
-        max_mismatches = static_cast<size_t>(0.07 * read_width);
-        cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
-            << endl;
-      }
 
-      if (F2SEEDPOSITION[seed_length - 1] >= read_width - SEEPATTERNLEN) {
-        cerr << "[THE SEED LENGHT SHOULD BE LESS FOR THIS READ LENGTH]" << endl;
-        fin.close();
-        fout.close();
-        return EXIT_FAILURE;
-      } else {
-        cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
-      }
       BestMatch best_match(0, 0, 0, max_mismatches);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         map_results[j] = best_match;
