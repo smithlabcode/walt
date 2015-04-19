@@ -15,6 +15,24 @@ using std::vector;
 using std::cerr;
 using std::endl;
 
+void BuildIndex(const Genome& input_genome, const int& indicator,
+                const string& output_file) {
+  Genome genome;
+  HashTable hash_table;
+  if (indicator % 2) {
+    ReverseGenome(input_genome, genome);
+  } else {
+    genome = input_genome;
+  }
+
+  if (indicator == 1 && indicator == 2) {
+    C2T(genome.sequence);
+  } else {
+    A2G(genome.sequence);
+  }
+
+}
+
 int main(int argc, const char **argv) {
   try {
     string chrom_file;
@@ -53,13 +71,31 @@ int main(int argc, const char **argv) {
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
-    // BUILD THE INDEX
+    // READ GENOME
     //
     vector<string> chrom_files;
     IdentifyChromosomes(chrom_file, chrom_files);
 
-    Genome genome;
-    HashTable hash_table;
+    /* input_genome is the one read from disk */
+    Genome input_genome;
+    ReadGenome(chrom_files, input_genome);
+
+    //////////////////////////////////////////////////////////////
+    // BUILD  INDEX
+    //
+
+    //////////BUILD INDEX FOR FORWARD STRAND (C->T)
+
+
+    //////////BUILD INDEX FOR REVERSE STRAND (C->T)
+      ReverseGenome(input_genome, rc_genome);
+
+    //////////BUILD INDEX FOR FORWARD STRAND (A->G)
+
+    //////////BUILD INDEX FOR REVERSE STRAND (A->G)
+
+
+
     TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, &hash_table),
               "READ CHROMOSOMES AND BUILD INDEX");
     TIME_INFO(SortHashTableBucket(&genome, &hash_table), "SORT BUCKETS");

@@ -223,6 +223,15 @@ inline char complimentBase(const char& nt) {
   }
 }
 
+/* return x^p */
+inline uint32_t power(const uint32_t& x, const uint32_t& p) {
+  uint32_t ret = x;
+  for (uint32_t i = 1; i < p; ++i) {
+    ret *= x;
+  }
+  return ret;
+}
+
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
