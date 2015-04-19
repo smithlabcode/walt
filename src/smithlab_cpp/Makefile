@@ -1,6 +1,6 @@
-#    Makefile from bsmapper software
+#    Makefile from smithlab_cpp C++ code library
 #
-#    Copyright (C) 2014 University of Southern California and
+#    Copyright (C) 2010 University of Southern California and
 #                       Andrew D. Smith
 #
 #    Authors: Andrew D. Smith
@@ -19,29 +19,36 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-ifndef SMITHLAB_CPP
-SMITHLAB_CPP=$(BSMAPPER)/src/smithlab_cpp
+SOURCES = $(wildcard *.cpp)
+OBJECTS = $(patsubst %.cpp,%.o,$(SOURCES))
+
+CXX = g++
+CXXFLAGS = -Wall
+OPTFLAGS = -O2
+DEBUGFLAGS = -g
+
+ifdef DEBUG
+CXXFLAGS += $(DEBUGFLAGS)
 endif
 
-app_subdirs=bsmapper
+ifdef OPT
+CXXFLAGS += $(OPTFLAGS)
+endif
 
-all:
-	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) OPT=1; \
-	done;
+# Flags for Mavericks
+ifeq "$(shell uname)" "Darwin"
+CXXFLAGS += -arch x86_64
+ifeq "$(shell if [ `sysctl -n kern.osrelease | cut -d . -f 1` -ge 13 ];\
+              then echo 'true'; fi)" "true"
+CXXFLAGS += -stdlib=libstdc++
+endif
+endif
 
-install:
-	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) OPT=1 install; \
-	done;
+all: $(OBJECTS)
 
-test:
-	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) test; \
-	done;
+%.o: %.cpp %.hpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-clean:
-	@make -C smithlab_cpp OPT=1 clean
-	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) clean; \
-	done;
+clean: 
+	@-rm -f *.o *~
+.PHONY: clean
