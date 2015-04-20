@@ -87,7 +87,7 @@ void ReadGenome(const vector<string>& chrom_files, Genome* genome) {
       genome->sequence[k++] = toupper(chrom_seqs[i][j]);
     }
   }
-  genome->length[genome->num_of_chroms] = k;
+  genome->start_index[genome->num_of_chroms] = k;
 }
 
 void C2T(vector<char>& sequence) {
@@ -123,10 +123,13 @@ void ReverseGenome(const Genome& genome, Genome* rc_genome) {
           genome.sequence[genome.start_index[i + 1] - j - 1]);
     }
   }
+  rc_genome->start_index[rc_genome->num_of_chroms] = genome.start_index[genome
+      .num_of_chroms];
 }
 
 void CountBucketSize(const Genome& genome, HashTable* hash_table) {
-  hash_table->counter_size = power(3, F2SEEDWIGTH);
+  cerr << "[COUNT BUCKET SIZE]" << endl;
+  hash_table->counter_size = power(4, F2SEEDWIGTH);
   hash_table->counter.resize(hash_table->counter_size + 1, 0);
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
@@ -135,9 +138,11 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
     size = genome.start_index[i + 1] - HASHLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
+
       hash_table->counter[hash_value]++;
     }
   }
+
   //////////////////////////////////////////////////////
   // Erase Extremal Large Bucket
   for (uint32_t i = 0; i < hash_table->counter_size; ++i) {
@@ -160,6 +165,7 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
 }
 
 void HashToBucket(const Genome& genome, HashTable* hash_table) {
+  cerr << "[HASH TO BUCKET]" << endl;
   hash_table->index.resize(hash_table->index_size, 0);
 
   uint32_t size = 0, hash_value = 0;
@@ -249,20 +255,7 @@ void WriteIndex(const string& index_file, const Genome& genome,
   cerr << "[WRITTING INDEX TO " << index_file << "]" << endl;
   FILE * fout = fopen(index_file.c_str(), "wb");
 
-  uint32_t num_of_chroms = genome.num_of_chroms;
-  fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
-  for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    uint32_t chrom_name_len = genome.name[i].size();
-    if (chrom_name_len > 255) {
-      chrom_name_len = 255;
-    }
-    fwrite(&chrom_name_len, sizeof(uint32_t), 1, fout);
-    fwrite(genome.name[i].c_str(), sizeof(char), chrom_name_len, fout);
-  }
-
-  fwrite(&(genome.length[0]), sizeof(uint32_t), num_of_chroms, fout);
   fwrite(&(genome.strand), sizeof(char), 1, fout);
-  fwrite(&(genome.length_of_genome), sizeof(uint32_t), 1, fout);
   fwrite(&(genome.sequence[0]), sizeof(char), genome.length_of_genome, fout);
 
   /* write hash table to disk */
@@ -282,32 +275,7 @@ void ReadIndex(const string& index_file, Genome* genome,
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
-  uint32_t num_of_chroms;
-  FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
-  genome->num_of_chroms = num_of_chroms;
-  genome->name.resize(num_of_chroms);
-  genome->length.resize(num_of_chroms);
-  genome->start_index.resize(num_of_chroms);
-  cerr << "[THERE ARE " << num_of_chroms
-       << " CHROMOSOMES (FORWARD & BACKWARD) IN THE GENOME]" << endl;
-
-  /* read chromosome from disk */
-  char chrom_name[256];
-  uint32_t chrom_name_len;
-  cerr << "[READING GENOME]" << endl;
-  for (uint32_t i = 0; i < num_of_chroms; ++i) {
-    FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
-    FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
-                chrom_name_len);
-    chrom_name[chrom_name_len] = 0;
-    genome->name[i] = chrom_name;
-  }
-  FREAD_CHECK(fread(&(genome->length[0]), sizeof(uint32_t), num_of_chroms, fin),
-              num_of_chroms);
   FREAD_CHECK(fread(&(genome->strand), sizeof(char), 1, fin), 1);
-  FREAD_CHECK(fread(&(genome->length_of_genome), sizeof(uint32_t), 1, fin), 1);
-
-  genome->sequence.resize(genome->length_of_genome);
   FREAD_CHECK(
       fread(&(genome->sequence[0]), sizeof(char), genome->length_of_genome,
             fin),
@@ -317,8 +285,6 @@ void ReadIndex(const string& index_file, Genome* genome,
   FREAD_CHECK(fread(&(hash_table->counter_size), sizeof(uint32_t), 1, fin), 1);
   FREAD_CHECK(fread(&(hash_table->index_size), sizeof(uint32_t), 1, fin), 1);
 
-  hash_table->counter.resize(hash_table->counter_size + 1);
-  hash_table->index.resize(hash_table->index_size);
   FREAD_CHECK(
       fread(&(hash_table->counter[0]), sizeof(uint32_t),
             hash_table->counter_size + 1, fin),
@@ -327,6 +293,84 @@ void ReadIndex(const string& index_file, Genome* genome,
       fread(&(hash_table->index[0]), sizeof(uint32_t), hash_table->index_size,
             fin),
       hash_table->index_size);
+
+  fclose(fin);
+}
+
+void WriteIndexHeadInfo(const string& index_file,
+                        const vector<string>& index_names, const Genome& genome,
+                        const uint32_t& size_of_index) {
+  FILE * fout = fopen(index_file.c_str(), "wb");
+
+  uint32_t num_of_chroms = genome.num_of_chroms;
+  fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
+
+  for (uint32_t i = 0; i < num_of_chroms; ++i) {
+    uint32_t chrom_name_len = genome.name[i].size();
+    if (chrom_name_len > 255) {
+      chrom_name_len = 255;
+    }
+    fwrite(&chrom_name_len, sizeof(uint32_t), 1, fout);
+    fwrite(genome.name[i].c_str(), sizeof(char), chrom_name_len, fout);
+  }
+
+  fwrite(&(genome.length[0]), sizeof(uint32_t), num_of_chroms, fout);
+  fwrite(&(genome.length_of_genome), sizeof(uint32_t), 1, fout);
+
+  uint32_t num_of_index = index_names.size();
+  fwrite(&num_of_index, sizeof(uint32_t), 1, fout);
+  for (uint32_t i = 0; i < index_names.size(); ++i) {
+    uint32_t name_len = index_names[i].size();
+    fwrite(&name_len, sizeof(uint32_t), 1, fout);
+    fwrite(index_names[i].c_str(), sizeof(char), name_len, fout);
+  }
+
+  fwrite(&size_of_index, sizeof(uint32_t), 1, fout);
+
+  fclose(fout);
+}
+
+void ReadIndexHeadInfo(const string& index_file, vector<string>* index_names,
+                       Genome* genome, uint32_t* size_of_index) {
+  FILE * fin = fopen(index_file.c_str(), "rb");
+  FILE_OPEN_CHECK(fin);
+
+  uint32_t num_of_chroms;
+  FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
+  cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
+       << endl;
+  genome->num_of_chroms = num_of_chroms;
+
+  char chrom_name[256];
+  uint32_t chrom_name_len;
+  for (uint32_t i = 0; i < num_of_chroms; ++i) {
+    FREAD_CHECK(fread(&chrom_name_len, sizeof(uint32_t), 1, fin), 1);
+    FREAD_CHECK(fread(chrom_name, sizeof(char), chrom_name_len, fin),
+                chrom_name_len);
+    chrom_name[chrom_name_len] = 0;
+    genome->name[i] = chrom_name;
+  }
+  FREAD_CHECK(fread(&(genome->length[0]), sizeof(uint32_t), num_of_chroms, fin),
+              num_of_chroms);
+  genome->start_index[0] = 0;
+  for (uint32_t i = 1; i <= num_of_chroms; ++i) {
+    genome->start_index[i] = genome->start_index[i - 1] + genome->length[i - 1];
+  }
+
+  FREAD_CHECK(fread(&(genome->length_of_genome), sizeof(uint32_t), 1, fin), 1);
+
+  uint32_t num_of_index, name_len;
+  char index_name[1024];
+  FREAD_CHECK(fread(&num_of_index, sizeof(uint32_t), 1, fin), 1);
+  index_names->clear();
+  for (uint32_t i = 0; i < num_of_index; ++i) {
+    FREAD_CHECK(fread(&name_len, sizeof(uint32_t), 1, fin), 1);
+    FREAD_CHECK(fread(index_name, sizeof(char), name_len, fin), name_len);
+    index_name[name_len] = 0;
+    index_names->push_back(chrom_name);
+  }
+
+  FREAD_CHECK(fread(size_of_index, sizeof(uint32_t), 1, fin), 1);
 
   fclose(fin);
 }

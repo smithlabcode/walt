@@ -76,17 +76,27 @@ uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos);
 /* identify all the chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
 
-/* get the data for the struct of Chromosome, first read the chromosome sequence
- * from the chrom_files, then build hash tables for them, each chromosome has their
- * own hash table */
-void ReadChromsAndBuildIndex(const vector<string>& chrom_files, Genome* genome,
-                             HashTable* hash_table);
+/* get the reverse complimentary strand of genome*/
+void ReverseGenome(const Genome& genome, Genome* rc_genome);
+
+/* read chroms from disk and store in genome */
+void ReadGenome(const vector<string>& chrom_files, Genome* genome);
+
+/* Cs in read and genome are transferred to Ts */
+void C2T(vector<char>& sequence);
+
+/* As in read and genome are transferred to Gs */
+void A2G(vector<char>& sequence);
+
 /* Sort each bucket, if the seed lenght is more than 12, then use binary search for
  * the left part of the seed */
 void SortHashTableBucket(const Genome* genome, HashTable * hash_table);
 
 /* Output the Hash Table to a human readable file for testing */
 void TestHashTable(const Genome& genome, const HashTable& hash_table);
+
+void CountBucketSize(const Genome& genome, HashTable* hash_table);
+void HashToBucket(const Genome& genome, HashTable* hash_table);
 
 /* After building the hash table for all the chromosomes, write them to the disk.
  * Next time when mapping the reads, first should using ReadIndex function to read
@@ -96,5 +106,15 @@ void WriteIndex(const string& index_file, const Genome& genome,
 
 /* read the chromosomes and hash tables from the disk */
 void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table);
+
+/* write the head information to disk, including 4 indexes name, genome name
+ * and length, and also the largest size of index array in HashTable */
+void WriteIndexHeadInfo(const string& index_file,
+                        const vector<string>& index_names, const Genome& genome,
+                        const uint32_t& size_of_index);
+
+/* read the head information from disk */
+void ReadIndexHeadInfo(const string& index_file, vector<string>* index_names,
+                       Genome* genome, uint32_t* size_of_index);
 
 #endif /* REFERENCE_H_ */

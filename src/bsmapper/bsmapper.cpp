@@ -193,8 +193,8 @@ int main(int argc, const char **argv) {
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
-    if (n_reads_to_process > 1000000) {
-      n_reads_to_process = 1000000;
+    if (n_reads_to_process > 10000000) {
+      n_reads_to_process = 10000000;
     }
     vector<string> read_names(n_reads_to_process);
     vector<string> read_seqs(n_reads_to_process);

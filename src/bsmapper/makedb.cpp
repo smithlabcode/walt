@@ -16,21 +16,29 @@ using std::cerr;
 using std::endl;
 
 void BuildIndex(const Genome& input_genome, const int& indicator,
-                const string& output_file) {
+                const string& output_file, uint32_t& size_of_index) {
+  cerr << "[BIULD INDEX]" << endl;
   Genome genome;
   HashTable hash_table;
   if (indicator % 2) {
-    ReverseGenome(input_genome, genome);
+    ReverseGenome(input_genome, &genome);
   } else {
     genome = input_genome;
   }
 
-  if (indicator == 1 && indicator == 2) {
+  if (indicator == 0 && indicator == 1) {
     C2T(genome.sequence);
   } else {
     A2G(genome.sequence);
   }
 
+  CountBucketSize(genome, &hash_table);
+  HashToBucket(genome, &hash_table);
+  WriteIndex(output_file, genome, hash_table);
+
+  size_of_index =
+      hash_table.index_size > size_of_index ?
+          hash_table.index_size : size_of_index;
 }
 
 int main(int argc, const char **argv) {
@@ -68,6 +76,11 @@ int main(int argc, const char **argv) {
       cerr << "The suffix of the output file should be '.dbindex' " << endl;
       return EXIT_SUCCESS;
     }
+    if (outfile.size() > 1000) {
+      cerr << "The output file name is too long, please select a shorter name"
+           << endl;
+      return EXIT_SUCCESS;
+    }
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
@@ -78,29 +91,30 @@ int main(int argc, const char **argv) {
 
     /* input_genome is the one read from disk */
     Genome input_genome;
-    ReadGenome(chrom_files, input_genome);
+    ReadGenome(chrom_files, &input_genome);
 
     //////////////////////////////////////////////////////////////
     // BUILD  INDEX
     //
-
+    uint32_t size_of_index = 0;
+    vector<string> index_names;
     //////////BUILD INDEX FOR FORWARD STRAND (C->T)
-
+    BuildIndex(input_genome, 0, outfile + "_CT00", size_of_index);
+    index_names.push_back(outfile + "_CT00");
 
     //////////BUILD INDEX FOR REVERSE STRAND (C->T)
-      ReverseGenome(input_genome, rc_genome);
+    BuildIndex(input_genome, 1, outfile + "_CT01", size_of_index);
+    index_names.push_back(outfile + "_CT01");
 
     //////////BUILD INDEX FOR FORWARD STRAND (A->G)
+    BuildIndex(input_genome, 2, outfile + "_AG10", size_of_index);
+    index_names.push_back(outfile + "_AG10");
 
     //////////BUILD INDEX FOR REVERSE STRAND (A->G)
+    BuildIndex(input_genome, 3, outfile + "_AG11", size_of_index);
+    index_names.push_back(outfile + "_AG11");
 
-
-
-    TIME_INFO(ReadChromsAndBuildIndex(chrom_files, &genome, &hash_table),
-              "READ CHROMOSOMES AND BUILD INDEX");
-    TIME_INFO(SortHashTableBucket(&genome, &hash_table), "SORT BUCKETS");
-    TIME_INFO(WriteIndex(outfile, genome, hash_table), "WRITE INDEX");
-    //TIME_INFO(TestHashTable(genome, hash_table), "TEST HASH TABLE");
+    WriteIndexHeadInfo(outfile, index_names, input_genome, size_of_index);
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
