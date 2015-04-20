@@ -35,7 +35,7 @@ void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
   while (line_count < lim && getline(fin, line)) {
     switch (line_code) {
       case 0: {
-        uint32_t space_pos = line.find_first_of(' ');
+        size_t space_pos = line.find_first_of(' ');
         if (space_pos == string::npos) {
           read_names[num_of_reads] = line.substr(1);
         } else {
@@ -70,11 +70,11 @@ uint32_t GetReadLength(const string& reads_file) {
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file);
   }
-  srand(time(NULL));
-  int rand_num_reads = rand() % 100 + 10;
-  vector<string> read_names(rand_num_reads);
-  vector<string> read_seqs(rand_num_reads);
-  vector<string> read_scores(rand_num_reads);
+  srand (time(NULL));int
+  rand_num_reads = rand() % 100 + 10;
+  vector < string > read_names(rand_num_reads);
+  vector < string > read_seqs(rand_num_reads);
+  vector < string > read_scores(rand_num_reads);
   uint32_t num_of_reads = 0;
   LoadReadsFromFastqFile(fin, 0, rand_num_reads, num_of_reads, read_names,
                          read_seqs, read_scores);
@@ -99,8 +99,8 @@ int main(int argc, const char **argv) {
     string reads_file;
     string index_file;
     string outfile;
-    size_t max_mismatches = std::numeric_limits<size_t>::max();
-    size_t n_reads_to_process = std::numeric_limits<size_t>::max();
+    size_t max_mismatches = std::numeric_limits < size_t > ::max();
+    size_t n_reads_to_process = std::numeric_limits < size_t > ::max();
     uint32_t seed_length = 20;
 
     /****************** COMMAND LINE OPTIONS ********************/
@@ -125,7 +125,7 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
 
-    vector<string> leftover_args;
+    vector < string > leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
       cerr << opt_parse.help_message() << endl;
@@ -171,7 +171,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (max_mismatches == std::numeric_limits<size_t>::max()) {
+    if (max_mismatches == std::numeric_limits < size_t > ::max()) {
       max_mismatches = static_cast<size_t>(0.07 * read_length);
       cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
           << endl;
@@ -186,19 +186,24 @@ int main(int argc, const char **argv) {
     }
 
     //////////////////////////////////////////////////////////////
-    // LOAD THE INDEX
+    // LOAD THE INDEX HEAD INFO
     Genome genome;
     HashTable hash_table;
-    TIME_INFO(ReadIndex(index_file, &genome, &hash_table), "READ INDEX");
+    vector < string > index_names;
+    uint32_t size_of_index;
+    ReadIndexHeadInfo(index_file, &index_names, &genome, &size_of_index);
+    genome.sequence.resize(genome.length_of_genome);
+    hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
+    hash_table.index.resize(size_of_index);
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
     if (n_reads_to_process > 10000000) {
       n_reads_to_process = 10000000;
     }
-    vector<string> read_names(n_reads_to_process);
-    vector<string> read_seqs(n_reads_to_process);
-    vector<string> read_scores(n_reads_to_process);
+    vector < string > read_names(n_reads_to_process);
+    vector < string > read_seqs(n_reads_to_process);
+    vector < string > read_scores(n_reads_to_process);
 
     clock_t start_t, end_t;
     start_t = clock();
@@ -218,34 +223,51 @@ int main(int argc, const char **argv) {
       if (num_of_reads == 0)
         break;
 
-      BestMatch best_match(0, 0, 0, max_mismatches);
+      BestMatch best_match(0, 0, '+', max_mismatches);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         map_results[j] = best_match;
       }
 
       cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
           << "]" << endl;
+      /////////////////////////////////////
+      // LOAD INDEX
+      TIME_INFO(ReadIndex(index_names[0], &genome, &hash_table),
+                "LOAD THE FORWARD INDEX");
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         DEBUG_INFO(read_names[j], "\n");
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         seed_length, test_time);
+                         seed_length, '+', test_time);
       }
 
+      /////////////////////////////////////
+      // LOAD REVERSE INDEX
+      TIME_INFO(ReadIndex(index_names[1], &genome, &hash_table),
+                "LOAD THE REVERSE INDEX");
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        DEBUG_INFO(read_names[j], "\n");
+        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
+                         seed_length, '-', test_time);
+      }
+
+      /////////////////////////////////////////
+      // OUTPUT RESULTS
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         if (map_results[j].times == 0 || map_results[j].times > 1)
           continue;
-        uint32_t start_pos = map_results[j].chrom_pos;
-        if ('-' == genome[map_results[j].chrom_id].strand) {
-          start_pos = genome[map_results[j].chrom_id].length
-              - map_results[j].chrom_pos - read_seqs[j].size();
+        uint32_t chr_id = getChromID(genome.start_index,
+                                     map_results[j].genome_pos);
+        uint32_t start_pos = map_results[j].genome_pos
+            - genome.start_index[chr_id];
+        if ('-' == map_results[j].strand) {
+          start_pos = genome.length[chr_id] - start_pos - read_seqs[j].size();
         }
         uint32_t end_pos = start_pos + read_seqs[j].size();
 
-        fout << genome[map_results[j].chrom_id].name << "\t" << start_pos
-            << "\t" << end_pos << "\t" << read_names[j] << "\t"
-            << map_results[j].mismatch << "\t"
-            << genome[map_results[j].chrom_id].strand << "\t" << read_seqs[j]
-            << "\t" << read_scores[j] << endl;
+        fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos
+            << "\t" << read_names[j] << "\t" << map_results[j].mismatch << "\t"
+            << map_results[j].strand << "\t" << read_seqs[j] << "\t"
+            << read_scores[j] << endl;
       }
 
       if (num_of_reads < n_reads_to_process)

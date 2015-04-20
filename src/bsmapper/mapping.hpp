@@ -25,27 +25,28 @@ struct TEST_TIME {
 
 struct BestMatch {
   BestMatch() {
-    chrom_id = 0;
-    chrom_pos = 0;
+    genome_pos = 0;
     times = 0;
-    mismatch = std::numeric_limits<uint32_t>::max();
+    strand = '+';
+    mismatch = std::numeric_limits < uint32_t > ::max();
   }
-  BestMatch(const uint32_t&_chrom_id, const uint32_t& _chrom_pos,
-            const uint32_t& _times, const uint32_t& _mismatch)
-      : chrom_id(_chrom_id),
-        chrom_pos(_chrom_pos),
+  BestMatch(const uint32_t& _genome_pos, const uint32_t& _times,
+            const char& _strand, const uint32_t& _mismatch)
+      : genome_pos(_genome_pos),
         times(_times),
+        strand(_strand),
         mismatch(_mismatch) {
   }
 
-  uint32_t chrom_id;
-  uint32_t chrom_pos;
+  uint32_t genome_pos;
   uint32_t times;
+  char strand;
   uint32_t mismatch;
 };
 
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
-    const HashTable& hash_table, BestMatch& best_match,
-    const uint32_t& seed_length, TEST_TIME& test_time);
+                      const HashTable& hash_table, BestMatch& best_match,
+                      const uint32_t& seed_length, const char& strand,
+                      TEST_TIME& test_time);
 
 #endif /* MAPPING_HPP_ */
