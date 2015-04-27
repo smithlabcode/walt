@@ -34,6 +34,8 @@ void BuildIndex(const Genome& input_genome, const int& indicator,
 
   CountBucketSize(genome, &hash_table);
   HashToBucket(genome, &hash_table);
+  SortHashTableBucket(&genome, &hash_table);
+  TestHashTable(genome, hash_table);
   WriteIndex(output_file, genome, hash_table);
 
   size_of_index =

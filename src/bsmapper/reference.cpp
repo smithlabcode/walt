@@ -8,11 +8,11 @@
 #include <fstream>
 #include <algorithm>
 
-/* find the position of the number which is first larger or equal to pso */
+/* find the index in array numbs which is first larger or equal to pos */
 uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos) {
   uint32_t size = nums.size();
   if (size == 0) {
-    fprintf(stderr, "Chromosome Position larger than the Length of Genome\n");
+    fprintf(stderr, "Please Check the start positions of Chromosomes.\n");
     exit(EXIT_FAILURE);
   }
 
@@ -49,7 +49,7 @@ void ReadGenome(const vector<string>& chrom_files, Genome* genome) {
   cerr << "[READING CHROMOSOMES] " << endl;
   vector<string> chrom_names;
   vector<string> chrom_seqs;
-  uint64_t all_chroms_len = 0;
+  uint32_t all_chroms_len = 0;
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
     vector<string> tmp_chrom_names;
     vector<string> tmp_chrom_seqs;
@@ -219,13 +219,13 @@ struct SortHashTableBucketCMP {
   const Genome* genome;
 };
 
-void SortHashTableBucket(const Genome& genome, HashTable* hash_table) {
+void SortHashTableBucket(const Genome* genome, HashTable* hash_table) {
   cerr << "[SORTING BUCKETS FOR HASH TABLE] " << endl;
 
-  for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
+  for (uint32_t i = 0; i < genome->num_of_chroms; ++i) {
     std::sort(&(hash_table->index[0]) + hash_table->counter[i],
               &(hash_table->index[0]) + hash_table->counter[i + 1],
-              SortHashTableBucketCMP(&genome));
+              SortHashTableBucketCMP(genome));
   }
 }
 
