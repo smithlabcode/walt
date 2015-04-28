@@ -17,16 +17,30 @@ using std::endl;
 
 void BuildIndex(const Genome& input_genome, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
-  cerr << "[BIULD INDEX]" << endl;
+  switch (indicator) {
+    case 0:
+      cerr << "[BIULD INDEX FOR FORWARD STRAND (C->T)]" << endl;
+      break;
+    case 1:
+      cerr << "[BIULD INDEX FOR REVERSE STRAND (C->T)]" << endl;
+      break;
+    case 2:
+      cerr << "[BIULD INDEX FOR FORWARD STRAND (A->G)]" << endl;
+      break;
+    case 3:
+      cerr << "[BIULD INDEX FOR REVERSE STRAND (A->G)]" << endl;
+  }
+
   Genome genome;
   HashTable hash_table;
+
   if (indicator % 2) {
     ReverseGenome(input_genome, &genome);
   } else {
     genome = input_genome;
   }
 
-  if (indicator == 0 && indicator == 1) {
+  if (indicator == 0 || indicator == 1) {
     C2T(genome.sequence);
   } else {
     A2G(genome.sequence);
@@ -35,7 +49,6 @@ void BuildIndex(const Genome& input_genome, const int& indicator,
   CountBucketSize(genome, &hash_table);
   HashToBucket(genome, &hash_table);
   SortHashTableBucket(&genome, &hash_table);
-  TestHashTable(genome, hash_table);
   WriteIndex(output_file, genome, hash_table);
 
   size_of_index =

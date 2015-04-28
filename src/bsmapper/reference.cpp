@@ -18,7 +18,7 @@ uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos) {
 
   uint32_t l = 0, h = size - 1;
   while (l < h) {
-    uint32_t m = (l + h) / 2;
+    uint32_t m = (l + h + 1) / 2;
     if (pos >= nums[m])
       l = m;
     else
@@ -67,7 +67,7 @@ void ReadGenome(const vector<string>& chrom_files, Genome* genome) {
   /* copy chroms sequences to genome */
   genome->num_of_chroms = chrom_seqs.size();
   genome->length_of_genome = all_chroms_len;
-  cerr << "[THERE ARE " << genome->num_of_chroms << " CHROMOSOMES]" << endl;
+  cerr << "[THERE ARE " << genome->num_of_chroms << " CHROMOSOMES IN THE GENOME]" << endl;
   cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
        << endl;
   genome->name.resize(genome->num_of_chroms);
@@ -131,6 +131,7 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
   cerr << "[COUNT BUCKET SIZE]" << endl;
   hash_table->counter_size = power(4, F2SEEDWIGTH);
   hash_table->counter.resize(hash_table->counter_size + 1, 0);
+
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
     if (genome.length[i] < HASHLEN)
@@ -138,7 +139,6 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
     size = genome.start_index[i + 1] - HASHLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
-
       hash_table->counter[hash_value]++;
     }
   }
@@ -146,7 +146,7 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
   //////////////////////////////////////////////////////
   // Erase Extremal Large Bucket
   for (uint32_t i = 0; i < hash_table->counter_size; ++i) {
-    if (hash_table->counter[i] >= 5000000) {
+    if (hash_table->counter[i] >= 500000) {
       cerr << "ERASE THE BUCKET " << i << " SINCE ITS SIZE IS "
            << hash_table->counter[i] << endl;
       hash_table->counter[i] = 0;
@@ -222,9 +222,12 @@ struct SortHashTableBucketCMP {
 void SortHashTableBucket(const Genome* genome, HashTable* hash_table) {
   cerr << "[SORTING BUCKETS FOR HASH TABLE] " << endl;
 
-  for (uint32_t i = 0; i < genome->num_of_chroms; ++i) {
-    std::sort(&(hash_table->index[0]) + hash_table->counter[i],
-              &(hash_table->index[0]) + hash_table->counter[i + 1],
+  for (uint32_t i = 0; i < hash_table->counter_size; ++i) {
+    if (hash_table->counter[i + 1] - hash_table->counter[i] <= 1)
+      continue;
+
+    std::sort(hash_table->index.begin() + hash_table->counter[i],
+              hash_table->index.begin() + hash_table->counter[i + 1],
               SortHashTableBucketCMP(genome));
   }
 }
@@ -235,6 +238,7 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
         ++j) {
+      fout << i << " ";
       const char* seq = &(genome.sequence[hash_table.index[j]]);
       for (uint32_t k = 0; k < 32; ++k) {
         fout << seq[F2SEEDPOSITION[k]];
@@ -243,9 +247,9 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
       for (uint32_t k = 0; k < 32; ++k) {
         fout << seq[k];
       }
-      fout << " " << i << " " << j << " " << hash_table.index[j] << std::endl;
+      fout << " " << j << " " << hash_table.index[j] << std::endl;
     }
-    fout << "-----------------------------------" << endl;
+    //fout << "-----------------------------------" << endl;
   }
   fout.close();
 }

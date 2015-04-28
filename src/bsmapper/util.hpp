@@ -185,7 +185,7 @@ inline char getNT(const int& nt) {
 }
 
 /* transfer nucleotide to integer number */
-inline int getBits(const char& nt) {
+inline uint32_t getBits(const char& nt) {
   switch (nt) {
     case 'A':
       return 0;
