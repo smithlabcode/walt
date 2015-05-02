@@ -112,24 +112,19 @@ int main(int argc, const char **argv) {
     // BUILD  INDEX
     //
     uint32_t size_of_index = 0;
-    vector<string> index_names;
     //////////BUILD INDEX FOR FORWARD STRAND (C->T)
     BuildIndex(input_genome, 0, outfile + "_CT00", size_of_index);
-    index_names.push_back(outfile + "_CT00");
 
     //////////BUILD INDEX FOR REVERSE STRAND (C->T)
     BuildIndex(input_genome, 1, outfile + "_CT01", size_of_index);
-    index_names.push_back(outfile + "_CT01");
 
     //////////BUILD INDEX FOR FORWARD STRAND (A->G)
     BuildIndex(input_genome, 2, outfile + "_AG10", size_of_index);
-    index_names.push_back(outfile + "_AG10");
 
     //////////BUILD INDEX FOR REVERSE STRAND (A->G)
     BuildIndex(input_genome, 3, outfile + "_AG11", size_of_index);
-    index_names.push_back(outfile + "_AG11");
 
-    WriteIndexHeadInfo(outfile, index_names, input_genome, size_of_index);
+    WriteIndexHeadInfo(outfile, input_genome, size_of_index);
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;

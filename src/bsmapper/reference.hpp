@@ -109,12 +109,11 @@ void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table);
 
 /* write the head information to disk, including 4 indexes name, genome name
  * and length, and also the largest size of index array in HashTable */
-void WriteIndexHeadInfo(const string& index_file,
-                        const vector<string>& index_names, const Genome& genome,
+void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
                         const uint32_t& size_of_index);
 
 /* read the head information from disk */
-void ReadIndexHeadInfo(const string& index_file, vector<string>* index_names,
-                       Genome* genome, uint32_t* size_of_index);
+void ReadIndexHeadInfo(const string& index_file, Genome* genome,
+                       uint32_t* size_of_index);
 
 #endif /* REFERENCE_H_ */

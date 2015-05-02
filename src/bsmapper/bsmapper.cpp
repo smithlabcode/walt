@@ -70,11 +70,11 @@ uint32_t GetReadLength(const string& reads_file) {
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file);
   }
-  srand (time(NULL));int
-  rand_num_reads = rand() % 100 + 10;
-  vector < string > read_names(rand_num_reads);
-  vector < string > read_seqs(rand_num_reads);
-  vector < string > read_scores(rand_num_reads);
+  srand(time(NULL));
+  int rand_num_reads = rand() % 100 + 10;
+  vector<string> read_names(rand_num_reads);
+  vector<string> read_seqs(rand_num_reads);
+  vector<string> read_scores(rand_num_reads);
   uint32_t num_of_reads = 0;
   LoadReadsFromFastqFile(fin, 0, rand_num_reads, num_of_reads, read_names,
                          read_seqs, read_scores);
@@ -99,8 +99,8 @@ int main(int argc, const char **argv) {
     string reads_file;
     string index_file;
     string outfile;
-    size_t max_mismatches = std::numeric_limits < size_t > ::max();
-    size_t n_reads_to_process = std::numeric_limits < size_t > ::max();
+    size_t max_mismatches = std::numeric_limits<size_t>::max();
+    size_t n_reads_to_process = std::numeric_limits<size_t>::max();
     uint32_t seed_length = 20;
 
     /****************** COMMAND LINE OPTIONS ********************/
@@ -125,7 +125,7 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
 
-    vector < string > leftover_args;
+    vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
       cerr << opt_parse.help_message() << endl;
@@ -171,7 +171,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (max_mismatches == std::numeric_limits < size_t > ::max()) {
+    if (max_mismatches == std::numeric_limits<size_t>::max()) {
       max_mismatches = static_cast<size_t>(0.07 * read_length);
       cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
           << endl;
@@ -189,21 +189,27 @@ int main(int argc, const char **argv) {
     // LOAD THE INDEX HEAD INFO
     Genome genome;
     HashTable hash_table;
-    vector < string > index_names;
+
     uint32_t size_of_index;
-    ReadIndexHeadInfo(index_file, &index_names, &genome, &size_of_index);
+    ReadIndexHeadInfo(index_file, &genome, &size_of_index);
     genome.sequence.resize(genome.length_of_genome);
     hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
     hash_table.index.resize(size_of_index);
+
+    vector<string> index_names;
+    index_names.push_back(index_file + "_CT00");
+    index_names.push_back(index_file + "_CT01");
+    index_names.push_back(index_file + "_AG10");
+    index_names.push_back(index_file + "_AG11");
 
     //////////////////////////////////////////////////////////////
     // LOAD THE READS
     if (n_reads_to_process > 10000000) {
       n_reads_to_process = 10000000;
     }
-    vector < string > read_names(n_reads_to_process);
-    vector < string > read_seqs(n_reads_to_process);
-    vector < string > read_scores(n_reads_to_process);
+    vector<string> read_names(n_reads_to_process);
+    vector<string> read_seqs(n_reads_to_process);
+    vector<string> read_scores(n_reads_to_process);
 
     clock_t start_t, end_t;
     start_t = clock();
@@ -231,7 +237,7 @@ int main(int argc, const char **argv) {
       cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
           << "]" << endl;
       /////////////////////////////////////
-      // LOAD INDEX
+      // LOAD FORWARD INDEX
       TIME_INFO(ReadIndex(index_names[0], &genome, &hash_table),
                 "LOAD THE FORWARD INDEX");
       for (uint32_t j = 0; j < num_of_reads; ++j) {

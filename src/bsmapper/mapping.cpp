@@ -22,7 +22,7 @@ uint32_t LowerBound(uint32_t low, uint32_t high, const char& chr,
                     const HashTable& hash_table) {
   uint32_t mid = 0;
   while (low < high) {
-    mid = (low + high) / 2;
+    mid = low + (high - low) / 2;
     char c = genome.sequence[hash_table.index[mid] + cmp_pos];
     if (c >= chr) {
       high = mid;
@@ -38,7 +38,7 @@ uint32_t UpperBound(uint32_t low, uint32_t high, const char& chr,
                     const HashTable& hash_table) {
   uint32_t mid = 0;
   while (low < high) {
-    mid = (low + high + 1) / 2;
+    mid = low + (high - low + 1) / 2;
     char c = genome.sequence[hash_table.index[mid] + cmp_pos];
     if (c <= chr) {
       low = mid;
@@ -85,7 +85,7 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
       break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
-    pair < uint32_t, uint32_t > region;
+    pair<uint32_t, uint32_t> region;
     region.first = hash_table.counter[hash_value];
     region.second = hash_table.counter[hash_value + 1];
 
@@ -93,12 +93,12 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
       continue;
 
     GetRegion(read_seed, genome, hash_table, seed_length, region, test_time);
-
     for (uint32_t j = region.first; j <= region.second; ++j) {
-      uint32_t chr_id = getChromID(genome.start_index, j);
-      if (j - genome.start_index[chr_id] < seed_i)
+      uint32_t genome_pos = hash_table.index[j];
+      uint32_t chr_id = getChromID(genome.start_index, genome_pos);
+      if (genome_pos - genome.start_index[chr_id] < seed_i)
         continue;
-      uint32_t genome_pos = j - seed_i;
+      genome_pos = genome_pos - seed_i;
       if (genome_pos + read_len >= genome.start_index[chr_id + 1])
         continue;
 
