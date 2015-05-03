@@ -94,14 +94,204 @@ uint32_t GetReadLength(const string& reads_file) {
   return read_length;
 }
 
+void ProcessSingledEndReads(const string& index_file,
+                            const uint32_t& n_reads_to_process,
+                            const string& reads_file_s,
+                            const string& output_file,
+                            const uint32_t& max_mismatches,
+                            const uint32_t& seed_length,
+                            const bool& AG_WILDCARD) {
+  // LOAD THE INDEX HEAD INFO
+  Genome genome;
+  HashTable hash_table;
+
+  uint32_t size_of_index;
+  ReadIndexHeadInfo(index_file, &genome, &size_of_index);
+  genome.sequence.resize(genome.length_of_genome);
+  hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
+  hash_table.index.resize(size_of_index);
+
+  vector<string> index_names;
+  if (!AG_WILDCARD) {
+    index_names.push_back(index_file + "_CT00");
+    index_names.push_back(index_file + "_CT01");
+  } else {
+    index_names.push_back(index_file + "_AG10");
+    index_names.push_back(index_file + "_AG11");
+  }
+
+  vector<string> read_names(n_reads_to_process);
+  vector<string> read_seqs(n_reads_to_process);
+  vector<string> read_scores(n_reads_to_process);
+
+  vector<BestMatch> map_results(n_reads_to_process);
+  ifstream fin(reads_file_s.c_str());
+  if (!fin) {
+    throw SMITHLABException("cannot open input file " + reads_file_s);
+  }
+  clock_t start_t, end_t;
+  start_t = clock();
+  TEST_TIME test_time;
+
+  ofstream fout(output_file.c_str());
+  uint32_t num_of_reads;
+  for (uint64_t i = 0;; i += n_reads_to_process) {
+    LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads, read_names,
+                           read_seqs, read_scores);
+    if (num_of_reads == 0)
+      break;
+
+    //Initialize the results
+    BestMatch best_match(0, 0, '+', max_mismatches);
+    for (uint32_t j = 0; j < num_of_reads; ++j) {
+      map_results[j] = best_match;
+    }
+
+    cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
+        << "]" << endl;
+    for (uint32_t fi = 0; fi < 2; ++fi) {
+      TIME_INFO(ReadIndex(index_names[fi], &genome, &hash_table), "LOAD INDEX");
+      for (uint32_t j = 0; j < num_of_reads; ++j) {
+        DEBUG_INFO(read_names_2[j], "\n");
+        char strand = fi == 0 ? '+' : '-';
+        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
+                         seed_length, strand, test_time);
+      }
+    }
+
+    //////////////////////////////////////////////
+    // Output
+    for (uint32_t j = 0; j < num_of_reads; ++j) {
+      uint32_t chr_id = getChromID(genome.start_index,
+                                   map_results[j].genome_pos);
+      uint32_t start_pos = map_results[j].genome_pos
+          - genome.start_index[chr_id];
+      if ('-' == map_results[j].strand) {
+        start_pos = genome.length[chr_id] - start_pos - read_seqs[j].size();
+      }
+      uint32_t end_pos = start_pos + read_seqs[j].size();
+
+      fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos
+          << "\t" << read_names[j] << "\t" << map_results[j].mismatch << "\t"
+          << map_results[j].strand << "\t" << read_seqs[j] << "\t"
+          << read_scores[j] << endl;
+    }
+
+    if (num_of_reads < n_reads_to_process)
+      break;
+  }
+  fin.close();
+  fout.close();
+
+  end_t = clock();
+  fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
+          static_cast<double>((end_t - start_t) / CLOCKS_PER_SEC));
+  /////////////////////////////////////////////
+  cerr << "GETREGIONTIME: "
+      << static_cast<double>(test_time.get_region_start_sum_time)
+          / CLOCKS_PER_SEC << endl;
+  cerr << "NUMOFFULLCHECKT:" << test_time.num_of_full_check << endl;
+  cerr << "FULLCHECKTIME:"
+      << static_cast<double>(test_time.full_check_sum_time) / CLOCKS_PER_SEC
+      << endl;
+  ///////////////////////////////////////////////////////////////
+}
+
+void ProcessPairedEndReads(const string& index_file,
+                           const uint32_t& n_reads_to_process,
+                           const string& reads_file_p1,
+                           const string& reads_file_p2,
+                           const string& output_file,
+                           const uint32_t& max_mismatches,
+                           const uint32_t& seed_length, const uint32_t& top_k) {
+  // LOAD THE INDEX HEAD INFO
+  Genome genome;
+  HashTable hash_table;
+
+  uint32_t size_of_index;
+  ReadIndexHeadInfo(index_file, &genome, &size_of_index);
+  genome.sequence.resize(genome.length_of_genome);
+  hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
+  hash_table.index.resize(size_of_index);
+
+  vector<vector<string> > index_names(2, vector<string>(2));
+  index_names[0][0] = index_file + "_CT00";
+  index_names[0][1] = index_file + "_CT01";
+  index_names[1][0] = index_file + "_AG10";
+  index_names[1][1] = index_file + "_AG11";
+
+  vector<vector<string> > read_names(2, vector<string>(n_reads_to_process));
+  vector<vector<string> > read_seqs(2, vector<string>(n_reads_to_process));
+  vector<vector<string> > read_scores(2, vector<string>(n_reads_to_process));
+
+  vector<vector<TopCandidates> > top_results(
+      2, vector<TopCandidates>(n_reads_to_process));
+
+  ifstream fin[2];
+  fin[0].open(reads_file_p1.c_str());
+  fin[1].open(reads_file_p2.c_str());
+  if (!fin[0]) {
+    throw SMITHLABException("cannot open input file " + reads_file_p1);
+  }
+  if (!fin[1]) {
+    throw SMITHLABException("cannot open input file " + reads_file_p1);
+  }
+
+  ofstream fout(output_file.c_str());
+  uint32_t num_of_reads[2];
+  for (uint64_t i = 0;; i += n_reads_to_process) {
+    for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
+      LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, num_of_reads[pi],
+                             read_names[pi], read_seqs[pi], read_scores[pi]);
+      if (num_of_reads[pi] == 0)
+        break;
+
+      //Initialize the results
+      for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
+        top_results[pi][j].Clear();
+        top_results[pi][j].SetSize(top_k);
+      }
+
+      cerr << "[START MAPPING READS FROM " << i << " TO "
+          << num_of_reads[pi] + i << "]" << endl;
+
+      for (uint32_t fi = 0; fi < 2; ++fi) {
+        TIME_INFO(ReadIndex(index_names[pi][fi], &genome, &hash_table),
+                  "LOAD INDEX");
+        for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
+          char strand = fi == 0 ? '+' : '-';
+          PairEndMapping(read_seqs[pi][j], genome, hash_table,
+                         top_results[pi][j], seed_length, strand);
+        }
+      }
+    }
+  }
+}
+
 int main(int argc, const char **argv) {
   try {
-    string reads_file;
+    /* singled-end reads file */
+    string reads_file_s;
+
+    /* paired-end reads files*/
+    string reads_file_p1;
+    string reads_file_p2;
+
+    /* index file*/
     string index_file;
-    string outfile;
+
+    /* output file */
+    string output_file;
+
+    bool is_paired_end_reads = false;
+    bool AG_WILDCARD = false;
+
     size_t max_mismatches = std::numeric_limits<size_t>::max();
     size_t n_reads_to_process = std::numeric_limits<size_t>::max();
     uint32_t seed_length = 20;
+
+    /* paired-end reads: keep top k genome positions for each in the pair */
+    uint32_t top_k = 100;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
@@ -112,18 +302,34 @@ int main(int argc, const char **argv) {
         "index file created by build command \
         (the suffix of the index file should be '.dbindex')",
         true, index_file);
+
     opt_parse.add_opt(
         "reads", 'r',
         "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
-        true, reads_file);
+        false, reads_file_s);
+    opt_parse.add_opt(
+        "reads1",
+        '1',
+        "reads2 file (the suffix of the reads file should be '.fastq' or '.fq')",
+        false, reads_file_p1);
+    opt_parse.add_opt(
+        "reads", '2',
+        "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
+        false, reads_file_p2);
 
-    opt_parse.add_opt("output", 'o', "output file name", true, outfile);
+    opt_parse.add_opt("output", 'o', "output file name", true, output_file);
     opt_parse.add_opt("seedlength", 'l', "the length of the space seed", false,
                       seed_length);
     opt_parse.add_opt("mismatch", 'm', "maximum allowed mismatches", false,
                       max_mismatches);
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
+
+    opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
+                      false, AG_WILDCARD);
+
+    opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read", false,
+                      n_reads_to_process);
 
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
@@ -139,19 +345,43 @@ int main(int argc, const char **argv) {
       cerr << opt_parse.option_missing_message() << endl;
       return EXIT_SUCCESS;
     }
+
     if (!is_valid_filename(index_file, "dbindex")) {
       cerr << "The suffix of the index file should be '.dbindex'" << endl;
       return EXIT_SUCCESS;
     }
-    if (!is_valid_filename(reads_file, "fastq")
-        && !is_valid_filename(reads_file, "fq")) {
+
+    if (!reads_file_s.empty() && reads_file_p1.empty()
+        && reads_file_p2.empty()) {
+      is_paired_end_reads = false;
+    } else if (reads_file_s.empty() && !reads_file_p1.empty()
+        && !reads_file_p2.empty()) {
+      is_paired_end_reads = true;
+    } else {
+      cerr << "Please use -r option to set singled-end reads, "
+          << "-1 and -2 options to set paired-end reads" << endl;
+      return EXIT_SUCCESS;
+    }
+
+    if (!is_paired_end_reads && !is_valid_filename(reads_file_s, "fastq")
+        && !is_valid_filename(reads_file_s, "fq")) {
       cerr << "The suffix of the reads file should be '.fastq', '.fq'" << endl;
       return EXIT_SUCCESS;
     }
+    if (is_paired_end_reads) {
+      if ((!is_valid_filename(reads_file_p1, "fastq")
+          && !is_valid_filename(reads_file_p1, "fq"))
+          || (!is_valid_filename(reads_file_p1, "fastq")
+              && !is_valid_filename(reads_file_p1, "fq"))) {
+        cerr << "The suffix of the reads file should be '.fastq', '.fq'"
+            << endl;
+        return EXIT_SUCCESS;
+      }
+    }
     /****************** END COMMAND LINE OPTIONS *****************/
 
-    //////////////////////////////////////////////////////////////
-    // CHECK OPTIONS
+//////////////////////////////////////////////////////////////
+// CHECK OPTIONS
     if (seed_length < F2SEEDWIGTH) {
       cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
       return EXIT_FAILURE;
@@ -163,7 +393,19 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    uint32_t read_length = GetReadLength(reads_file);
+    uint32_t read_length;
+    if (!is_paired_end_reads) {
+      read_length = GetReadLength(reads_file_s);
+    } else {
+      uint32_t read_length1 = GetReadLength(reads_file_p1);
+      uint32_t read_length2 = GetReadLength(reads_file_p2);
+      if (read_length1 != read_length2) {
+        cerr << "All the reads should have the same length. "
+            << "Please check the reads file." << endl;
+        return EXIT_FAILURE;
+      }
+      read_length = read_length1;
+    }
     cerr << "[READ LENGTH IS " << read_length << "]" << endl;
 
     if (read_length < HASHLEN) {
@@ -185,115 +427,31 @@ int main(int argc, const char **argv) {
       cerr << "[SEED LENGTH IS " << seed_length << "]" << endl;
     }
 
-    //////////////////////////////////////////////////////////////
-    // LOAD THE INDEX HEAD INFO
-    Genome genome;
-    HashTable hash_table;
-
-    uint32_t size_of_index;
-    ReadIndexHeadInfo(index_file, &genome, &size_of_index);
-    genome.sequence.resize(genome.length_of_genome);
-    hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
-    hash_table.index.resize(size_of_index);
-
-    vector<string> index_names;
-    index_names.push_back(index_file + "_CT00");
-    index_names.push_back(index_file + "_CT01");
-    index_names.push_back(index_file + "_AG10");
-    index_names.push_back(index_file + "_AG11");
-
-    //////////////////////////////////////////////////////////////
-    // LOAD THE READS
     if (n_reads_to_process > 10000000) {
       n_reads_to_process = 10000000;
     }
-    vector<string> read_names(n_reads_to_process);
-    vector<string> read_seqs(n_reads_to_process);
-    vector<string> read_scores(n_reads_to_process);
 
-    clock_t start_t, end_t;
-    start_t = clock();
-
-    TEST_TIME test_time;
-
-    ifstream fin(reads_file.c_str());
-    if (!fin) {
-      throw SMITHLABException("cannot open input file " + reads_file);
+    if (!is_paired_end_reads) {
+      top_k = 2;
     }
-    ofstream fout(outfile.c_str());
-    uint32_t num_of_reads;
-    vector<BestMatch> map_results(n_reads_to_process);
-    for (uint64_t i = 0;; i += n_reads_to_process) {
-      LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads,
-                             read_names, read_seqs, read_scores);
-      if (num_of_reads == 0)
-        break;
 
-      BestMatch best_match(0, 0, '+', max_mismatches);
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        map_results[j] = best_match;
-      }
-
-      cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
-          << "]" << endl;
-      /////////////////////////////////////
-      // LOAD FORWARD INDEX
-      TIME_INFO(ReadIndex(index_names[0], &genome, &hash_table),
-                "LOAD THE FORWARD INDEX");
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        DEBUG_INFO(read_names[j], "\n");
-        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         seed_length, '+', test_time);
-      }
-
-      /////////////////////////////////////
-      // LOAD REVERSE INDEX
-      TIME_INFO(ReadIndex(index_names[1], &genome, &hash_table),
-                "LOAD THE REVERSE INDEX");
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        DEBUG_INFO(read_names[j], "\n");
-        SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         seed_length, '-', test_time);
-      }
-
-      /////////////////////////////////////////
-      // OUTPUT RESULTS
-      for (uint32_t j = 0; j < num_of_reads; ++j) {
-        if (map_results[j].times == 0 || map_results[j].times > 1)
-          continue;
-        uint32_t chr_id = getChromID(genome.start_index,
-                                     map_results[j].genome_pos);
-        uint32_t start_pos = map_results[j].genome_pos
-            - genome.start_index[chr_id];
-        if ('-' == map_results[j].strand) {
-          start_pos = genome.length[chr_id] - start_pos - read_seqs[j].size();
-        }
-        uint32_t end_pos = start_pos + read_seqs[j].size();
-
-        fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos
-            << "\t" << read_names[j] << "\t" << map_results[j].mismatch << "\t"
-            << map_results[j].strand << "\t" << read_seqs[j] << "\t"
-            << read_scores[j] << endl;
-      }
-
-      if (num_of_reads < n_reads_to_process)
-        break;
+    if (is_paired_end_reads && top_k < 2) {
+      cerr << "-k option should be at least 2 for paired-end reads" << endl;
+      return EXIT_FAILURE;
     }
-    fin.close();
-    fout.close();
 
-    end_t = clock();
-    fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
-            static_cast<double>((end_t - start_t) / CLOCKS_PER_SEC));
-    /////////////////////////////////////////////
-    cerr << "GETREGIONTIME: "
-        << static_cast<double>(test_time.get_region_start_sum_time)
-            / CLOCKS_PER_SEC << endl;
-    cerr << "NUMOFFULLCHECKT:" << test_time.num_of_full_check << endl;
-    cerr << "FULLCHECKTIME:"
-        << static_cast<double>(test_time.full_check_sum_time) / CLOCKS_PER_SEC
-        << endl;
-    ///////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    if (!is_paired_end_reads) {
+      ProcessSingledEndReads(index_file, n_reads_to_process, reads_file_s,
+                             output_file, max_mismatches, seed_length,
+                             AG_WILDCARD);
+    } else {
+      ProcessPairedEndReads(index_file, n_reads_to_process, reads_file_p1,
+                            reads_file_p2, output_file, max_mismatches,
+                            seed_length, top_k);
+    }
+
+    ///////////////
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

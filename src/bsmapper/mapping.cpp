@@ -124,3 +124,50 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
     }
   }
 }
+
+void PairEndMapping(const string& orginal_read, const Genome& genome,
+                    const HashTable& hash_table, TopCandidates& top_match,
+                    const uint32_t& seed_length, const char& strand) {
+  uint32_t read_len = orginal_read.size();
+
+  string read;
+  C2T(orginal_read, read_len, read);
+  for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
+    if (top_match.candidates.top().mismatch == 0)
+      break;
+    string read_seed = read.substr(seed_i);
+    uint32_t hash_value = getHashValue(read_seed.c_str());
+    pair<uint32_t, uint32_t> region;
+    region.first = hash_table.counter[hash_value];
+    region.second = hash_table.counter[hash_value + 1];
+
+    if (region.first == region.second)
+      continue;
+    TEST_TIME test_time;
+    GetRegion(read_seed, genome, hash_table, seed_length, region, test_time);
+    for (uint32_t j = region.first; j <= region.second; ++j) {
+      uint32_t genome_pos = hash_table.index[j];
+      uint32_t chr_id = getChromID(genome.start_index, genome_pos);
+      if (genome_pos - genome.start_index[chr_id] < seed_i)
+        continue;
+      genome_pos = genome_pos - seed_i;
+      if (genome_pos + read_len >= genome.start_index[chr_id + 1])
+        continue;
+
+      /* check the position */
+      test_time.full_check_time_t = clock();
+      uint32_t num_of_mismatch = 0;
+      for (uint32_t q = genome_pos, p = 0;
+          p < read_len && num_of_mismatch <= top_match.candidates.top().mismatch;
+          ++q, ++p) {
+        if (genome.sequence[q] != read[p]) {
+          num_of_mismatch++;
+        }
+      }
+      test_time.num_of_full_check++;
+      top_match.Push(CandidatePosition(genome_pos, strand, num_of_mismatch));
+      test_time.full_check_sum_time += (clock() - test_time.full_check_time_t);
+    }
+  }
+}
+

@@ -1,7 +1,9 @@
 #ifndef MAPPING_HPP_
 #define MAPPING_HPP_
 
+#include <queue>
 #include <limits>
+
 #include "reference.hpp"
 
 struct TEST_TIME {
@@ -28,7 +30,7 @@ struct BestMatch {
     genome_pos = 0;
     times = 0;
     strand = '+';
-    mismatch = std::numeric_limits < uint32_t > ::max();
+    mismatch = std::numeric_limits<uint32_t>::max();
   }
   BestMatch(const uint32_t& _genome_pos, const uint32_t& _times,
             const char& _strand, const uint32_t& _mismatch)
@@ -44,9 +46,71 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
+struct CandidatePosition {
+  CandidatePosition() {
+    genome_pos = 0;
+    strand = '+';
+    mismatch = std::numeric_limits<uint32_t>::max();
+  }
+  CandidatePosition(const uint32_t& _genome_pos, const char& _strand,
+                    const uint32_t& _mismatch)
+      : genome_pos(_genome_pos),
+        strand(_strand),
+        mismatch(_mismatch) {
+  }
+
+  bool operator<(const CandidatePosition & b) const {
+    return mismatch < b.mismatch;
+  }
+
+  uint32_t genome_pos;
+  char strand;
+  uint32_t mismatch;
+};
+
+struct TopCandidates {
+  TopCandidates() {
+    size = 2;
+  }
+
+  TopCandidates(const uint32_t& _size)
+      : size(_size) {
+  }
+
+  void SetSize(const uint32_t& _size) {
+    size = _size;
+  }
+
+  void Clear() {
+    while (!candidates.empty()) {
+      candidates.pop();
+    }
+  }
+
+  void Push(const CandidatePosition& cand) {
+    if (cand.mismatch < candidates.top().mismatch) {
+      if (candidates.size() == size) {
+        candidates.pop();
+      }
+      candidates.push(cand);
+    } else {
+      if (candidates.size() < size) {
+        candidates.push(cand);
+      }
+    }
+  }
+
+  std::priority_queue<CandidatePosition> candidates;
+  uint32_t size;
+};
+
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       const HashTable& hash_table, BestMatch& best_match,
                       const uint32_t& seed_length, const char& strand,
                       TEST_TIME& test_time);
+
+void PairEndMapping(const string& orginal_read, const Genome& genome,
+                    const HashTable& hash_table, TopCandidates& top_match,
+                    const uint32_t& seed_length, const char& strand);
 
 #endif /* MAPPING_HPP_ */
