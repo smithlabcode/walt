@@ -285,7 +285,7 @@ void ProcessPairedEndReads(const string& index_file,
         }
       }
     }
-    cerr << "fffff" << endl;
+
     ///////////////////////////////////////////////////////////
     //Merge Paired-end results
     BestMatch best_match(0, 0, '+', max_mismatches);
