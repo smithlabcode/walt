@@ -175,11 +175,11 @@ void ProcessSingledEndReads(const string& index_file,
     for (uint32_t fi = 0; fi < 2; ++fi) {
       TIME_INFO(ReadIndex(index_names[fi], &genome, &hash_table), "LOAD INDEX");
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        DEBUG_INFO(read_names_2[j], "\n");
+        DEBUG_INFO(read_names[j], "\n");
         char strand = fi == 0 ? '+' : '-';
         start_t = clock();
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
-                         seed_length, strand, test_time);
+                         seed_length, strand, test_time, AG_WILDCARD);
         sum_t += clock() - start_t;
       }
     }
@@ -253,12 +253,19 @@ void ProcessPairedEndReads(const string& index_file,
 
   ofstream fout(output_file.c_str());
   uint32_t num_of_reads[2];
+  bool AG_WILDCARD = true;
   for (uint64_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
+      AG_WILDCARD = pi == 1 ? true : false;
+
       LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, num_of_reads[pi],
                              read_names[pi], read_seqs[pi], read_scores[pi]);
       if (num_of_reads[pi] == 0)
         break;
+      if (pi == 0) {
+        cerr << "[START MAPPING READS FROM " << i << " TO "
+            << num_of_reads[pi] + i << "]" << endl;
+      }
 
       //Initialize the paired results
       for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
@@ -266,30 +273,29 @@ void ProcessPairedEndReads(const string& index_file,
         top_results[pi][j].SetSize(top_k);
       }
 
-      cerr << "[START MAPPING READS FROM " << i << " TO "
-          << num_of_reads[pi] + i << "]" << endl;
-
       for (uint32_t fi = 0; fi < 2; ++fi) {
         TIME_INFO(ReadIndex(index_names[pi][fi], &genome, &hash_table),
                   "LOAD INDEX");
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
           char strand = fi == 0 ? '+' : '-';
+          DEBUG_INFO(read_names[pi][j], "\n");
           PairEndMapping(read_seqs[pi][j], genome, hash_table,
-                         top_results[pi][j], seed_length, strand);
+                         top_results[pi][j], max_mismatches, seed_length,
+                         strand, AG_WILDCARD);
         }
       }
     }
-
+    cerr << "fffff" << endl;
     ///////////////////////////////////////////////////////////
     //Merge Paired-end results
     BestMatch best_match(0, 0, '+', max_mismatches);
     for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
       for (uint32_t pi = 0; pi < 2; ++pi) {
         ranked_results_size[pi] = 0;
-        while (!top_results[0][j].candidates.empty()) {
+        while (!top_results[pi][j].candidates.empty()) {
           ranked_results[pi][ranked_results_size[pi]++] =
-              top_results[0][j].Top();
-          top_results[0][j].Pop();
+              top_results[pi][j].Top();
+          top_results[pi][j].Pop();
         }
       }
       map_results[j] = best_match;
@@ -326,8 +332,8 @@ int main(int argc, const char **argv) {
     bool is_paired_end_reads = false;
     bool AG_WILDCARD = false;
 
-    size_t max_mismatches = std::numeric_limits<size_t>::max();
-    size_t n_reads_to_process = std::numeric_limits<size_t>::max();
+    size_t max_mismatches = MAX_INTEGER32;
+    size_t n_reads_to_process = MAX_INTEGER32;
     uint32_t seed_length = 20;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
@@ -460,7 +466,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (max_mismatches == std::numeric_limits<size_t>::max()) {
+    if (max_mismatches == MAX_INTEGER32) {
       max_mismatches = static_cast<size_t>(0.07 * read_length);
       cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
           << endl;

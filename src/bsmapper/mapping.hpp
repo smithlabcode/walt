@@ -30,7 +30,7 @@ struct BestMatch {
     genome_pos = 0;
     times = 0;
     strand = '+';
-    mismatch = std::numeric_limits < uint32_t > ::max();
+    mismatch = MAX_INTEGER32;
   }
   BestMatch(const uint32_t& _genome_pos, const uint32_t& _times,
             const char& _strand, const uint32_t& _mismatch)
@@ -50,7 +50,7 @@ struct CandidatePosition {
   CandidatePosition() {
     genome_pos = 0;
     strand = '+';
-    mismatch = std::numeric_limits < uint32_t > ::max();
+    mismatch = MAX_INTEGER32;
   }
   CandidatePosition(const uint32_t& _genome_pos, const char& _strand,
                     const uint32_t& _mismatch)
@@ -81,6 +81,10 @@ struct TopCandidates {
     size = _size;
   }
 
+  bool Empty() {
+    return candidates.empty();
+  }
+
   void Clear() {
     while (!candidates.empty()) {
       candidates.pop();
@@ -88,13 +92,11 @@ struct TopCandidates {
   }
 
   void Push(const CandidatePosition& cand) {
-    if (cand.mismatch < candidates.top().mismatch) {
-      if (candidates.size() == size) {
-        candidates.pop();
-      }
+    if (candidates.size() < size) {
       candidates.push(cand);
     } else {
-      if (candidates.size() < size) {
+      if (cand.mismatch < candidates.top().mismatch) {
+        candidates.pop();
         candidates.push(cand);
       }
     }
@@ -115,11 +117,12 @@ struct TopCandidates {
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       const HashTable& hash_table, BestMatch& best_match,
                       const uint32_t& seed_length, const char& strand,
-                      TEST_TIME& test_time);
+                      TEST_TIME& test_time, const bool& AG_WILDCARD);
 
 void PairEndMapping(const string& orginal_read, const Genome& genome,
                     const HashTable& hash_table, TopCandidates& top_match,
-                    const uint32_t& seed_length, const char& strand);
+                    const uint32_t& max_mismatches, const uint32_t& seed_length,
+                    const char& strand, const bool& AG_WILDCARD);
 
 void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,

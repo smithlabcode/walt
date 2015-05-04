@@ -8,9 +8,21 @@
 void C2T(const string& orginal_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
     if ('N' == orginal_read[i]) {
-      read += getNT(3);  // in rmapbs N set to 3.
+      read += 'T';  // in rmapbs N set to 3.
     } else if ('C' == orginal_read[i]) {
       read += 'T';
+    } else {
+      read += orginal_read[i];
+    }
+  }
+}
+
+void A2G(const string& orginal_read, const uint32_t& read_len, string& read) {
+  for (uint32_t i = 0; i < read_len; ++i) {
+    if ('N' == orginal_read[i]) {
+      read += 'G';  // in rmapbs N set to 3.
+    } else if ('A' == orginal_read[i]) {
+      read += 'G';
     } else {
       read += orginal_read[i];
     }
@@ -75,11 +87,16 @@ void GetRegion(const string& read, const Genome& genome,
 void SingleEndMapping(const string& orginal_read, const Genome& genome,
                       const HashTable& hash_table, BestMatch& best_match,
                       const uint32_t& seed_length, const char& strand,
-                      TEST_TIME& test_time) {
+                      TEST_TIME& test_time, const bool& AG_WILDCARD) {
   uint32_t read_len = orginal_read.size();
 
   string read;
-  C2T(orginal_read, read_len, read);
+  if (AG_WILDCARD) {
+    A2G(orginal_read, read_len, read);
+  } else {
+    C2T(orginal_read, read_len, read);
+  }
+
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
     if (best_match.mismatch == 0)
       break;
@@ -127,14 +144,21 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 
 void PairEndMapping(const string& orginal_read, const Genome& genome,
                     const HashTable& hash_table, TopCandidates& top_match,
-                    const uint32_t& seed_length, const char& strand) {
+                    const uint32_t& max_mismatches, const uint32_t& seed_length,
+                    const char& strand, const bool& AG_WILDCARD) {
   uint32_t read_len = orginal_read.size();
 
   string read;
-  C2T(orginal_read, read_len, read);
+  if (AG_WILDCARD) {
+    A2G(orginal_read, read_len, read);
+  } else {
+    C2T(orginal_read, read_len, read);
+  }
+
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (top_match.Top().mismatch == 0)
+    if (!top_match.Empty() && top_match.Top().mismatch == 0)
       break;
+
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
@@ -145,6 +169,12 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
       continue;
     TEST_TIME test_time;
     GetRegion(read_seed, genome, hash_table, seed_length, region, test_time);
+    uint32_t top_mismatch;
+    if (!top_match.Empty()) {
+      top_mismatch = top_match.Top().mismatch;
+    } else {
+      top_mismatch = max_mismatches;
+    }
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);
@@ -158,12 +188,12 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
       test_time.full_check_time_t = clock();
       uint32_t num_of_mismatch = 0;
       for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= top_match.Top().mismatch;
-          ++q, ++p) {
+          p < read_len && num_of_mismatch <= top_mismatch; ++q, ++p) {
         if (genome.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
       }
+
       test_time.num_of_full_check++;
       top_match.Push(CandidatePosition(genome_pos, strand, num_of_mismatch));
       test_time.full_check_sum_time += (clock() - test_time.full_check_time_t);
@@ -175,9 +205,8 @@ void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, BestMatch& best_match,
     const uint32_t& L, const uint32_t& U, const Genome& genome) {
-
-  for (uint32_t i = ranked_results_size[0] - 1; i >= 0; --i) {
-    for (uint32_t j = ranked_results_size[1]; j >= 0; --j) {
+  for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
+    for (int j = ranked_results_size[1]; j >= 0; --j) {
       const CandidatePosition& r1 = ranked_results[0][i];
       const CandidatePosition& r2 = ranked_results[1][j];
       uint32_t num_of_mismatch = r1.mismatch + r2.mismatch;
