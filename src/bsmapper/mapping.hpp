@@ -30,7 +30,7 @@ struct BestMatch {
     genome_pos = 0;
     times = 0;
     strand = '+';
-    mismatch = std::numeric_limits<uint32_t>::max();
+    mismatch = std::numeric_limits < uint32_t > ::max();
   }
   BestMatch(const uint32_t& _genome_pos, const uint32_t& _times,
             const char& _strand, const uint32_t& _mismatch)
@@ -50,7 +50,7 @@ struct CandidatePosition {
   CandidatePosition() {
     genome_pos = 0;
     strand = '+';
-    mismatch = std::numeric_limits<uint32_t>::max();
+    mismatch = std::numeric_limits < uint32_t > ::max();
   }
   CandidatePosition(const uint32_t& _genome_pos, const char& _strand,
                     const uint32_t& _mismatch)
@@ -100,6 +100,14 @@ struct TopCandidates {
     }
   }
 
+  void Pop() {
+    candidates.pop();
+  }
+
+  CandidatePosition Top() {
+    return candidates.top();
+  }
+
   std::priority_queue<CandidatePosition> candidates;
   uint32_t size;
 };
@@ -112,5 +120,10 @@ void SingleEndMapping(const string& orginal_read, const Genome& genome,
 void PairEndMapping(const string& orginal_read, const Genome& genome,
                     const HashTable& hash_table, TopCandidates& top_match,
                     const uint32_t& seed_length, const char& strand);
+
+void MergePairedEndResults(
+    const vector<vector<CandidatePosition> >& ranked_results,
+    const vector<int>& ranked_results_size, BestMatch& best_match,
+    const uint32_t& L, const uint32_t& U, const Genome& genome);
 
 #endif /* MAPPING_HPP_ */

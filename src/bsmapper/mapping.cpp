@@ -133,7 +133,7 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
   string read;
   C2T(orginal_read, read_len, read);
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (top_match.candidates.top().mismatch == 0)
+    if (top_match.Top().mismatch == 0)
       break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
@@ -158,7 +158,7 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
       test_time.full_check_time_t = clock();
       uint32_t num_of_mismatch = 0;
       for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= top_match.candidates.top().mismatch;
+          p < read_len && num_of_mismatch <= top_match.Top().mismatch;
           ++q, ++p) {
         if (genome.sequence[q] != read[p]) {
           num_of_mismatch++;
@@ -171,3 +171,38 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
   }
 }
 
+void MergePairedEndResults(
+    const vector<vector<CandidatePosition> >& ranked_results,
+    const vector<int>& ranked_results_size, BestMatch& best_match,
+    const uint32_t& L, const uint32_t& U, const Genome& genome) {
+
+  for (uint32_t i = ranked_results_size[0] - 1; i >= 0; --i) {
+    for (uint32_t j = ranked_results_size[1]; j >= 0; --j) {
+      const CandidatePosition& r1 = ranked_results[0][i];
+      const CandidatePosition& r2 = ranked_results[1][j];
+      uint32_t num_of_mismatch = r1.mismatch + r2.mismatch;
+      if (num_of_mismatch > best_match.mismatch)
+        break;
+
+      uint32_t dis =
+          r1.genome_pos >= r2.genome_pos ?
+              r1.genome_pos - r2.genome_pos : r2.genome_pos - r1.genome_pos;
+      if (r1.strand != r2.strand && dis >= L && dis <= U) {
+        uint32_t chr_id1 = getChromID(genome.start_index, r1.genome_pos);
+        uint32_t chr_id2 = getChromID(genome.start_index, r2.genome_pos);
+        if (chr_id1 != chr_id2)
+          continue;
+
+        uint32_t genome_pos = r1.strand == '+' ? r1.genome_pos : r2.genome_pos;
+        if (num_of_mismatch < best_match.mismatch) {
+          best_match = BestMatch(genome_pos, 1, '+', num_of_mismatch);
+        } else if (best_match.mismatch == num_of_mismatch
+            && best_match.genome_pos != genome_pos) {
+          best_match.genome_pos = genome_pos;
+          best_match.strand = '+';
+          best_match.times++;
+        }
+      }
+    }
+  }
+}

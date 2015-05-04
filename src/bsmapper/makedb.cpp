@@ -15,7 +15,7 @@ using std::vector;
 using std::cerr;
 using std::endl;
 
-void BuildIndex(const Genome& input_genome, const int& indicator,
+void BuildIndex(const vector<string>& chrom_files, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
   switch (indicator) {
     case 0:
@@ -33,11 +33,10 @@ void BuildIndex(const Genome& input_genome, const int& indicator,
 
   Genome genome;
   HashTable hash_table;
+  ReadGenome(chrom_files, &genome);
 
   if (indicator % 2) {
-    ReverseGenome(input_genome, &genome);
-  } else {
-    genome = input_genome;
+    ReverseGenome(&genome);
   }
 
   if (indicator == 0 || indicator == 1) {
@@ -93,7 +92,7 @@ int main(int argc, const char **argv) {
     }
     if (outfile.size() > 1000) {
       cerr << "The output file name is too long, please select a shorter name"
-           << endl;
+          << endl;
       return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -104,27 +103,25 @@ int main(int argc, const char **argv) {
     vector<string> chrom_files;
     IdentifyChromosomes(chrom_file, chrom_files);
 
-    /* input_genome is the one read from disk */
-    Genome input_genome;
-    ReadGenome(chrom_files, &input_genome);
-
     //////////////////////////////////////////////////////////////
     // BUILD  INDEX
     //
     uint32_t size_of_index = 0;
     //////////BUILD INDEX FOR FORWARD STRAND (C->T)
-    BuildIndex(input_genome, 0, outfile + "_CT00", size_of_index);
+    BuildIndex(chrom_files, 0, outfile + "_CT00", size_of_index);
 
     //////////BUILD INDEX FOR REVERSE STRAND (C->T)
-    BuildIndex(input_genome, 1, outfile + "_CT01", size_of_index);
+    BuildIndex(chrom_files, 1, outfile + "_CT01", size_of_index);
 
     //////////BUILD INDEX FOR FORWARD STRAND (A->G)
-    BuildIndex(input_genome, 2, outfile + "_AG10", size_of_index);
+    BuildIndex(chrom_files, 2, outfile + "_AG10", size_of_index);
 
     //////////BUILD INDEX FOR REVERSE STRAND (A->G)
-    BuildIndex(input_genome, 3, outfile + "_AG11", size_of_index);
+    BuildIndex(chrom_files, 3, outfile + "_AG11", size_of_index);
 
-    WriteIndexHeadInfo(outfile, input_genome, size_of_index);
+    Genome genome;
+    ReadGenome(chrom_files, &genome);
+    WriteIndexHeadInfo(outfile, genome, size_of_index);
 
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;

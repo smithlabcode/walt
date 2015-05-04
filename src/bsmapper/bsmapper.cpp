@@ -94,6 +94,29 @@ uint32_t GetReadLength(const string& reads_file) {
   return read_length;
 }
 
+void OutputResults(ofstream& fout, const vector<BestMatch>& map_results,
+                   const uint32_t& num_of_reads,
+                   const vector<string>& read_names,
+                   const vector<string>& read_seqs,
+                   const vector<string>& read_scores, const Genome& genome) {
+  for (uint32_t j = 0; j < num_of_reads; ++j) {
+    if (map_results[j].times == 0 || map_results[j].times > 1)
+      continue;
+
+    uint32_t chr_id = getChromID(genome.start_index, map_results[j].genome_pos);
+    uint32_t start_pos = map_results[j].genome_pos - genome.start_index[chr_id];
+    if ('-' == map_results[j].strand) {
+      start_pos = genome.length[chr_id] - start_pos - read_seqs[j].size();
+    }
+    uint32_t end_pos = start_pos + read_seqs[j].size();
+
+    fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos << "\t"
+        << read_names[j] << "\t" << map_results[j].mismatch << "\t"
+        << map_results[j].strand << "\t" << read_seqs[j] << "\t"
+        << read_scores[j] << endl;
+  }
+}
+
 void ProcessSingledEndReads(const string& index_file,
                             const uint32_t& n_reads_to_process,
                             const string& reads_file_s,
@@ -129,8 +152,8 @@ void ProcessSingledEndReads(const string& index_file,
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
-  clock_t start_t, end_t;
-  start_t = clock();
+  clock_t start_t;
+  uint64_t sum_t = 0;
   TEST_TIME test_time;
 
   ofstream fout(output_file.c_str());
@@ -154,28 +177,14 @@ void ProcessSingledEndReads(const string& index_file,
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         DEBUG_INFO(read_names_2[j], "\n");
         char strand = fi == 0 ? '+' : '-';
+        start_t = clock();
         SingleEndMapping(read_seqs[j], genome, hash_table, map_results[j],
                          seed_length, strand, test_time);
+        sum_t += clock() - start_t;
       }
     }
-
-    //////////////////////////////////////////////
-    // Output
-    for (uint32_t j = 0; j < num_of_reads; ++j) {
-      uint32_t chr_id = getChromID(genome.start_index,
-                                   map_results[j].genome_pos);
-      uint32_t start_pos = map_results[j].genome_pos
-          - genome.start_index[chr_id];
-      if ('-' == map_results[j].strand) {
-        start_pos = genome.length[chr_id] - start_pos - read_seqs[j].size();
-      }
-      uint32_t end_pos = start_pos + read_seqs[j].size();
-
-      fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos
-          << "\t" << read_names[j] << "\t" << map_results[j].mismatch << "\t"
-          << map_results[j].strand << "\t" << read_seqs[j] << "\t"
-          << read_scores[j] << endl;
-    }
+    OutputResults(fout, map_results, num_of_reads, read_names, read_seqs,
+                  read_scores, genome);
 
     if (num_of_reads < n_reads_to_process)
       break;
@@ -183,9 +192,8 @@ void ProcessSingledEndReads(const string& index_file,
   fin.close();
   fout.close();
 
-  end_t = clock();
   fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
-          static_cast<double>((end_t - start_t) / CLOCKS_PER_SEC));
+          static_cast<double>(sum_t / CLOCKS_PER_SEC));
   /////////////////////////////////////////////
   cerr << "GETREGIONTIME: "
       << static_cast<double>(test_time.get_region_start_sum_time)
@@ -203,7 +211,8 @@ void ProcessPairedEndReads(const string& index_file,
                            const string& reads_file_p2,
                            const string& output_file,
                            const uint32_t& max_mismatches,
-                           const uint32_t& seed_length, const uint32_t& top_k) {
+                           const uint32_t& seed_length, const uint32_t& top_k,
+                           const uint32_t& L, const uint32_t& U) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -227,6 +236,11 @@ void ProcessPairedEndReads(const string& index_file,
   vector<vector<TopCandidates> > top_results(
       2, vector<TopCandidates>(n_reads_to_process));
 
+  vector<BestMatch> map_results(n_reads_to_process);
+  vector<int> ranked_results_size(2);
+  vector<vector<CandidatePosition> > ranked_results(
+      2, vector<CandidatePosition>(top_k));
+
   ifstream fin[2];
   fin[0].open(reads_file_p1.c_str());
   fin[1].open(reads_file_p2.c_str());
@@ -246,7 +260,7 @@ void ProcessPairedEndReads(const string& index_file,
       if (num_of_reads[pi] == 0)
         break;
 
-      //Initialize the results
+      //Initialize the paired results
       for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
         top_results[pi][j].Clear();
         top_results[pi][j].SetSize(top_k);
@@ -265,7 +279,33 @@ void ProcessPairedEndReads(const string& index_file,
         }
       }
     }
+
+    ///////////////////////////////////////////////////////////
+    //Merge Paired-end results
+    BestMatch best_match(0, 0, '+', max_mismatches);
+    for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
+      for (uint32_t pi = 0; pi < 2; ++pi) {
+        ranked_results_size[pi] = 0;
+        while (!top_results[0][j].candidates.empty()) {
+          ranked_results[pi][ranked_results_size[pi]++] =
+              top_results[0][j].Top();
+          top_results[0][j].Pop();
+        }
+      }
+      map_results[j] = best_match;
+      MergePairedEndResults(ranked_results, ranked_results_size, map_results[j],
+                            L, U, genome);
+    }
+    OutputResults(fout, map_results, num_of_reads[0], read_names[0],
+                  read_seqs[0], read_scores[0], genome);
+
+    if (num_of_reads[0] < n_reads_to_process)
+      break;
   }
+
+  fin[0].close();
+  fin[1].close();
+  fout.close();
 }
 
 int main(int argc, const char **argv) {
@@ -292,6 +332,8 @@ int main(int argc, const char **argv) {
 
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 100;
+    uint32_t L = 200;
+    uint32_t U = 500;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
@@ -330,6 +372,11 @@ int main(int argc, const char **argv) {
 
     opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read", false,
                       n_reads_to_process);
+
+    opt_parse.add_opt("lowerBound", 'L',
+                      "lower bound for paired separation distance", false, L);
+    opt_parse.add_opt("upperBound", 'U',
+                      "upper bound for paired separation distance", false, U);
 
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
@@ -448,7 +495,7 @@ int main(int argc, const char **argv) {
     } else {
       ProcessPairedEndReads(index_file, n_reads_to_process, reads_file_p1,
                             reads_file_p2, output_file, max_mismatches,
-                            seed_length, top_k);
+                            seed_length, top_k, L, U);
     }
 
     ///////////////

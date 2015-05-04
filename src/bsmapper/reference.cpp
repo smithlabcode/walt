@@ -107,25 +107,21 @@ void A2G(vector<char>& sequence) {
   }
 }
 
-void ReverseGenome(const Genome& genome, Genome* rc_genome) {
-  rc_genome->num_of_chroms = genome.num_of_chroms;
-  rc_genome->name.resize(rc_genome->num_of_chroms);
-  rc_genome->length.resize(rc_genome->num_of_chroms);
-  rc_genome->start_index.resize(rc_genome->num_of_chroms + 1);
-  rc_genome->length_of_genome = genome.length_of_genome;
-  rc_genome->strand = '-';
-  rc_genome->sequence.resize(rc_genome->length_of_genome);
-  for (uint32_t i = 0; i < rc_genome->num_of_chroms; ++i) {
-    rc_genome->name[i] = genome.name[i];
-    rc_genome->length[i] = genome.length[i];
-    rc_genome->start_index[i] = genome.start_index[i];
-    for (uint32_t j = 0; j < genome.length[i]; ++j) {
-      rc_genome->sequence[j + genome.start_index[i]] = complimentBase(
-          genome.sequence[genome.start_index[i + 1] - j - 1]);
+void ReverseGenome(Genome* genome) {
+  genome->strand = '-';
+  for (uint32_t i = 0; i < genome->num_of_chroms; ++i) {
+    for (uint32_t j = 0; j < genome->length[i]; ++j) {
+      char tmp = genome->sequence[j + genome->start_index[i]];
+      genome->sequence[j + genome->start_index[i]] = genome->sequence[genome
+          ->start_index[i + 1] - j - 1];
+      genome->sequence[genome->start_index[i + 1] - j - 1] = tmp;
+    }
+
+    for (uint32_t j = 0; j < genome->length[i]; ++j) {
+      genome->sequence[j + genome->start_index[i]] = complimentBase(
+          genome->sequence[j + genome->start_index[i]]);
     }
   }
-  rc_genome->start_index[rc_genome->num_of_chroms] = genome.start_index[genome
-      .num_of_chroms];
 }
 
 void CountBucketSize(const Genome& genome, HashTable* hash_table) {
@@ -147,7 +143,7 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
   //////////////////////////////////////////////////////
   // Erase Extremal Large Bucket
   for (uint32_t i = 0; i < hash_table->counter_size; ++i) {
-    if (hash_table->counter[i] >= 500000) {
+    if (hash_table->counter[i] >= 5000000) {
       cerr << "ERASE THE BUCKET " << i << " SINCE ITS SIZE IS "
           << hash_table->counter[i] << endl;
       hash_table->counter[i] = 0;

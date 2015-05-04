@@ -77,7 +77,7 @@ uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos);
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
 
 /* get the reverse complimentary strand of genome*/
-void ReverseGenome(const Genome& genome, Genome* rc_genome);
+void ReverseGenome(Genome* genome);
 
 /* read chroms from disk and store in genome */
 void ReadGenome(const vector<string>& chrom_files, Genome* genome);
