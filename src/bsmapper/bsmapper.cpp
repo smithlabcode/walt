@@ -296,9 +296,8 @@ void ProcessPairedEndReads(const string& index_file,
 
     ///////////////////////////////////////////////////////////
     //Merge Paired-end results
-    //BestMatch best_match(0, 0, '+', max_mismatches);
     for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
-      cerr << read_names[0][j] << endl;
+      DEBUG_INFO(read_names[0][j], "\n");
       for (uint32_t pi = 0; pi < 2; ++pi) {
         ranked_results_size[pi] = 0;
         while (!top_results[pi][j].candidates.empty()) {
@@ -307,7 +306,7 @@ void ProcessPairedEndReads(const string& index_file,
           top_results[pi][j].Pop();
         }
       }
-      //map_results[j] = best_match;
+
       MergePairedEndResults(ranked_results, ranked_results_size, max_mismatches,
                             read_length, frag_range, genome, read_names[0][j],
                             read_seqs[0][j], read_scores[0][j], read_seqs[1][j],
@@ -502,7 +501,6 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    /////////////////////////////////////////////////////////////////
     if (!is_paired_end_reads) {
       ProcessSingledEndReads(index_file, n_reads_to_process, reads_file_s,
                              output_file, max_mismatches, read_length,
@@ -512,8 +510,6 @@ int main(int argc, const char **argv) {
                             reads_file_p2, output_file, max_mismatches,
                             read_length, seed_length, top_k, frag_range);
     }
-
-    ///////////////
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

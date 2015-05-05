@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "mapping.hpp"
+
 using std::count;
 using std::copy;
 
@@ -13,6 +14,25 @@ uint32_t MAX(const uint32_t& a, const uint32_t& b) {
 
 uint32_t MIN(const uint32_t& a, const uint32_t& b) {
   return a < b ? a : b;
+}
+
+string ReverseString(const string& str) {
+  uint32_t size = str.size();
+  string ret(size, 'N');
+  for (uint32_t i = 0; i < size; ++i) {
+    ret[i] = str[size - i - 1];
+  }
+
+  return ret;
+}
+
+string ReverseComplimentString(const string& str) {
+  string ret = ReverseString(str);
+  for (uint32_t i = 0; i < str.size(); ++i) {
+    ret[i] = complimentBase(ret[i]);
+  }
+
+  return ret;
 }
 
 void ForwardGenomePosition(const uint32_t& genome_pos, const char& strand,
@@ -224,6 +244,10 @@ void OutputBestPairedResults(const CandidatePosition& r1,
                              const string& read_name, const string& read_seq1,
                              const string& read_score1, const string& read_seq2,
                              const string& read_score2, ofstream& fout) {
+
+  string read_seq2_rev = ReverseComplimentString(read_seq2);
+  string read_scr2_rev = ReverseString(read_score2);
+
   uint32_t chr_id1 = getChromID(genome.start_index, r1.genome_pos);
   uint32_t chr_id2 = getChromID(genome.start_index, r2.genome_pos);
 
@@ -232,8 +256,6 @@ void OutputBestPairedResults(const CandidatePosition& r1,
                         s1, e1);
   ForwardGenomePosition(r2.genome_pos, r2.strand, chr_id2, read_length, genome,
                         s2, e2);
-  cerr << "se " << s1 << " " << e1 << endl;
-  cerr << "se " << s2 << " " << e2 << endl;
 
   uint32_t overlap_s = MAX(s1, s2);
   uint32_t overlap_e = MIN(e1, e2);
@@ -245,11 +267,6 @@ void OutputBestPairedResults(const CandidatePosition& r1,
   uint32_t two_r = r1.strand == '+' ? e2 : MIN(overlap_s, e2);
 
   int len = r1.strand == '+' ? (two_r - one_l) : (one_r - two_l);
-
-  cerr << one_l << " " << one_r << endl;
-  cerr << overlap_s << " " << overlap_e << endl;
-  cerr << two_l << " " << two_r << endl;
-  cerr << "=-=====" << endl;
 
   assert(len > 0);
   assert(one_l <= one_r && two_l <= two_r);
@@ -267,22 +284,24 @@ void OutputBestPairedResults(const CandidatePosition& r1,
     copy(read_score1.begin(), read_score1.begin() + lim_one, scr.begin());
 
     uint32_t lim_two = two_r - two_l;
-    copy(read_seq2.end() - lim_two, read_seq2.end(), seq.end() - lim_two);
-    copy(read_score2.end() - lim_two, read_score2.end(), scr.end() - lim_two);
+    copy(read_seq2_rev.end() - lim_two, read_seq2_rev.end(),
+         seq.end() - lim_two);
+    copy(read_scr2_rev.end() - lim_two, read_scr2_rev.end(),
+         scr.end() - lim_two);
 
     // deal with overlapping part
     if (overlap_s < overlap_e) {
       uint32_t one_bads = count(read_seq1.begin(), read_seq1.end(), 'N');
       int info_one = read_length - (one_bads + r1.mismatch);
 
-      uint32_t two_bads = count(read_seq2.begin(), read_seq2.end(), 'N');
+      uint32_t two_bads = count(read_seq2_rev.begin(), read_seq2_rev.end(),
+                                'N');
       int info_two = read_length - (two_bads + r2.mismatch);
 
       // use the mate with the most info to fill in the overlap
       if (info_one >= info_two) {
         uint32_t a = r1.strand == '+' ? (overlap_s - s1) : (e1 - overlap_e);
         uint32_t b = r1.strand == '+' ? (overlap_e - s1) : (e1 - overlap_s);
-        cerr << "ab1 " << a << " " << b << endl;
         copy(read_seq1.begin() + a, read_seq1.begin() + b,
              seq.begin() + lim_one);
         copy(read_score1.begin() + a, read_score1.begin() + b,
@@ -290,10 +309,9 @@ void OutputBestPairedResults(const CandidatePosition& r1,
       } else {
         uint32_t a = r1.strand == '+' ? (overlap_s - s2) : (e2 - overlap_e);
         uint32_t b = r1.strand == '+' ? (overlap_e - s2) : (e2 - overlap_s);
-        cerr << "ab2 " << a << " " << b << endl;
-        copy(read_seq2.begin() + a, read_seq2.begin() + b,
+        copy(read_seq2_rev.begin() + a, read_seq2_rev.begin() + b,
              seq.begin() + lim_one);
-        copy(read_score2.begin() + a, read_score2.begin() + b,
+        copy(read_scr2_rev.begin() + a, read_scr2_rev.begin() + b,
              scr.begin() + lim_one);
       }
     }
@@ -368,26 +386,26 @@ void MergePairedEndResults(
     const uint32_t& read_length, const int& frag_range, const Genome& genome,
     const string& read_name, const string& read_seq1, const string& read_score1,
     const string& read_seq2, const string& read_score2, ofstream& fout) {
-  ////////////////////////////////////////////////
+
+#ifdef DEBUG
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[0][i];
     cerr << "LL " << i << ": " << r.genome_pos << " " << r.strand << " "
-        << r.mismatch << endl;
+    << r.mismatch << endl;
   }
   for (int i = ranked_results_size[1] - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[1][i];
     cerr << "UU " << i << ": " << r.genome_pos << " " << r.strand << " "
-        << r.mismatch << endl;
+    << r.mismatch << endl;
   }
-  ///////////////////////////////////////////////
+#endif
+
   pair<int, int> best_pair(-1, -1);
   uint32_t min_num_of_mismatch = max_mismatches;
   uint64_t best_pos = 0;
   uint32_t best_times = 0;
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     for (int j = ranked_results_size[1] - 1; j >= 0; --j) {
-      cerr << i << " " << j << " " << ranked_results_size[0] - 1 << " "
-          << ranked_results_size[1] - 1 << endl;
       const CandidatePosition& r1 = ranked_results[0][i];
       const CandidatePosition& r2 = ranked_results[1][j];
       if (r1.strand == r2.strand)

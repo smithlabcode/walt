@@ -47,12 +47,12 @@ void IdentifyChromosomes(const string& chrom_file,
 
 void ReadGenome(const vector<string>& chrom_files, Genome* genome) {
   cerr << "[READING CHROMOSOMES] " << endl;
-  vector < string > chrom_names;
-  vector < string > chrom_seqs;
+  vector<string> chrom_names;
+  vector<string> chrom_seqs;
   uint32_t all_chroms_len = 0;
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
-    vector < string > tmp_chrom_names;
-    vector < string > tmp_chrom_seqs;
+    vector<string> tmp_chrom_names;
+    vector<string> tmp_chrom_seqs;
 
     /* read chromosome name and seqeunce from the chromosome file */
     read_fasta_file(chrom_files[i].c_str(), tmp_chrom_names, tmp_chrom_seqs);
@@ -110,7 +110,7 @@ void A2G(vector<char>& sequence) {
 void ReverseGenome(Genome* genome) {
   genome->strand = '-';
   for (uint32_t i = 0; i < genome->num_of_chroms; ++i) {
-    for (uint32_t j = 0; j < genome->length[i]; ++j) {
+    for (uint32_t j = 0; j < genome->length[i] / 2; ++j) {
       char tmp = genome->sequence[j + genome->start_index[i]];
       genome->sequence[j + genome->start_index[i]] = genome->sequence[genome
           ->start_index[i + 1] - j - 1];
