@@ -143,7 +143,7 @@ void CountBucketSize(const Genome& genome, HashTable* hash_table) {
   //////////////////////////////////////////////////////
   // Erase Extremal Large Bucket
   for (uint32_t i = 0; i < hash_table->counter_size; ++i) {
-    if (hash_table->counter[i] >= 5000000) {
+    if (hash_table->counter[i] >= 500000) {
       cerr << "ERASE THE BUCKET " << i << " SINCE ITS SIZE IS "
           << hash_table->counter[i] << endl;
       hash_table->counter[i] = 0;

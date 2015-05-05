@@ -4,6 +4,9 @@
 #include <queue>
 #include <limits>
 
+#include <fstream>
+using std::ofstream;
+
 #include "reference.hpp"
 
 struct TEST_TIME {
@@ -126,7 +129,8 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
 
 void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,
-    const vector<int>& ranked_results_size, BestMatch& best_match,
-    const uint32_t& L, const uint32_t& U, const Genome& genome);
+    const vector<int>& ranked_results_size, const uint32_t& max_mismatches,
+    const uint32_t& read_length, const uint32_t& frag_range,
+    const Genome& genome, ofstream& fout);
 
 #endif /* MAPPING_HPP_ */
