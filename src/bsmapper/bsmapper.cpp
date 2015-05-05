@@ -216,7 +216,7 @@ void ProcessPairedEndReads(const string& index_file,
                            const uint32_t& max_mismatches,
                            const uint32_t& read_length,
                            const uint32_t& seed_length, const uint32_t& top_k,
-                           const uint32_t& frag_range) {
+                           const int& frag_range) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -309,7 +309,9 @@ void ProcessPairedEndReads(const string& index_file,
       }
       //map_results[j] = best_match;
       MergePairedEndResults(ranked_results, ranked_results_size, max_mismatches,
-                            read_length, frag_range, genome, fout);
+                            read_length, frag_range, genome, read_names[0][j],
+                            read_seqs[0][j], read_scores[0][j], read_seqs[1][j],
+                            read_scores[1][j], fout);
     }
 
     if (num_of_reads[0] < n_reads_to_process)
@@ -349,7 +351,7 @@ int main(int argc, const char **argv) {
 
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 100;
-    uint32_t frag_range = 1000;
+    int frag_range = 1000;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",

@@ -130,7 +130,8 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
 void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, const uint32_t& max_mismatches,
-    const uint32_t& read_length, const uint32_t& frag_range,
-    const Genome& genome, ofstream& fout);
+    const uint32_t& read_length, const int& frag_range, const Genome& genome,
+    const string& read_name, const string& read_seq1, const string& read_score1,
+    const string& read_seq2, const string& read_score2, ofstream& fout);
 
 #endif /* MAPPING_HPP_ */

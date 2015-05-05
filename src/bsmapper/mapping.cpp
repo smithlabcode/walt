@@ -1,8 +1,11 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "mapping.hpp"
+using std::count;
+using std::copy;
 
 uint32_t MAX(const uint32_t& a, const uint32_t& b) {
   return a > b ? a : b;
@@ -10,6 +13,14 @@ uint32_t MAX(const uint32_t& a, const uint32_t& b) {
 
 uint32_t MIN(const uint32_t& a, const uint32_t& b) {
   return a < b ? a : b;
+}
+
+void ForwardGenomePosition(const uint32_t& genome_pos, const char& strand,
+                           const uint32_t& chr_id, const uint32_t& read_length,
+                           const Genome& genome, uint32_t& s, uint32_t& e) {
+  s = genome_pos - genome.start_index[chr_id];
+  s = strand == '+' ? s : genome.length[chr_id] - s - read_length;
+  e = s + read_length;
 }
 
 /* for bisulfite sequence mapping, Cs are transfered to Ts*/
@@ -207,37 +218,131 @@ void PairEndMapping(const string& orginal_read, const Genome& genome,
   }
 }
 
-bool CheckPiarPositions(const CandidatePosition& r1,
-                        const CandidatePosition& r2, const uint32_t& frag_range,
-                        const uint32_t& read_length, const Genome& genome,
-                        const uint32_t& chr_id1, const uint32_t& chr_id2, ofstream& fout) {
-  uint32_t s1 = r1.genome_pos, s2 = r2.genome_pos, e1 = 0, e2 = 0;
+void OutputBestPairedResults(const CandidatePosition& r1,
+                             const CandidatePosition& r2, const int& frag_range,
+                             const uint32_t& read_length, const Genome& genome,
+                             const string& read_name, const string& read_seq1,
+                             const string& read_score1, const string& read_seq2,
+                             const string& read_score2, ofstream& fout) {
+  uint32_t chr_id1 = getChromID(genome.start_index, r1.genome_pos);
+  uint32_t chr_id2 = getChromID(genome.start_index, r2.genome_pos);
 
-  uint32_t overlap_start = MAX(s1, s2);
-  uint32_t overlap_end = MIN(e1, e2);
+  uint32_t s1 = 0, s2 = 0, e1 = 0, e2 = 0;
+  ForwardGenomePosition(r1.genome_pos, r1.strand, chr_id1, read_length, genome,
+                        s1, e1);
+  ForwardGenomePosition(r2.genome_pos, r2.strand, chr_id2, read_length, genome,
+                        s2, e2);
+  cerr << "se " << s1 << " " << e1 << endl;
+  cerr << "se " << s2 << " " << e2 << endl;
 
-  uint32_t one_left = r1.strand == '+' ? s1 : MAX(overlap_end, s1);
-  uint32_t one_right = r1.strand == '+' ? MIN(overlap_start, e1) : e1;
+  uint32_t overlap_s = MAX(s1, s2);
+  uint32_t overlap_e = MIN(e1, e2);
 
-  uint32_t two_left = r1.strand == '+' ? MAX(overlap_end, s2) : s2;
-  uint32_t two_right = r1.strand == '+' ? e2 : MIN(overlap_start, e2);
+  uint32_t one_l = r1.strand == '+' ? s1 : MAX(overlap_e, s1);
+  uint32_t one_r = r1.strand == '+' ? MIN(overlap_s, e1) : e1;
 
-  int len = r1.strand == '+' ? (two_right - one_left) : (one_right - two_left);
+  uint32_t two_l = r1.strand == '+' ? MAX(overlap_e, s2) : s2;
+  uint32_t two_r = r1.strand == '+' ? e2 : MIN(overlap_s, e2);
+
+  int len = r1.strand == '+' ? (two_r - one_l) : (one_r - two_l);
+
+  cerr << one_l << " " << one_r << endl;
+  cerr << overlap_s << " " << overlap_e << endl;
+  cerr << two_l << " " << two_r << endl;
+  cerr << "=-=====" << endl;
 
   assert(len > 0);
-  assert(one_left <= one_right && two_left <= two_right);
+  assert(one_l <= one_r && two_l <= two_r);
   assert(
-      overlap_start >= overlap_end
-          || static_cast<size_t>(len)
-              == ((one_right - one_left) + (two_right - two_left)
-                  + (overlap_end - overlap_start)));
+      overlap_s >= overlap_e
+          || static_cast<uint32_t>(len)
+              == ((one_r - one_l) + (two_r - two_l) + (overlap_e - overlap_s)));
 
+  string seq(len, 'N');
+  string scr(len, 'B');
+  if (len > 0 && len <= frag_range) {
+    // lim_one: offset in merged sequence where overlap starts
+    uint32_t lim_one = one_r - one_l;
+    copy(read_seq1.begin(), read_seq1.begin() + lim_one, seq.begin());
+    copy(read_score1.begin(), read_score1.begin() + lim_one, scr.begin());
+
+    uint32_t lim_two = two_r - two_l;
+    copy(read_seq2.end() - lim_two, read_seq2.end(), seq.end() - lim_two);
+    copy(read_score2.end() - lim_two, read_score2.end(), scr.end() - lim_two);
+
+    // deal with overlapping part
+    if (overlap_s < overlap_e) {
+      uint32_t one_bads = count(read_seq1.begin(), read_seq1.end(), 'N');
+      int info_one = read_length - (one_bads + r1.mismatch);
+
+      uint32_t two_bads = count(read_seq2.begin(), read_seq2.end(), 'N');
+      int info_two = read_length - (two_bads + r2.mismatch);
+
+      // use the mate with the most info to fill in the overlap
+      if (info_one >= info_two) {
+        uint32_t a = r1.strand == '+' ? (overlap_s - s1) : (e1 - overlap_e);
+        uint32_t b = r1.strand == '+' ? (overlap_e - s1) : (e1 - overlap_s);
+        cerr << "ab1 " << a << " " << b << endl;
+        copy(read_seq1.begin() + a, read_seq1.begin() + b,
+             seq.begin() + lim_one);
+        copy(read_score1.begin() + a, read_score1.begin() + b,
+             scr.begin() + lim_one);
+      } else {
+        uint32_t a = r1.strand == '+' ? (overlap_s - s2) : (e2 - overlap_e);
+        uint32_t b = r1.strand == '+' ? (overlap_e - s2) : (e2 - overlap_s);
+        cerr << "ab2 " << a << " " << b << endl;
+        copy(read_seq2.begin() + a, read_seq2.begin() + b,
+             seq.begin() + lim_one);
+        copy(read_score2.begin() + a, read_score2.begin() + b,
+             scr.begin() + lim_one);
+      }
+    }
+  }
+
+  uint32_t start_pos = r1.strand == '+' ? s1 : s2;
+  fout << genome.name[chr_id1] << "\t" << start_pos << "\t" << start_pos + len
+      << "\t" << "FRAG:" << read_name << "\t" << r1.mismatch + r2.mismatch
+      << "\t" << r1.strand << "\t" << seq << "\t" << scr << endl;
+}
+
+void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
+                             const int ranked_results_size,
+                             const Genome& genome, const uint32_t& read_length,
+                             const string& read_name, const string& read_seq,
+                             const string& read_score,
+                             const uint32_t& max_mismatches, ofstream& fout) {
+  BestMatch best_match(0, 0, '+', max_mismatches);
+  for (int i = ranked_results_size - 1; i >= 0; --i) {
+    const CandidatePosition& r = ranked_results[i];
+    if (r.mismatch < best_match.mismatch) {
+      best_match = BestMatch(r.genome_pos, 1, r.strand, r.mismatch);
+    } else if (r.mismatch == best_match.mismatch
+        && best_match.genome_pos != r.genome_pos) {
+      best_match.genome_pos = r.genome_pos;
+      best_match.strand = r.strand;
+      best_match.times++;
+    } else {
+      break;
+    }
+  }
+
+  if (best_match.times == 1) {
+    uint32_t chr_id = getChromID(genome.start_index, best_match.genome_pos);
+    uint32_t start_pos = 0, end_pos = 0;
+    ForwardGenomePosition(best_match.genome_pos, best_match.strand, chr_id,
+                          read_length, genome, start_pos, end_pos);
+
+    fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos << "\t"
+        << read_name << "\t" << best_match.mismatch << "\t" << best_match.strand
+        << "\t" << read_seq << "\t" << read_score << endl;
+  }
 }
 
 int get_fragment_length(const CandidatePosition& r1,
                         const CandidatePosition& r2, const uint32_t& frag_range,
                         const uint32_t& read_length, const Genome& genome,
                         const uint32_t& chr_id1, const uint32_t& chr_id2) {
+  uint32_t s1 = r1.genome_pos, s2 = r2.genome_pos, e1 = 0, e2 = 0;
   if (r1.strand == '+') {
     s1 = s1 - genome.start_index[chr_id1];
     e1 = s1 + read_length;
@@ -260,8 +365,9 @@ int get_fragment_length(const CandidatePosition& r1,
 void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, const uint32_t& max_mismatches,
-    const uint32_t& read_length, const uint32_t& frag_range,
-    const Genome& genome, ofstream& fout) {
+    const uint32_t& read_length, const int& frag_range, const Genome& genome,
+    const string& read_name, const string& read_seq1, const string& read_score1,
+    const string& read_seq2, const string& read_score2, ofstream& fout) {
   ////////////////////////////////////////////////
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[0][i];
@@ -276,6 +382,7 @@ void MergePairedEndResults(
   ///////////////////////////////////////////////
   pair<int, int> best_pair(-1, -1);
   uint32_t min_num_of_mismatch = max_mismatches;
+  uint64_t best_pos = 0;
   uint32_t best_times = 0;
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     for (int j = ranked_results_size[1] - 1; j >= 0; --j) {
@@ -297,23 +404,35 @@ void MergePairedEndResults(
 
       int frag_size = get_fragment_length(r1, r2, frag_range, read_length,
                                           genome, chr_id1, chr_id2);
-      if (frag_size <= 0 || frag_size > max_fraglen)
+      if (frag_size <= 0 || frag_size > frag_range)
         continue;
 
+      uint64_t cur_pos = r1.genome_pos;
+      cur_pos <<= 32;
+      cur_pos += r2.genome_pos;
       if (num_of_mismatch < min_num_of_mismatch) {
         best_pair = make_pair(i, j);
         best_times = 1;
         min_num_of_mismatch = num_of_mismatch;
-      } else if (num_of_mismatch == min_num_of_mismatch) {
+        best_pos = cur_pos;
+      } else if (num_of_mismatch == min_num_of_mismatch
+          && cur_pos != best_pos) {
         best_times++;
-        min_num_of_mismatch = num_of_mismatch;
       }
     }
   }
 
-  if (best_time == 1) {
-
+  if (best_times == 1) {
+    OutputBestPairedResults(ranked_results[0][best_pair.first],
+                            ranked_results[1][best_pair.second], frag_range,
+                            read_length, genome, read_name, read_seq1,
+                            read_score1, read_seq2, read_score2, fout);
   } else {
-
+    OutputBestSingleResults(ranked_results[0], ranked_results_size[0], genome,
+                            read_length, read_name, read_seq1, read_score1,
+                            max_mismatches, fout);
+    OutputBestSingleResults(ranked_results[1], ranked_results_size[1], genome,
+                            read_length, read_name, read_seq2, read_score2,
+                            max_mismatches, fout);
   }
 }
