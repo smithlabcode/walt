@@ -185,6 +185,8 @@ void ProcessSingledEndReads(const string& index_file,
                          seed_length, strand, test_time, AG_WILDCARD);
         sum_t += clock() - start_t;
       }
+      fprintf(stderr, "[%.3lf SECONDS MAPPING TIME PASSED]\n",
+              static_cast<double>(sum_t / CLOCKS_PER_SEC));
     }
     OutputSingleEndResults(fout, map_results, num_of_reads, read_names,
                            read_seqs, read_scores, genome);
@@ -291,6 +293,8 @@ void ProcessPairedEndReads(const string& index_file,
                          strand, AG_WILDCARD);
           sum_t += clock() - start_t;
         }
+        fprintf(stderr, "[%.3lf SECONDS MAPPING TIME PASSED]\n",
+                static_cast<double>(sum_t / CLOCKS_PER_SEC));
       }
     }
 

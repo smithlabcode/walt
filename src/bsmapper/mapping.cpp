@@ -268,13 +268,6 @@ void OutputBestPairedResults(const CandidatePosition& r1,
 
   int len = r1.strand == '+' ? (two_r - one_l) : (one_r - two_l);
 
-  assert(len > 0);
-  assert(one_l <= one_r && two_l <= two_r);
-  assert(
-      overlap_s >= overlap_e
-          || static_cast<uint32_t>(len)
-              == ((one_r - one_l) + (two_r - two_l) + (overlap_e - overlap_s)));
-
   string seq(len, 'N');
   string scr(len, 'B');
   if (len > 0 && len <= frag_range) {
@@ -356,26 +349,15 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
   }
 }
 
-int get_fragment_length(const CandidatePosition& r1,
-                        const CandidatePosition& r2, const uint32_t& frag_range,
-                        const uint32_t& read_length, const Genome& genome,
-                        const uint32_t& chr_id1, const uint32_t& chr_id2) {
-  uint32_t s1 = r1.genome_pos, s2 = r2.genome_pos, e1 = 0, e2 = 0;
-  if (r1.strand == '+') {
-    s1 = s1 - genome.start_index[chr_id1];
-    e1 = s1 + read_length;
-
-    s2 = genome.length[chr_id2] - (s2 - genome.start_index[chr_id2])
-        - read_length;
-    e2 = s2 + read_length;
-  } else {
-    s1 = genome.length[chr_id1] - (s1 - genome.start_index[chr_id1])
-        - read_length;
-    e1 = s1 + read_length;
-
-    s2 = s2 - genome.start_index[chr_id2];
-    e2 = s2 + read_length;
-  }
+int GetFragmentLength(const CandidatePosition& r1, const CandidatePosition& r2,
+                      const uint32_t& frag_range, const uint32_t& read_length,
+                      const Genome& genome, const uint32_t& chr_id1,
+                      const uint32_t& chr_id2) {
+  uint32_t s1 = 0, s2 = 0, e1 = 0, e2 = 0;
+  ForwardGenomePosition(r1.genome_pos, r1.strand, chr_id1, read_length, genome,
+                        s1, e1);
+  ForwardGenomePosition(r2.genome_pos, r2.strand, chr_id2, read_length, genome,
+                        s2, e2);
 
   return r1.strand == '+' ? (e2 - s1) : (e1 - s2);
 }
@@ -386,7 +368,6 @@ void MergePairedEndResults(
     const uint32_t& read_length, const int& frag_range, const Genome& genome,
     const string& read_name, const string& read_seq1, const string& read_score1,
     const string& read_seq2, const string& read_score2, ofstream& fout) {
-
 #ifdef DEBUG
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[0][i];
@@ -420,8 +401,8 @@ void MergePairedEndResults(
       if (chr_id1 != chr_id2)
         continue;
 
-      int frag_size = get_fragment_length(r1, r2, frag_range, read_length,
-                                          genome, chr_id1, chr_id2);
+      int frag_size = GetFragmentLength(r1, r2, frag_range, read_length, genome,
+                                        chr_id1, chr_id2);
       if (frag_size <= 0 || frag_size > frag_range)
         continue;
 
@@ -435,6 +416,7 @@ void MergePairedEndResults(
         best_pos = cur_pos;
       } else if (num_of_mismatch == min_num_of_mismatch
           && cur_pos != best_pos) {
+        best_pair = make_pair(i, j);
         best_times++;
       }
     }
