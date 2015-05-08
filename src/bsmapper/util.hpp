@@ -124,11 +124,7 @@ const uint32_t F2SEEDPOSITION[] = {  1,   4,   7,  10,  13,  16,  19,  22,  25, 
                                    121, 124, 127, 130, 133 };
 #endif
 
-
-#define MAX_LINE_LEN 100000
-const double GB = 1024 * 1024 * 1024;
-
-const uint32_t MAX_INTEGER32 = std::numeric_limits<uint32_t>::max();
+const uint32_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 
 inline void MemoryAllocateCheck(void* pointer, const char* file, int line) {
   if (pointer == NULL) {

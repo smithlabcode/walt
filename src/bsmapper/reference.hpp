@@ -1,10 +1,11 @@
 /*
- * This file reads reference genome, builds hash table and stores them
- * in Genome and HashTable.
- * All the characters in genome are transfered into capital letters, and
- * Ns in the genome are randomly transfered to A, C, G or T.
- * For mapping bisulfite seqeunces, Cs in the genome (both strands) are
- * transfered to T.
+ * reference.cpp loads chromosomes from the genome file, builds hash table
+ * and stores them in struct Genome and HashTable.
+ *
+ * All the characters in the genome are transfered into capital letters.
+ *
+ * Ns in the genome are transfered to T when mapping _1 read files, and
+ * transfered to G when mapping _2 read files.
  * */
 
 #ifndef REFERENCE_H_
@@ -30,21 +31,22 @@ struct Genome {
 
   /* all chromosomes are concatenated to one string, and stored
    * in vector<char> sequence. start_index indicates the start position
-   * of the chromosome in vector<char> sequence */
+   * of the chromosome in vector<char> sequence. */
   vector<uint32_t> start_index;
 
-  /* There are two different strands, '+' and '-'. The read from reference
-   * file is '+', and the one got from reverse compliment rule is '-'.  */
+  /* There are two different strands, '+' and '-'. The chromosome read from
+   * reference file is '+', and the one got from reverse compliment rule
+   * is '-'.  */
   char strand;
 
   /* number of chromosomes in the genome */
   uint32_t num_of_chroms;
 
   /* The total number of nucleotides in the genome, which is the sum of
-   * all chromosomes length*/
+   * all chromosomes' length. */
   uint32_t length_of_genome;
 
-  /* all chromosome are concatenated to one string, and stored in sequence */
+  /* all chromosome are concatenated to one string, and stored in sequence. */
   vector<char> sequence;
 };
 
@@ -53,7 +55,7 @@ struct Genome {
  * unordered_map<uint32_t, vector<GenomePosition> >
  * to current struct in order to reduce the time for reading index. When using
  * unordered_map, the number of reading disk equals to the number of k-mers.
- * Now we put all the positions in one array index, so we only read disk once.
+ * Now all the positions are put in one array index, only read disk once.
  * */
 struct HashTable {
   /* counter_size records the size of array counter */
@@ -70,50 +72,53 @@ struct HashTable {
   vector<uint32_t> index;
 };
 
-/* find the position of the number which is first larger or equal to pso */
+/* find the first index in  nums which is larger or equal to pos */
 uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos);
 
-/* identify all the chromosome files and estimate the size of each chromosome */
+/* identify chromosome files and estimate the size of each chromosome */
 void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
 
-/* get the reverse complimentary strand of genome*/
-void ReverseGenome(Genome* genome);
+/* read chromosomes from disk and store in genome */
+void ReadGenome(const vector<string>& chrom_files, Genome& genome);
 
-/* read chroms from disk and store in genome */
-void ReadGenome(const vector<string>& chrom_files, Genome* genome);
+/* get the reverse complimentary strand of genome */
+void ReverseGenome(Genome& genome);
 
-/* Cs in read and genome are transferred to Ts */
+/* Cs in the genome are transferred to Ts */
 void C2T(vector<char>& sequence);
 
-/* As in read and genome are transferred to Gs */
+/* As in the genome are transferred to Gs */
 void A2G(vector<char>& sequence);
 
-/* Sort each bucket, if the seed lenght is more than 12, then use binary search for
- * the left part of the seed */
-void SortHashTableBucket(const Genome* genome, HashTable * hash_table);
+/* count how many k-mers for each hash value (bucket) */
+void CountBucketSize(const Genome& genome, HashTable& hash_table);
+
+/* put genome positions to the corresponding bucket */
+void HashToBucket(const Genome& genome, HashTable& hash_table);
+
+/* Sort each bucket, if the seed length is more than 12, then use binary search
+ * for the rest part of the seed */
+void SortHashTableBucket(const Genome& genome, HashTable& hash_table);
 
 /* Output the Hash Table to a human readable file for testing */
 void TestHashTable(const Genome& genome, const HashTable& hash_table);
 
-void CountBucketSize(const Genome& genome, HashTable* hash_table);
-void HashToBucket(const Genome& genome, HashTable* hash_table);
-
-/* After building the hash table for all the chromosomes, write them to the disk.
- * Next time when mapping the reads, first should using ReadIndex function to read
+/* After building the hash table for all chromosomes, write them to the disk.
+ * Next time when mapping the reads, first using ReadIndex function to read
  * the chromosomes and hash tables */
 void WriteIndex(const string& index_file, const Genome& genome,
                 const HashTable& hash_table);
 
 /* read the chromosomes and hash tables from the disk */
-void ReadIndex(const string& index_file, Genome* genome, HashTable* hash_table);
+void ReadIndex(const string& index_file, Genome& genome, HashTable& hash_table);
 
-/* write the head information to disk, including 4 indexes name, genome name
- * and length, and also the largest size of index array in HashTable */
+/* write the head information to disk, including 4 index names, chromosome names
+ * and lengths, and also the largest size of index array in HashTable */
 void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
                         const uint32_t& size_of_index);
 
 /* read the head information from disk */
-void ReadIndexHeadInfo(const string& index_file, Genome* genome,
-                       uint32_t* size_of_index);
+void ReadIndexHeadInfo(const string& index_file, Genome& genome,
+                       uint32_t& size_of_index);
 
 #endif /* REFERENCE_H_ */

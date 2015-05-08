@@ -33,10 +33,10 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
 
   Genome genome;
   HashTable hash_table;
-  ReadGenome(chrom_files, &genome);
+  ReadGenome(chrom_files, genome);
 
   if (indicator % 2) {
-    ReverseGenome(&genome);
+    ReverseGenome(genome);
   }
 
   if (indicator == 0 || indicator == 1) {
@@ -45,9 +45,9 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
     A2G(genome.sequence);
   }
 
-  CountBucketSize(genome, &hash_table);
-  HashToBucket(genome, &hash_table);
-  SortHashTableBucket(&genome, &hash_table);
+  CountBucketSize(genome, hash_table);
+  HashToBucket(genome, hash_table);
+  SortHashTableBucket(genome, hash_table);
   WriteIndex(output_file, genome, hash_table);
 
   size_of_index =
@@ -120,7 +120,7 @@ int main(int argc, const char **argv) {
     BuildIndex(chrom_files, 3, outfile + "_AG11", size_of_index);
 
     Genome genome;
-    ReadGenome(chrom_files, &genome);
+    ReadGenome(chrom_files, genome);
     WriteIndexHeadInfo(outfile, genome, size_of_index);
 
   } catch (const SMITHLABException &e) {

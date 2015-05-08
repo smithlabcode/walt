@@ -9,34 +9,14 @@ using std::ofstream;
 
 #include "reference.hpp"
 
-struct TEST_TIME {
-  TEST_TIME() {
-    get_region_start_t = 0;
-    get_region_start_sum_time = 0;
-
-    full_check_time_t = 0;
-    full_check_sum_time = 0;
-
-    num_of_full_check = 0;
-  }
-  clock_t get_region_start_t;
-  uint64_t get_region_start_sum_time;
-
-  clock_t full_check_time_t;
-  uint64_t full_check_sum_time;
-
-  uint64_t num_of_full_check;
-};
-
+/* BestMatch records the match position with the minimal number
+ * of mismatches. times records how many genome positions with
+ * this minimal number of mismatches. If times equals 1, means
+ * the read is uniquely matched to the genome with the minimal
+ * number of mismatches. */
 struct BestMatch {
-  BestMatch() {
-    genome_pos = 0;
-    times = 0;
-    strand = '+';
-    mismatch = MAX_INTEGER32;
-  }
-  BestMatch(const uint32_t& _genome_pos, const uint32_t& _times,
-            const char& _strand, const uint32_t& _mismatch)
+  BestMatch(const uint32_t& _genome_pos = 0, const uint32_t& _times = 0,
+            const char& _strand = '+', const uint32_t& _mismatch = MAX_UINT32)
       : genome_pos(_genome_pos),
         times(_times),
         strand(_strand),
@@ -49,20 +29,17 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
+/* CandidatePosition stores the candidate genome positions with number of
+ * mismatches less or equal to max_mismatches */
 struct CandidatePosition {
-  CandidatePosition() {
-    genome_pos = 0;
-    strand = '+';
-    mismatch = MAX_INTEGER32;
-  }
-  CandidatePosition(const uint32_t& _genome_pos, const char& _strand,
-                    const uint32_t& _mismatch)
+  CandidatePosition(const uint32_t& _genome_pos = 0, const char& _strand = '+',
+                    const uint32_t& _mismatch = MAX_UINT32)
       : genome_pos(_genome_pos),
         strand(_strand),
         mismatch(_mismatch) {
   }
 
-  bool operator<(const CandidatePosition & b) const {
+  bool operator<(const CandidatePosition& b) const {
     return mismatch < b.mismatch;
   }
 
@@ -71,12 +48,12 @@ struct CandidatePosition {
   uint32_t mismatch;
 };
 
+/* TopCandidates is a priority_queue which stores the top-k candidate
+ * positions. When mapping paired-end reads, for each read in the pair,
+ * the top-k positions (with minimal mismatches) are recorded. Then using
+ * the top-k positions in each of them to find the best pair match. */
 struct TopCandidates {
-  TopCandidates() {
-    size = 2;
-  }
-
-  TopCandidates(const uint32_t& _size)
+  TopCandidates(const uint32_t& _size = 100)
       : size(_size) {
   }
 
@@ -94,6 +71,10 @@ struct TopCandidates {
     }
   }
 
+  CandidatePosition Top() {
+    return candidates.top();
+  }
+
   void Push(const CandidatePosition& cand) {
     if (candidates.size() < size) {
       candidates.push(cand);
@@ -109,29 +90,29 @@ struct TopCandidates {
     candidates.pop();
   }
 
-  CandidatePosition Top() {
-    return candidates.top();
-  }
-
   std::priority_queue<CandidatePosition> candidates;
   uint32_t size;
 };
 
-void SingleEndMapping(const string& orginal_read, const Genome& genome,
-                      const HashTable& hash_table, BestMatch& best_match,
-                      const uint32_t& seed_length, const char& strand,
-                      TEST_TIME& test_time, const bool& AG_WILDCARD);
+/* singled-end read mapping */
+void SingleEndMapping(const string& org_read, const Genome& genome,
+                      const HashTable& hash_table, const char& strand,
+                      const bool& AG_WILDCARD, const uint32_t& seed_len,
+                      BestMatch& best_match);
 
-void PairEndMapping(const string& orginal_read, const Genome& genome,
-                    const HashTable& hash_table, TopCandidates& top_match,
-                    const uint32_t& max_mismatches, const uint32_t& seed_length,
-                    const char& strand, const bool& AG_WILDCARD);
+/* paired-end read mapping */
+void PairEndMapping(const string& org_read, const Genome& genome,
+                    const HashTable& hash_table, const char& strand,
+                    const bool& AG_WILDCARD, const uint32_t& max_mismatches,
+                    const uint32_t& seed_len, TopCandidates& top_match);
 
+/* merge the mapping results from paired reads */
 void MergePairedEndResults(
+    const Genome& genome, const string& read_name, const string& read_seq1,
+    const string& read_score1, const string& read_seq2,
+    const string& read_score2,
     const vector<vector<CandidatePosition> >& ranked_results,
-    const vector<int>& ranked_results_size, const uint32_t& max_mismatches,
-    const uint32_t& read_length, const int& frag_range, const Genome& genome,
-    const string& read_name, const string& read_seq1, const string& read_score1,
-    const string& read_seq2, const string& read_score2, ofstream& fout);
+    const vector<int>& ranked_results_size, const uint32_t& read_len,
+    const int& frag_range, const uint32_t& max_mismatches, ofstream& fout);
 
 #endif /* MAPPING_HPP_ */
