@@ -139,7 +139,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
-    pair < uint32_t, uint32_t > region;
+    pair<uint32_t, uint32_t> region;
     region.first = hash_table.counter[hash_value];
     region.second = hash_table.counter[hash_value + 1];
 
