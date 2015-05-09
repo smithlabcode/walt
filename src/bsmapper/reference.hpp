@@ -72,7 +72,7 @@ struct HashTable {
   vector<uint32_t> index;
 };
 
-/* find the first index in  nums which is larger or equal to pos */
+/* find the first index in nums which is larger or equal to pos */
 uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos);
 
 /* identify chromosome files and estimate the size of each chromosome */

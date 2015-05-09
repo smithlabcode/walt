@@ -1,13 +1,17 @@
+/*
+ * singled-end read mapping
+ * */
 #ifndef MAPPING_HPP_
 #define MAPPING_HPP_
 
-#include <queue>
-#include <limits>
-
-#include <fstream>
-using std::ofstream;
-
 #include "reference.hpp"
+
+#include <string>
+#include <vector>
+#include <fstream>
+
+using std::ifstream;
+using std::ofstream;
 
 /* BestMatch records the match position with the minimal number
  * of mismatches. times records how many genome positions with
@@ -29,90 +33,32 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
-/* CandidatePosition stores the candidate genome positions with number of
- * mismatches less or equal to max_mismatches */
-struct CandidatePosition {
-  CandidatePosition(const uint32_t& _genome_pos = 0, const char& _strand = '+',
-                    const uint32_t& _mismatch = MAX_UINT32)
-      : genome_pos(_genome_pos),
-        strand(_strand),
-        mismatch(_mismatch) {
-  }
+/* load reads from reads file, each time load n_reads_to_process reads,
+ * start from  read_start_idx */
+void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
+                            const uint64_t n_reads_to_process,
+                            uint32_t& num_of_reads, vector<string>& read_names,
+                            vector<string>& read_seqs,
+                            vector<string>& read_scores);
 
-  bool operator<(const CandidatePosition& b) const {
-    return mismatch < b.mismatch;
-  }
+/* reads from _1 file, Cs are transfered to Ts*/
+void C2T(const string& org_read, const uint32_t& read_len, string& read);
 
-  uint32_t genome_pos;
-  char strand;
-  uint32_t mismatch;
-};
+/* reads from _2 file, As are transfered to Gs*/
+void A2G(const string& org_read, const uint32_t& read_len, string& read);
 
-/* TopCandidates is a priority_queue which stores the top-k candidate
- * positions. When mapping paired-end reads, for each read in the pair,
- * the top-k positions (with minimal mismatches) are recorded. Then using
- * the top-k positions in each of them to find the best pair match. */
-struct TopCandidates {
-  TopCandidates(const uint32_t& _size = 100)
-      : size(_size) {
-  }
+/* find the region of index where those positions started with the seed */
+void IndexRegion(const string& read, const Genome& genome,
+                 const HashTable& hash_table, const uint32_t& seed_len,
+                 pair<uint32_t, uint32_t>& region);
 
-  void SetSize(const uint32_t& _size) {
-    size = _size;
-  }
-
-  bool Empty() {
-    return candidates.empty();
-  }
-
-  void Clear() {
-    while (!candidates.empty()) {
-      candidates.pop();
-    }
-  }
-
-  CandidatePosition Top() {
-    return candidates.top();
-  }
-
-  void Push(const CandidatePosition& cand) {
-    if (candidates.size() < size) {
-      candidates.push(cand);
-    } else {
-      if (cand.mismatch < candidates.top().mismatch) {
-        candidates.pop();
-        candidates.push(cand);
-      }
-    }
-  }
-
-  void Pop() {
-    candidates.pop();
-  }
-
-  std::priority_queue<CandidatePosition> candidates;
-  uint32_t size;
-};
-
-/* singled-end read mapping */
-void SingleEndMapping(const string& org_read, const Genome& genome,
-                      const HashTable& hash_table, const char& strand,
-                      const bool& AG_WILDCARD, const uint32_t& seed_len,
-                      BestMatch& best_match);
-
-/* paired-end read mapping */
-void PairEndMapping(const string& org_read, const Genome& genome,
-                    const HashTable& hash_table, const char& strand,
-                    const bool& AG_WILDCARD, const uint32_t& max_mismatches,
-                    const uint32_t& seed_len, TopCandidates& top_match);
-
-/* merge the mapping results from paired reads */
-void MergePairedEndResults(
-    const Genome& genome, const string& read_name, const string& read_seq1,
-    const string& read_score1, const string& read_seq2,
-    const string& read_score2,
-    const vector<vector<CandidatePosition> >& ranked_results,
-    const vector<int>& ranked_results_size, const uint32_t& read_len,
-    const int& frag_range, const uint32_t& max_mismatches, ofstream& fout);
+/* singled-end read */
+void ProcessSingledEndReads(const string& index_file,
+                            const uint32_t& n_reads_to_process,
+                            const string& reads_file_s,
+                            const string& output_file,
+                            const uint32_t& max_mismatches,
+                            const uint32_t& read_len, const uint32_t& seed_len,
+                            const bool& AG_WILDCARD);
 
 #endif /* MAPPING_HPP_ */

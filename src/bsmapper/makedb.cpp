@@ -1,6 +1,6 @@
 /*
  * This is the main function for building index for reference genome.
- * Copyright [2014] < >
+ * Copyright [2015] < >
  */
 #include <string>
 #include <vector>
@@ -9,11 +9,6 @@
 #include "OptionParser.hpp"
 
 #include "reference.hpp"
-
-using std::string;
-using std::vector;
-using std::cerr;
-using std::endl;
 
 void BuildIndex(const vector<string>& chrom_files, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
@@ -72,6 +67,7 @@ int main(int argc, const char **argv) {
         "output", 'o',
         "output file name (the suffix of the file should be '.dbindex')", true,
         outfile);
+
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
@@ -88,12 +84,12 @@ int main(int argc, const char **argv) {
     }
     if (!is_valid_filename(outfile, "dbindex")) {
       cerr << "The suffix of the output file should be '.dbindex' " << endl;
-      return EXIT_SUCCESS;
+      return EXIT_FAILURE;
     }
     if (outfile.size() > 1000) {
       cerr << "The output file name is too long, please select a shorter name"
           << endl;
-      return EXIT_SUCCESS;
+      return EXIT_FAILURE;;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
 
@@ -107,22 +103,21 @@ int main(int argc, const char **argv) {
     // BUILD  INDEX
     //
     uint32_t size_of_index = 0;
-    //////////BUILD INDEX FOR FORWARD STRAND (C->T)
+    ////////// BUILD INDEX FOR FORWARD STRAND (C->T)
     BuildIndex(chrom_files, 0, outfile + "_CT00", size_of_index);
 
-    //////////BUILD INDEX FOR REVERSE STRAND (C->T)
+    ////////// BUILD INDEX FOR REVERSE STRAND (C->T)
     BuildIndex(chrom_files, 1, outfile + "_CT01", size_of_index);
 
-    //////////BUILD INDEX FOR FORWARD STRAND (A->G)
+    ////////// BUILD INDEX FOR FORWARD STRAND (A->G)
     BuildIndex(chrom_files, 2, outfile + "_AG10", size_of_index);
 
-    //////////BUILD INDEX FOR REVERSE STRAND (A->G)
+    ////////// BUILD INDEX FOR REVERSE STRAND (A->G)
     BuildIndex(chrom_files, 3, outfile + "_AG11", size_of_index);
 
     Genome genome;
     ReadGenome(chrom_files, genome);
     WriteIndexHeadInfo(outfile, genome, size_of_index);
-
   } catch (const SMITHLABException &e) {
     cerr << e.what() << endl;
     return EXIT_FAILURE;

@@ -18,7 +18,7 @@ CFLAGS += -arch x86_64
 endif
 
 SRCDB = reference.cpp
-SRCMAP =  reference.cpp mapping.cpp
+SRCMAP =  reference.cpp mapping.cpp paired.cpp
 OBJDB = $(patsubst %.cpp,%.o,$(SRCDB))
 OBJMAP = $(patsubst %.cpp,%.o,$(SRCMAP))
 
