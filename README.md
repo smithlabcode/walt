@@ -52,7 +52,7 @@ To see the list of options, use "-?" or "-help".
 
 ### Examples ###
 
-(1) Indexing Gneome
+(1) **Indexing Gneome**
 
 For example, to make an index for UCSC hg19
 
@@ -64,7 +64,7 @@ or to make an index for chromsome 2
 
 The suffix of the index file should be .dbindex.
     
-(2) Bisulfite Mapping
+(2) **Bisulfite Mapping**
 
 For example, to mapping reads to human gnome hg19
 
