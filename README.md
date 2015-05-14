@@ -33,17 +33,17 @@ paired-end reads
 ### Mapping Options ###
 
 
-| Option | Long-Tag | Type | Default | Brief Description |
+| Option | Long Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
-| -i      | -index | String | NULL |index file created by ***makedb*** command (the suffix of the index file should be '.dbindex') |
-| -r      | -reads | String | NULL | singled-end reads file (the suffix of the reads file should be '.fastq' or '.fq') |
-| -1      | -reads1 | String | NULL | paired-end reads _1 (the suffix of the reads file should be '.fastq' or '.fq') |
-| -2      | -reads2 | String | NULL | paired-end reads _2 (the suffix of the reads file should be '.fastq' or '.fq') |
+| -i      | -index | String | NULL |index file created by ***makedb*** command ( .dbindex) |
+| -r      | -reads | String | NULL | singled-end reads file (.fastq or .fq) |
+| -1      | -reads1 | String | NULL | paired-end reads _1 (.fastq or .fq) |
+| -2      | -reads2 | String | NULL | paired-end reads _2 (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
 | -l      | -seedlen | Integer | 25 | the length of the space seed |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
-| -A      | -ag-wild | Boolean | faluse | map using A/G bisulfite wildcards |
+| -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 
