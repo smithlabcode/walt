@@ -100,8 +100,10 @@ void HashToBucket(const Genome& genome, HashTable& hash_table);
  * for the rest part of the seed */
 void SortHashTableBucket(const Genome& genome, HashTable& hash_table);
 
+#ifdef DEBUG
 /* Output the Hash Table to a human readable file for testing */
 void TestHashTable(const Genome& genome, const HashTable& hash_table);
+#endif
 
 /* After building the hash table for all chromosomes, write them to the disk.
  * Next time when mapping the reads, first using ReadIndex function to read

@@ -3,17 +3,20 @@
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
-void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
-                            const uint64_t n_reads_to_process,
+void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
+                            const uint32_t n_reads_to_process,
                             uint32_t& num_of_reads, vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores) {
+  char cline[MAX_LINE_LENGTH];
   string line;
   int line_code = 0;
-  uint64_t line_count = 0;
+  uint32_t line_count = 0;
   num_of_reads = 0;
-  uint64_t lim = n_reads_to_process * 4;
-  while (line_count < lim && getline(fin, line)) {
+  uint32_t lim = n_reads_to_process * 4;
+  while (line_count < lim && fgets(cline, MAX_LINE_LENGTH, fin)) {
+    cline[strlen(cline) - 1] = 0;
+    line = cline;
     switch (line_code) {
       case 0: {
         size_t space_pos = line.find_first_of(' ');
@@ -177,8 +180,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 }
 
-void OutputSingleEndResults(ofstream& fout,
-                            const vector<BestMatch>& map_results,
+void OutputSingleEndResults(FILE * fout, const vector<BestMatch>& map_results,
                             const uint32_t& num_of_reads,
                             const vector<string>& read_names,
                             const vector<string>& read_seqs,
@@ -195,10 +197,11 @@ void OutputSingleEndResults(ofstream& fout,
     }
     uint32_t end_pos = start_pos + read_seqs[j].size();
 
-    fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos << "\t"
-        << read_names[j] << "\t" << map_results[j].mismatch << "\t"
-        << map_results[j].strand << "\t" << read_seqs[j] << "\t"
-        << read_scores[j] << endl;
+    fprintf(fout, "%s\t%u\t%u\t%s\t%u\t%c\t%s\t%s\n",
+            genome.name[chr_id].c_str(), start_pos, end_pos,
+            read_names[j].c_str(), map_results[j].mismatch,
+            map_results[j].strand, read_seqs[j].c_str(),
+            read_scores[j].c_str());
   }
 }
 
@@ -233,16 +236,16 @@ void ProcessSingledEndReads(const string& index_file,
   vector<string> read_scores(n_reads_to_process);
 
   vector<BestMatch> map_results(n_reads_to_process);
-  ifstream fin(reads_file_s.c_str());
+  FILE * fin = fopen(reads_file_s.c_str(), "r");
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
   clock_t start_t;
   uint64_t sum_t = 0;
 
-  ofstream fout(output_file.c_str());
+  FILE * fout = fopen(output_file.c_str(), "w");
   uint32_t num_of_reads;
-  for (uint64_t i = 0;; i += n_reads_to_process) {
+  for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads, read_names,
                            read_seqs, read_scores);
     if (num_of_reads == 0)
@@ -254,8 +257,8 @@ void ProcessSingledEndReads(const string& index_file,
       map_results[j] = best_match;
     }
 
-    cerr << "[START MAPPING READS FROM " << i << " TO " << num_of_reads + i
-        << "]" << endl;
+    fprintf(stderr, "[START MAPPING READS FROM %u TO %u]\n", i,
+            num_of_reads + i);
     for (uint32_t fi = 0; fi < 2; ++fi) {
       TIME_INFO(ReadIndex(index_names[fi], genome, hash_table), "LOAD INDEX");
       for (uint32_t j = 0; j < num_of_reads; ++j) {
@@ -275,8 +278,8 @@ void ProcessSingledEndReads(const string& index_file,
     if (num_of_reads < n_reads_to_process)
       break;
   }
-  fin.close();
-  fout.close();
+  fclose(fin);
+  fclose(fout);
 
   fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
           static_cast<double>(sum_t / CLOCKS_PER_SEC));

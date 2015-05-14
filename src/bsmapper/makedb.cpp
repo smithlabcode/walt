@@ -14,16 +14,16 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
   switch (indicator) {
     case 0:
-      cerr << "[BIULD INDEX FOR FORWARD STRAND (C->T)]" << endl;
+      fprintf(stderr, "[BIULD INDEX FOR FORWARD STRAND (C->T)]\n");
       break;
     case 1:
-      cerr << "[BIULD INDEX FOR REVERSE STRAND (C->T)]" << endl;
+      fprintf(stderr, "[BIULD INDEX FOR REVERSE STRAND (C->T)]\n");
       break;
     case 2:
-      cerr << "[BIULD INDEX FOR FORWARD STRAND (A->G)]" << endl;
+      fprintf(stderr, "[BIULD INDEX FOR FORWARD STRAND (A->G)]\n");
       break;
     case 3:
-      cerr << "[BIULD INDEX FOR REVERSE STRAND (A->G)]" << endl;
+      fprintf(stderr, "[BIULD INDEX FOR REVERSE STRAND (A->G)]\n");
   }
 
   Genome genome;
@@ -71,24 +71,24 @@ int main(int argc, const char **argv) {
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
-      cerr << opt_parse.help_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.help_message().c_str());
       return EXIT_SUCCESS;
     }
     if (opt_parse.about_requested()) {
-      cerr << opt_parse.about_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.about_message().c_str());
       return EXIT_SUCCESS;
     }
     if (opt_parse.option_missing()) {
-      cerr << opt_parse.option_missing_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.option_missing_message().c_str());
       return EXIT_SUCCESS;
     }
     if (!is_valid_filename(outfile, "dbindex")) {
-      cerr << "The suffix of the output file should be '.dbindex' " << endl;
+      fprintf(stderr, "The suffix of the output file should be '.dbindex'\n");
       return EXIT_FAILURE;
     }
     if (outfile.size() > 1000) {
-      cerr << "The output file name is too long, please select a shorter name"
-          << endl;
+      fprintf(stderr, "The output file name is too long, "
+          "please select a shorter name\n");
       return EXIT_FAILURE;;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -119,10 +119,10 @@ int main(int argc, const char **argv) {
     ReadGenome(chrom_files, genome);
     WriteIndexHeadInfo(outfile, genome, size_of_index);
   } catch (const SMITHLABException &e) {
-    cerr << e.what() << endl;
+    fprintf(stderr, "%s\n", e.what().c_str());
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
-    cerr << "ERROR: could not allocate memory" << endl;
+    fprintf(stderr, "ERROR: could not allocate memory\n");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

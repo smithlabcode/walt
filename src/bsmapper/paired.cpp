@@ -99,7 +99,7 @@ void OutputBestPairedResults(const CandidatePosition& r1,
                              const uint32_t& read_len, const Genome& genome,
                              const string& read_name, const string& read_seq1,
                              const string& read_score1, const string& read_seq2,
-                             const string& read_score2, ofstream& fout) {
+                             const string& read_score2, FILE * fout) {
 
   string read_seq2_rev = ReverseComplimentString(read_seq2);
   string read_scr2_rev = ReverseString(read_score2);
@@ -167,9 +167,10 @@ void OutputBestPairedResults(const CandidatePosition& r1,
   }
 
   uint32_t start_pos = r1.strand == '+' ? s1 : s2;
-  fout << genome.name[chr_id1] << "\t" << start_pos << "\t" << start_pos + len
-      << "\t" << "FRAG:" << read_name << "\t" << r1.mismatch + r2.mismatch
-      << "\t" << r1.strand << "\t" << seq << "\t" << scr << endl;
+  fprintf(fout, "%s\t%u\t%u\tFRAG:%s\t%u\t%c\t%s\t%s\n",
+          genome.name[chr_id1].c_str(), start_pos, start_pos + len,
+          read_name.c_str(), r1.mismatch + r2.mismatch, r1.strand, seq.c_str(),
+          scr.c_str());
 }
 
 void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
@@ -177,7 +178,7 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
                              const Genome& genome, const uint32_t& read_len,
                              const string& read_name, const string& read_seq,
                              const string& read_score,
-                             const uint32_t& max_mismatches, ofstream& fout) {
+                             const uint32_t& max_mismatches, FILE * fout) {
   BestMatch best_match(0, 0, '+', max_mismatches);
   for (int i = ranked_results_size - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[i];
@@ -199,9 +200,10 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
     ForwardChromPosition(best_match.genome_pos, best_match.strand, chr_id,
                          read_len, genome, start_pos, end_pos);
 
-    fout << genome.name[chr_id] << "\t" << start_pos << "\t" << end_pos << "\t"
-        << read_name << "\t" << best_match.mismatch << "\t" << best_match.strand
-        << "\t" << read_seq << "\t" << read_score << endl;
+    fprintf(fout, "%s\t%u\t%u\%s\t%u\t%c\t%s\t%s\n",
+            genome.name[chr_id].c_str(), start_pos, end_pos, read_name.c_str(),
+            best_match.mismatch, best_match.strand, read_seq.c_str(),
+            read_score.c_str());
   }
 }
 
@@ -225,7 +227,7 @@ void MergePairedEndResults(
     const string& read_score2,
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, const uint32_t& read_len,
-    const int& frag_range, const uint32_t& max_mismatches, ofstream& fout) {
+    const int& frag_range, const uint32_t& max_mismatches, FILE * fout) {
 #ifdef DEBUG
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[0][i];
@@ -313,7 +315,7 @@ void ProcessPairedEndReads(const string& index_file,
   hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
   hash_table.index.resize(size_of_index);
 
-  vector<vector<string> > index_names(2, vector < string > (2));
+  vector<vector<string> > index_names(2, vector<string> (2));
   index_names[0][0] = index_file + "_CT00";
   index_names[0][1] = index_file + "_CT01";
   index_names[1][0] = index_file + "_AG10";
@@ -331,9 +333,9 @@ void ProcessPairedEndReads(const string& index_file,
   vector<vector<CandidatePosition> > ranked_results(2,
                 vector<CandidatePosition>(top_k));
 
-  ifstream fin[2];
-  fin[0].open(reads_file_p1.c_str());
-  fin[1].open(reads_file_p2.c_str());
+  FILE * fin[2];
+  fin[0] = fopen(reads_file_p1.c_str(), "r");
+  fin[1] = fopen(reads_file_p2.c_str(), "r");
   if (!fin[0]) {
     throw SMITHLABException("cannot open input file " + reads_file_p1);
   }
@@ -344,10 +346,10 @@ void ProcessPairedEndReads(const string& index_file,
   clock_t start_t;
   uint64_t sum_t = 0;
 
-  ofstream fout(output_file.c_str());
+  FILE * fout = fopen(output_file.c_str(), "w");
   uint32_t num_of_reads[2];
   bool AG_WILDCARD = true;
-  for (uint64_t i = 0;; i += n_reads_to_process) {
+  for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
 
@@ -356,8 +358,8 @@ void ProcessPairedEndReads(const string& index_file,
       if (num_of_reads[pi] == 0)
         break;
       if (pi == 0) {
-        cerr << "[START MAPPING READS FROM " << i << " TO "
-            << num_of_reads[pi] + i << "]" << endl;
+        fprintf(stderr, "[START MAPPING READS FROM %u TO %u]\n", i,
+                num_of_reads[pi] + i);
       }
 
       //Initialize the paired results
@@ -406,9 +408,9 @@ void ProcessPairedEndReads(const string& index_file,
       break;
   }
 
-  fin[0].close();
-  fin[1].close();
-  fout.close();
+  fclose(fin[0]);
+  fclose(fin[1]);
+  fclose(fout);
 
   fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
           static_cast<double>(sum_t / CLOCKS_PER_SEC));

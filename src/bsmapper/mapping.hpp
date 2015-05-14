@@ -8,10 +8,6 @@
 
 #include <string>
 #include <vector>
-#include <fstream>
-
-using std::ifstream;
-using std::ofstream;
 
 /* BestMatch records the match position with the minimal number
  * of mismatches. times records how many genome positions with
@@ -35,8 +31,8 @@ struct BestMatch {
 
 /* load reads from reads file, each time load n_reads_to_process reads,
  * start from  read_start_idx */
-void LoadReadsFromFastqFile(ifstream &fin, const uint64_t read_start_idx,
-                            const uint64_t n_reads_to_process,
+void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
+                            const uint32_t n_reads_to_process,
                             uint32_t& num_of_reads, vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores);

@@ -14,12 +14,9 @@
 
 #include <limits>
 #include <string>
-#include <iostream>
 
 using std::string;
-using std::ostream;
-using std::cerr;
-using std::endl;
+
 
 #ifdef SEEDPATTERN7
 #define SEEPATTERNLEN 7
@@ -116,6 +113,7 @@ const uint32_t F2SEEDPATTERN[] = {
     /* 45 */0, 1, 0   //
     };
 
+const uint32_t MAX_LINE_LENGTH = 1000;
 const uint32_t F2SEEDPOSITION_SIZE = 45;
 const uint32_t F2SEEDPOSITION[] = {  1,   4,   7,  10,  13,  16,  19,  22,  25,  28,
                                     31,  34,  37,  40,  43,  46,  49,  52,  55,  58,

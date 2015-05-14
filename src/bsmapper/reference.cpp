@@ -29,23 +29,23 @@ uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos) {
 
 void IdentifyChromosomes(const string& chrom_file,
                          vector<string>& chrom_files) {
-  cerr << "[IDENTIFYING CHROMS] ";
+  fprintf(stderr, "[IDENTIFYING CHROMS] ");
   if (isdir(chrom_file.c_str())) {
     read_dir(chrom_file, "fa", chrom_files);
   } else {
     chrom_files.push_back(chrom_file);
   }
 
-  cerr << "[DONE]" << endl << "chromosome files found (approx size):" << endl;
+  fprintf(stderr, "[DONE]\n");
+  fprintf(stderr, "chromosome files found (approx size):\n");
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
-    cerr << chrom_files[i] << " ("
-        << roundf(get_filesize(chrom_files[i]) / 1e06) << "Mbp)" << endl;
+    fprintf(stderr, "%s (%lfMbp)\n", chrom_files[i].c_str(),
+            roundf(get_filesize(chrom_files[i]) / 1e06));
   }
-  cerr << endl;
 }
 
 void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
-  cerr << "[READING CHROMOSOMES] " << endl;
+  fprintf(stderr, "[READING CHROMOSOMES]\n");
   vector<string> chrom_names;
   vector<string> chrom_seqs;
   uint32_t all_chroms_len = 0;
@@ -66,10 +66,11 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
   /* copy chroms sequences to genome */
   genome.num_of_chroms = chrom_seqs.size();
   genome.length_of_genome = all_chroms_len;
-  cerr << "[THERE ARE " << genome.num_of_chroms
-      << " CHROMOSOMES IN THE GENOME]" << endl;
-  cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS " << all_chroms_len << "]"
-      << endl;
+  fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
+          genome.num_of_chroms);
+  fprintf(stderr, "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+          all_chroms_len);
+
   genome.name.resize(genome.num_of_chroms);
   genome.length.resize(genome.num_of_chroms);
 
@@ -125,7 +126,7 @@ void A2G(vector<char>& sequence) {
 }
 
 void CountBucketSize(const Genome& genome, HashTable& hash_table) {
-  cerr << "[COUNT BUCKET SIZE]" << endl;
+  fprintf(stderr, "[COUNT BUCKET SIZE]\n");
   hash_table.counter_size = power(4, F2SEEDWIGTH);
   hash_table.counter.resize(hash_table.counter_size + 1, 0);
 
@@ -144,8 +145,8 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table) {
   // Erase Extremal Large Bucket
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     if (hash_table.counter[i] >= 500000) {
-      cerr << "ERASE THE BUCKET " << i << " SINCE ITS SIZE IS "
-          << hash_table.counter[i] << endl;
+      fprintf(stderr, "[NOTICE: ERASE THE BUCKET %u SINCE ITS SIZE IS %u]\n", i,
+              hash_table.counter[i]);
       hash_table.counter[i] = 0;
     }
   }
@@ -162,7 +163,7 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table) {
 }
 
 void HashToBucket(const Genome& genome, HashTable& hash_table) {
-  cerr << "[HASH TO BUCKET]" << endl;
+  fprintf(stderr, "[HASH TO BUCKET]\n");
   hash_table.index.resize(hash_table.index_size, 0);
 
   uint32_t size = 0, hash_value = 0;
@@ -217,7 +218,7 @@ struct SortHashTableBucketCMP {
 };
 
 void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
-  cerr << "[SORTING BUCKETS FOR HASH TABLE] " << endl;
+  fprintf(stderr, "[SORTING BUCKETS FOR HASH TABLE]\n");
 
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     if (hash_table.counter[i + 1] - hash_table.counter[i] <= 1)
@@ -229,8 +230,9 @@ void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
   }
 }
 
+#ifdef DEBUG
 void TestHashTable(const Genome& genome, const HashTable& hash_table) {
-  cerr << "[TEST HASH TABLE] " << endl;
+  fprintf(stderr, "[TEST HASH TABLE]\n");
   std::ofstream fout("test.txt");
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
@@ -249,10 +251,11 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
   }
   fout.close();
 }
+#endif
 
 void WriteIndex(const string& index_file, const Genome& genome,
                 const HashTable& hash_table) {
-  cerr << "[WRITTING INDEX TO " << index_file << "]" << endl;
+  fprintf(stderr, "[WRITTING INDEX TO %s]\n", index_file.c_str());
   FILE * fout = fopen(index_file.c_str(), "wb");
 
   fwrite(&(genome.strand), sizeof(char), 1, fout);
@@ -271,7 +274,7 @@ void WriteIndex(const string& index_file, const Genome& genome,
 
 void ReadIndex(const string& index_file, Genome& genome,
                HashTable& hash_table) {
-  cerr << "[LOADING INDEX " << index_file << "]" << endl;
+  fprintf(stderr, "[LOADING INDEX %s]\n", index_file.c_str());
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
@@ -323,14 +326,13 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
 
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
                        uint32_t& size_of_index) {
-  cerr << "[LOADING INDEX HEAD " << index_file << "]" << endl;
+  fprintf(stderr, "[LOADING INDEX HEAD %s]\n", index_file.c_str());
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
-  cerr << "[THERE ARE " << num_of_chroms << " CHROMOSOMES IN THE GENOME]"
-      << endl;
+  fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n", num_of_chroms);
   genome.num_of_chroms = num_of_chroms;
   genome.name.resize(num_of_chroms);
   genome.length.resize(num_of_chroms);
@@ -349,8 +351,8 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
   FREAD_CHECK(fread(&(genome.length[0]), sizeof(uint32_t), num_of_chroms, fin),
               num_of_chroms);
   FREAD_CHECK(fread(&(genome.length_of_genome), sizeof(uint32_t), 1, fin), 1);
-  cerr << "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS "
-      << genome.length_of_genome << "]" << endl;
+  fprintf(stderr, "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+          genome.length_of_genome);
 
   genome.start_index[0] = 0;
   for (uint32_t i = 1; i <= num_of_chroms; ++i) {

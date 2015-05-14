@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
@@ -16,7 +15,7 @@
 
 /* get the length of the reads in the fastq file */
 uint32_t GetReadLength(const string& reads_file) {
-  ifstream fin(reads_file.c_str());
+  FILE * fin = fopen(reads_file.c_str(), "r");
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file);
   }
@@ -34,13 +33,13 @@ uint32_t GetReadLength(const string& reads_file) {
   uint32_t read_len = read_seqs[0].size();
   for (uint32_t i = 1; i < num_of_reads; ++i) {
     if (read_seqs[i].size() != read_len) {
-      cerr << "All the reads should have the same length. "
-          << "Please check the reads file." << endl;
+      fprintf(stderr, "All the reads should have the same length.\n"
+              "Please check the reads file.\n");
       return EXIT_FAILURE;
     }
   }
 
-  fin.close();
+  fclose(fin);
 
   return read_len;
 }
@@ -63,8 +62,8 @@ int main(int argc, const char **argv) {
     bool is_paired_end_reads = false;
     bool AG_WILDCARD = false;
 
-    size_t max_mismatches = MAX_UINT32;
-    size_t n_reads_to_process = MAX_UINT32;
+    uint32_t max_mismatches = MAX_UINT32;
+    uint32_t n_reads_to_process = MAX_UINT32;
     uint32_t seed_len = 25;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
@@ -114,20 +113,20 @@ int main(int argc, const char **argv) {
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
     if (argc == 1 || opt_parse.help_requested()) {
-      cerr << opt_parse.help_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.help_message().c_str());
       return EXIT_SUCCESS;
     }
     if (opt_parse.about_requested()) {
-      cerr << opt_parse.about_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.about_message().c_str());
       return EXIT_SUCCESS;
     }
     if (opt_parse.option_missing()) {
-      cerr << opt_parse.option_missing_message() << endl;
+      fprintf(stderr, "%s\n", opt_parse.option_missing_message().c_str());
       return EXIT_SUCCESS;
     }
 
     if (!is_valid_filename(index_file, "dbindex")) {
-      cerr << "The suffix of the index file should be '.dbindex'" << endl;
+      fprintf(stderr, "The suffix of the index file should be '.dbindex'\n");
       return EXIT_FAILURE;
     }
 
@@ -138,14 +137,15 @@ int main(int argc, const char **argv) {
         && !reads_file_p2.empty()) {
       is_paired_end_reads = true;
     } else {
-      cerr << "Please use -r option to set singled-end reads, "
-          << "-1 and -2 options to set paired-end reads" << endl;
+      fprintf(stderr, "Please use -r option to set singled-end reads, \n"
+              "-1 and -2 options to set paired-end reads\n");
       return EXIT_FAILURE;
     }
 
     if (!is_paired_end_reads && !is_valid_filename(reads_file_s, "fastq")
         && !is_valid_filename(reads_file_s, "fq")) {
-      cerr << "The suffix of the reads file should be '.fastq', '.fq'" << endl;
+      fprintf(stderr,
+              "The suffix of the reads file should be '.fastq', '.fq'\n");
       return EXIT_FAILURE;
     }
     if (is_paired_end_reads) {
@@ -153,8 +153,8 @@ int main(int argc, const char **argv) {
           && !is_valid_filename(reads_file_p1, "fq"))
           || (!is_valid_filename(reads_file_p1, "fastq")
               && !is_valid_filename(reads_file_p1, "fq"))) {
-        cerr << "The suffix of the reads file should be '.fastq', '.fq'"
-            << endl;
+        fprintf(stderr,
+                "The suffix of the reads file should be '.fastq', '.fq'\n");
         return EXIT_FAILURE;
       }
     }
@@ -163,13 +163,13 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
     if (seed_len < F2SEEDWIGTH) {
-      cerr << "The seed length should be at least " << F2SEEDWIGTH << endl;
+      fprintf(stderr, "The seed length should be at least %u\n", F2SEEDWIGTH);
       return EXIT_FAILURE;
     }
 
     if (seed_len > F2SEEDPOSITION_SIZE) {
-      cerr << "The seed length should be no more than " << F2SEEDPOSITION_SIZE
-          << endl;
+      fprintf(stderr, "The seed length should be no more than %u\n",
+              F2SEEDPOSITION_SIZE);
       return EXIT_FAILURE;
     }
 
@@ -180,31 +180,31 @@ int main(int argc, const char **argv) {
       uint32_t read_len1 = GetReadLength(reads_file_p1);
       uint32_t read_len2 = GetReadLength(reads_file_p2);
       if (read_len1 != read_len2) {
-        cerr << "All the reads should have the same length. "
-            << "Please check the reads file." << endl;
+        fprintf(stderr, "All the reads should have the same length. \n"
+                "Please check the reads file.\n");
         return EXIT_FAILURE;
       }
       read_len = read_len1;
     }
-    cerr << "[READ LENGTH IS " << read_len << "]" << endl;
+    fprintf(stderr, "[READ LENGTH IS %u]\n", read_len);
 
     if (read_len < HASHLEN) {
-      cerr << "The length of the reads should be at least " << HASHLEN << endl;
+      fprintf(stderr, "The length of the reads should be at least %u\n",
+              HASHLEN);
       return EXIT_FAILURE;
     }
 
     if (max_mismatches == MAX_UINT32) {
       max_mismatches = static_cast<size_t>(0.07 * read_len);
-      cerr << "[MAXIMUM NUMBER OF MISMATCHES IS " << max_mismatches << "]"
-          << endl;
+      fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
     }
 
     if (F2SEEDPOSITION[seed_len - 1] >= read_len - SEEPATTERNLEN) {
-      cerr << "[THE SEED LENGTH SHOULD BE SHORTER FOR THIS READ LENGTH]"
-          << endl;
+      fprintf(stderr,
+              "[THE SEED LENGTH SHOULD BE SHORTER FOR THIS READ LENGTH]\n");
       return EXIT_FAILURE;
     } else {
-      cerr << "[SEED LENGTH IS " << seed_len << "]" << endl;
+      fprintf(stderr, "[SEED LENGTH IS %u]\n", seed_len);
     }
 
     if (n_reads_to_process > 5000000) {
@@ -212,7 +212,7 @@ int main(int argc, const char **argv) {
     }
 
     if (is_paired_end_reads && top_k < 2) {
-      cerr << "-k option should be at least 2 for paired-end reads" << endl;
+      fprintf(stderr, "-k option should be at least 2 for paired-end reads\n");
       return EXIT_FAILURE;
     }
 
@@ -228,10 +228,10 @@ int main(int argc, const char **argv) {
                             read_len, seed_len, top_k, frag_range);
     }
   } catch (const SMITHLABException &e) {
-    cerr << e.what() << endl;
+    fprintf(stderr, "%s\n", e.what().c_str());
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
-    cerr << "ERROR: could not allocate memory" << endl;
+    fprintf(stderr, "ERROR: could not allocate memory\n");
     return EXIT_FAILURE;
   }
 
