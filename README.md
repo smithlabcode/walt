@@ -41,7 +41,7 @@ paired-end reads
 | -2      | -reads2 | String | NULL | paired-end reads _2 (the suffix of the reads file should be '.fastq' or '.fq') |
 | -o      | -output | String | NULL | output file name |
 | -l      | -seedlen | Integer | 25 | the length of the space seed |
-| -m      | -mismatch | Integer | 7% of the read length | maximum allowed mismatches |
+| -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | faluse | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
