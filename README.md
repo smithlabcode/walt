@@ -40,7 +40,7 @@ paired-end reads
 | -1      | -reads1 | String | NULL | paired-end reads _1 (the suffix of the reads file should be '.fastq' or '.fq') |
 | -2      | -reads2 | String | NULL | paired-end reads _2 (the suffix of the reads file should be '.fastq' or '.fq') |
 | -o      | -output | String | NULL | output file name |
-| -l      | -seedlength | Integer | 25 | the length of the space seed |
+| -l      | -seedlen | Integer | 25 | the length of the space seed |
 | -m      | -mismatch | Integer | 7% of the read length | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | faluse | map using A/G bisulfite wildcards |
