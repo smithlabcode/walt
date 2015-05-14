@@ -41,7 +41,7 @@ paired-end reads
 | -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
 | -l      | -seedlen | Integer | 25 | the length of the space seed |
-| -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
+| -m      | -mismatch | Integer | 7% of the read length | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
@@ -62,11 +62,11 @@ or to make an index for chromsome 2
 
 	makedb -c chr2.fa -o chr2.dbindex
 
-The suffix of the index file should be .dbindex.
+The suffix of the index file should be '.dbindex'.
     
 (2) **Bisulfite Mapping**
 
-For example, to mapping reads to human gnome hg19
+For example, to mapping reads to human genome hg19
 
 	bsmapper -i hg19.dbindex -r read_1.fq -o reads_1_mapping.out
     
@@ -74,11 +74,11 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     bsmapper -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
-The seed length can be set using -L option. Longer seed can make the program run much faster with losing sensetivity.
+The seed length can be set using -L option. Longer seed makes the program run much faster while sacrificing sensetivity.
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -o reads_1_mapping.out
     
-The default number of maximum allowed mismatches is 7% of the read length. For example, if the read length is 90, then the maximum allowed mismatches is 6. The maximum allowed mismatches can be set uing -m option.
+The default number of maximum allowed mismatches is 7% of the read length. For example, if the read length is 90, then the maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
     
@@ -86,7 +86,7 @@ The option -N sets the number of reads to mapping in each loop. If N is larger, 
     
     bsmapper -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
     
-For paired-end reads, -1 and -2 options is used for the mate reads files.
+For paired-end reads, -1 and -2 options are used for the mate reads files.
     
     bsmapper -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
     
