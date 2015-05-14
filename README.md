@@ -6,7 +6,7 @@
 ### Installation ###
 (1) Download the source from Github 
 
-    git clone --rcursive https://github.com/smithlabcode/bsmapper.git
+    git clone --recursive https://github.com/smithlabcode/bsmapper.git
 
 (2) Build and Install
     
