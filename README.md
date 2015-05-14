@@ -17,17 +17,17 @@
 
 ### Indexing Genome ###
     
-    makedb -c <genome folder or file> -o <index_name>.dbindex
+    makedb -c <genome folder or file> -o <index>.dbindex
 
 ### Bisulfite Mapping ###
 
 singled-end reads
 
-    bsmapper -i <index name>.dbindex -r <reads file> -o <output file name> [options]
+    bsmapper -i <index file>.dbindex -r <reads file> -o <output file> [options]
 
 paired-end reads
 
-    bsmapper -i <index name>.dbindex -1 <reads file_1> -2 <reads file_2> -o <output file name> [options]
+    bsmapper -i <index file>.dbindex -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
 
 
 ### Mapping Options ###
@@ -91,7 +91,7 @@ For paired-end reads, -1 and -2 options is used for the mate reads files.
     
     
     
- ### Contacts ###  
+### Contacts ###  
     
 ***Haifeng Chen***   *haifengc@usc.edu*
 
