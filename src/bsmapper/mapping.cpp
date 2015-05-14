@@ -138,7 +138,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (best_match.mismatch == 0)
+    if (best_match.mismatch == 0 && seed_i)
       break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
