@@ -17,17 +17,17 @@
 
 ### Indexing Genome ###
     
-    makedb -c <genome folder or file> -o <index>.dbindex
+    makedb -c <genome folder or file> -o <index file>
 
 ### Bisulfite Mapping ###
 
 singled-end reads
 
-    bsmapper -i <index file>.dbindex -r <reads file> -o <output file> [options]
+    bsmapper -i <index file> -r <reads file> -o <output file> [options]
 
 paired-end reads
 
-    bsmapper -i <index file>.dbindex -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
+    bsmapper -i <index file> -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
 
 
 ### Mapping Options ###
