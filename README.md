@@ -91,17 +91,9 @@ For paired-end reads, -1 and -2 options is used for the mate reads files.
     
     
     
-### Contacts ###  
-    
+### Contacts ###
+
 ***Haifeng Chen***   *haifengc@usc.edu*
 
 
 5/14/2015
- 
-
-    
-    
-    
- 
-    
-
