@@ -33,7 +33,7 @@ paired-end reads
 ### Mapping Options ###
 
 
-| Option | Long-Tag | Type | Defalut | Brief Description |
+| Option | Long-Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
 | -i      | -index | String | NULL |index file created by ***makedb*** command (the suffix of the index file should be '.dbindex') |
 | -r      | -reads | String | NULL | singled-end reads file (the suffix of the reads file should be '.fastq' or '.fq') |
