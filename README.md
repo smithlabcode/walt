@@ -1,8 +1,107 @@
-bsmapper
-========
+## bsmapper v1.0 ##
 
-[_bsmapper_ experiment 1 report](https://docs.google.com/document/d/1A2btjankgUJ1e9qCXe1wN5bBVJo5b4v6K5tZKkXFRAA)
+***bsmapper*** is a reads mapping program for bisulfite sequencing in DNA methylation study.
 
-[_bsmapper_ experiment 2 report](https://docs.google.com/document/d/1dc7cLfKYxkcGJhSj2r1UctY8xj7yS1ivfOWNT7micog)
 
-[_bsmapper_ experiment 3 report](https://docs.google.com/document/d/1c0SdxaC3PQCzVcDcztDs7fIlYrW5m2Mh_WFnB0AgAMI)
+### Installation ###
+(1) Download the source from Github 
+
+    git clone --rcursive https://github.com/smithlabcode/bsmapper.git
+
+(2) Build and Install
+    
+    cd bsmapper
+    make all
+    make install
+
+
+### Indexing Genome ###
+    
+    makedb -c <genome folder or file> -o <index_name>.dbindex
+
+### Bisulfite Mapping ###
+
+singled-end reads
+
+    bsmapper -i <index name>.dbindex -r <reads file> -o <output file name> [options]
+
+paired-end reads
+
+    bsmapper -i <index name>.dbindex -1 <reads file_1> -2 <reads file_2> -o <output file name> [options]
+
+
+### Mapping Options ###
+
+
+| Option | Long-Tag | Type | Defalut | Brief Description |
+| :-------------: |:-------------:|:-----:|:-----:| :-----|
+| -i      | -index | String | NULL |index file created by ***makedb*** command (the suffix of the index file should be '.dbindex') |
+| -r      | -reads | String | NULL | singled-end reads file (the suffix of the reads file should be '.fastq' or '.fq') |
+| -1      | -reads1 | String | NULL | paired-end reads _1 (the suffix of the reads file should be '.fastq' or '.fq') |
+| -2      | -reads2 | String | NULL | paired-end reads _2 (the suffix of the reads file should be '.fastq' or '.fq') |
+| -o      | -output | String | NULL | output file name |
+| -l      | -seedlength | Integer | 25 | the length of the space seed |
+| -m      | -mismatch | Integer | 7% of the read length | maximum allowed mismatches |
+| -N      | -number | Integer | 5000000 | number of reads to map at one loop |
+| -A      | -ag-wild | Boolean | faluse | map using A/G bisulfite wildcards |
+| -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
+| -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
+
+To see the list of options, use "-?" or "-help".
+
+
+### Examples ###
+
+(1) Indexing Gneome
+
+For example, to make an index for UCSC hg19
+
+	makedb -c hg19/ -o hg19.dbindex
+   
+or to make an index for chromsome 2
+
+	makedb -c chr2.fa -o chr2.dbindex
+    
+    
+(2) Bisulfite Mapping
+
+For example, to mapping reads to human gnome hg19
+
+	bsmapper -i hg19.dbindex -r read_1.fq -o reads_1_mapping.out
+    
+If mapping the reads from the *_2 reads file, the -A option should be set. This means that all Gs in the reads and genome are transfered to As. If -A option is not set, all Cs in the reads and genome are transfered to Ts.
+
+    bsmapper -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
+    
+The seed length can be set using -L option. Longer seed can make the program run much faster with losing sensetivity.
+
+    bsmapper -i hg19.dbindex -r read_1.fq -L 30 -o reads_1_mapping.out
+    
+The default number of maximum allowed mismatches is 7% of the read length. For example, if the read length is 90, then the maximum allowed mismatches is 6. The maximum allowed mismatches can be set uing -m option.
+
+    bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
+    
+The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping.
+    
+    bsmapper -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
+    
+For paired-end reads, -1 and -2 options is used for the mate reads files.
+    
+    bsmapper -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
+    
+    
+    
+ ### Contacts ###  
+    
+***Haifeng Chen***   *haifengc@usc.edu*
+
+
+5/14/2015
+ 
+
+    
+    
+    
+ 
+    
+

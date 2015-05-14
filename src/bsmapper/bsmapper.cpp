@@ -78,7 +78,7 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt(
         "index",
         'i',
-        "index file created by build command \
+        "index file created by makedb command \
         (the suffix of the index file should be '.dbindex')",
         true, index_file);
 
@@ -92,7 +92,7 @@ int main(int argc, const char **argv) {
         "reads2 file (the suffix of the reads file should be '.fastq' or '.fq')",
         false, reads_file_p1);
     opt_parse.add_opt(
-        "reads", '2',
+        "reads2", '2',
         "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
         false, reads_file_p2);
 
