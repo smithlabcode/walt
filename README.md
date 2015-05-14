@@ -37,8 +37,8 @@ paired-end reads
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
 | -i      | -index | String | NULL |index file created by ***makedb*** command ( .dbindex) |
 | -r      | -reads | String | NULL | singled-end reads file (.fastq or .fq) |
-| -1      | -reads1 | String | NULL | paired-end reads _1 (.fastq or .fq) |
-| -2      | -reads2 | String | NULL | paired-end reads _2 (.fastq or .fq) |
+| -1      | -reads1 | String | NULL | paired-end reads _1 file (.fastq or .fq) |
+| -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
 | -l      | -seedlen | Integer | 25 | the length of the space seed |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
@@ -61,7 +61,8 @@ For example, to make an index for UCSC hg19
 or to make an index for chromsome 2
 
 	makedb -c chr2.fa -o chr2.dbindex
-    
+
+The suffix of the index file should be .dbindex.
     
 (2) Bisulfite Mapping
 
