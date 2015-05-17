@@ -149,12 +149,13 @@ inline void FileOpenCheck(FILE* pfile, const char* file, int line) {
   } \
 }
 
+//#define DEBUG
 #ifdef DEBUG
-#define DEBUG_INFO(msg, delim) { \
-  cerr << msg << delim; \
+#define DEBUG_INFO(msg) { \
+  fprintf(stderr, "%s\n", msg); \
 }
 #else
-#define DEBUG_INFO(msg, delim)
+#define DEBUG_INFO(msg)
 #endif
 
 #define TIME_INFO(func, msg) { \

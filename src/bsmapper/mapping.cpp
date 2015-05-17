@@ -138,7 +138,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (best_match.mismatch == 0 && seed_i)
+    if (best_match.mismatch == 0 && seed_i) /* different with paired-end*/
       break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
@@ -150,6 +150,9 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
+    if(region.second - region.first + 1 > 50000){
+      continue;
+    }
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);
@@ -206,9 +209,9 @@ void OutputSingleEndResults(FILE * fout, const vector<BestMatch>& map_results,
 }
 
 void ProcessSingledEndReads(const string& index_file,
-                            const uint32_t& n_reads_to_process,
                             const string& reads_file_s,
                             const string& output_file,
+                            const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
                             const uint32_t& read_len, const uint32_t& seed_len,
                             const bool& AG_WILDCARD) {
@@ -262,7 +265,6 @@ void ProcessSingledEndReads(const string& index_file,
     for (uint32_t fi = 0; fi < 2; ++fi) {
       TIME_INFO(ReadIndex(index_names[fi], genome, hash_table), "LOAD INDEX");
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        DEBUG_INFO(read_names[j], "\n");
         char strand = fi == 0 ? '+' : '-';
         start_t = clock();
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,

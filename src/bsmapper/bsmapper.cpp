@@ -219,12 +219,12 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // Mapping
     if (!is_paired_end_reads) {
-      ProcessSingledEndReads(index_file, n_reads_to_process, reads_file_s,
-                             output_file, max_mismatches, read_len, seed_len,
-                             AG_WILDCARD);
+      ProcessSingledEndReads(index_file, reads_file_s, output_file,
+                             n_reads_to_process, max_mismatches, read_len,
+                             seed_len, AG_WILDCARD);
     } else {
-      ProcessPairedEndReads(index_file, n_reads_to_process, reads_file_p1,
-                            reads_file_p2, output_file, max_mismatches,
+      ProcessPairedEndReads(index_file, reads_file_p1, reads_file_p2,
+                            output_file, n_reads_to_process, max_mismatches,
                             read_len, seed_len, top_k, frag_range);
     }
   } catch (const SMITHLABException &e) {

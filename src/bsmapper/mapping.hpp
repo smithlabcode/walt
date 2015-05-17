@@ -50,9 +50,9 @@ void IndexRegion(const string& read, const Genome& genome,
 
 /* singled-end read */
 void ProcessSingledEndReads(const string& index_file,
-                            const uint32_t& n_reads_to_process,
                             const string& reads_file_s,
                             const string& output_file,
+                            const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
                             const uint32_t& read_len, const uint32_t& seed_len,
                             const bool& AG_WILDCARD);
