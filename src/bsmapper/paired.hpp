@@ -4,9 +4,9 @@
 #ifndef PAIRED_HPP_
 #define PAIRED_HPP_
 
-#include <algorithm>
-
 #include "mapping.hpp"
+
+#include <queue>
 
 /* CandidatePosition stores the candidate genome positions with number of
  * mismatches less or equal to max_mismatches */
@@ -17,8 +17,9 @@ struct CandidatePosition {
         strand(_strand),
         mismatch(_mismatch) {
   }
-  void Output() const {
-    fprintf(stderr, "%u %c %u\n", genome_pos, strand, mismatch);
+
+  bool operator<(const CandidatePosition& b) const {
+    return mismatch < b.mismatch;
   }
 
   uint32_t genome_pos;
@@ -30,59 +31,46 @@ struct CandidatePosition {
  * positions. When mapping paired-end reads, for each read in the pair,
  * the top-k positions (with minimal mismatches) are recorded. Then using
  * the top-k positions in each of them to find the best pair match. */
-
-struct SORTCMP {
-  bool operator()(const CandidatePosition& a, const CandidatePosition& b) {
-    return a.mismatch < b.mismatch;
+struct TopCandidates {
+  TopCandidates(const uint32_t& _size = 100)
+      : size(_size) {
   }
-};
 
-struct TopCandidates_Heap {
-  TopCandidates_Heap(const uint32_t& _size = 100) {
-    candidates.resize(_size);
-    capacity = _size;
+  void SetSize(const uint32_t& _size) {
+    size = _size;
+  }
+
+  bool Empty() {
+    return candidates.empty();
   }
 
   void Clear() {
-    cur_size = 0;
+    while (!candidates.empty()) {
+      candidates.pop();
+    }
   }
 
   CandidatePosition Top() {
-    std::make_heap(candidates.begin(), candidates.begin() + cur_size,
-                   SORTCMP());
-
-    return candidates.front();
+    return candidates.top();
   }
 
   void Push(const CandidatePosition& cand) {
-    if (cur_size < capacity) {
-      candidates[cur_size] = cand;
-      cur_size++;
+    if (candidates.size() < size) {
+      candidates.push(cand);
     } else {
-      if (cand.mismatch < Top().mismatch) {
-        std::pop_heap(candidates.begin(), candidates.begin() + cur_size,
-                      SORTCMP());
-        candidates[capacity - 1] = cand;
+      if (cand.mismatch < candidates.top().mismatch) {
+        candidates.pop();
+        candidates.push(cand);
       }
     }
   }
 
-  void Sort() {
-    std::make_heap(candidates.begin(), candidates.begin() + cur_size,
-                   SORTCMP());
-    std::sort_heap(candidates.begin(), candidates.begin() + cur_size,
-                   SORTCMP());
+  void Pop() {
+    candidates.pop();
   }
 
-  void Output() {
-    for (uint32_t i = 0; i < cur_size; ++i) {
-      candidates[i].Output();
-    }
-  }
-
-  vector<CandidatePosition> candidates;
-  uint32_t cur_size;
-  uint32_t capacity;
+  std::priority_queue<CandidatePosition> candidates;
+  uint32_t size;
 };
 
 /* paired-end read */

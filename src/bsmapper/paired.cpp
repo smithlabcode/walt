@@ -3,8 +3,7 @@
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
-using std::count;
-using std::copy;
+#include <algorithm>
 
 uint32_t MAX(const uint32_t& a, const uint32_t& b) {
   return a > b ? a : b;
@@ -45,7 +44,7 @@ void ForwardChromPosition(const uint32_t& genome_pos, const char& strand,
 void PairEndMapping(const string& org_read, const Genome& genome,
                     const HashTable& hash_table, const char& strand,
                     const bool& AG_WILDCARD, const uint32_t& max_mismatches,
-                    const uint32_t& seed_len, TopCandidates_Heap& top_match) {
+                    const uint32_t& seed_len, TopCandidates& top_match) {
   uint32_t read_len = org_read.size();
 
   string read;
@@ -181,7 +180,7 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
                              const string& read_score,
                              const uint32_t& max_mismatches, FILE * fout) {
   BestMatch best_match(0, 0, '+', max_mismatches);
-  for (int i = 0; i <= ranked_results_size - 1; ++i) {
+  for (int i = ranked_results_size - 1; i >= 0; --i) {
     const CandidatePosition& r = ranked_results[i];
     if (r.mismatch < best_match.mismatch) {
       best_match = BestMatch(r.genome_pos, 1, r.strand, r.mismatch);
@@ -236,8 +235,8 @@ void MergePairedEndResults(
   uint32_t min_num_of_mismatch = max_mismatches;
   uint64_t best_pos = 0;
   uint32_t best_times = 0;
-  for (int i = 0; i <= ranked_results_size[0] - 1; ++i) {
-    for (int j = 0; j <= ranked_results_size[1] - 1; ++j) {
+  for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
+    for (int j = ranked_results_size[1] - 1; j >= 0; --j) {
       const CandidatePosition& r1 = ranked_results[0][i];
       const CandidatePosition& r2 = ranked_results[1][j];
       if (r1.strand == r2.strand)
@@ -320,8 +319,8 @@ void ProcessPairedEndReads(const string& index_file,
   vector<vector<CandidatePosition> > ranked_results(2,
                 vector<CandidatePosition>(top_k));
 
-  vector<vector<TopCandidates_Heap> > top_results(2,
-                  vector<TopCandidates_Heap>(n_reads_to_process));
+  vector<vector<TopCandidates> > top_results(2,
+                  vector<TopCandidates>(n_reads_to_process));
 
   FILE * fin[2];
   fin[0] = fopen(reads_file_p1.c_str(), "r");
@@ -358,7 +357,7 @@ void ProcessPairedEndReads(const string& index_file,
       //Initialize the paired results
       for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
         top_results[pi][j].Clear();
-        //top_results[pi][j].SetSize(top_k);
+        top_results[pi][j].SetSize(top_k);
       }
 
       for (uint32_t fi = 0; fi < 2; ++fi) {
@@ -381,10 +380,11 @@ void ProcessPairedEndReads(const string& index_file,
     start_t_merging = clock();
     for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
       for (uint32_t pi = 0; pi < 2; ++pi) {
-        ranked_results_size[pi] = top_results[pi][j].cur_size;
-        top_results[pi][j].Sort();
-        for (uint32_t t = 0; t < top_results[pi][j].cur_size; ++t) {
-          ranked_results[pi][t] = top_results[pi][j].candidates[t];
+        ranked_results_size[pi] = 0;
+        while (!top_results[pi][j].candidates.empty()) {
+          ranked_results[pi][ranked_results_size[pi]++] =
+              top_results[pi][j].Top();
+          top_results[pi][j].Pop();
         }
       }
 
