@@ -20,10 +20,10 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
       fprintf(stderr, "[BIULD INDEX FOR REVERSE STRAND (C->T)]\n");
       break;
     case 2:
-      fprintf(stderr, "[BIULD INDEX FOR FORWARD STRAND (A->G)]\n");
+      fprintf(stderr, "[BIULD INDEX FOR FORWARD STRAND (G->A)]\n");
       break;
     case 3:
-      fprintf(stderr, "[BIULD INDEX FOR REVERSE STRAND (A->G)]\n");
+      fprintf(stderr, "[BIULD INDEX FOR REVERSE STRAND (G->A)]\n");
   }
 
   Genome genome;
@@ -37,7 +37,7 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
   if (indicator == 0 || indicator == 1) {
     C2T(genome.sequence);
   } else {
-    A2G(genome.sequence);
+    G2A(genome.sequence);
   }
 
   CountBucketSize(genome, hash_table);
@@ -109,11 +109,11 @@ int main(int argc, const char **argv) {
     ////////// BUILD INDEX FOR REVERSE STRAND (C->T)
     BuildIndex(chrom_files, 1, outfile + "_CT01", size_of_index);
 
-    ////////// BUILD INDEX FOR FORWARD STRAND (A->G)
-    BuildIndex(chrom_files, 2, outfile + "_AG10", size_of_index);
+    ////////// BUILD INDEX FOR FORWARD STRAND (G->A)
+    BuildIndex(chrom_files, 2, outfile + "_GA10", size_of_index);
 
-    ////////// BUILD INDEX FOR REVERSE STRAND (A->G)
-    BuildIndex(chrom_files, 3, outfile + "_AG11", size_of_index);
+    ////////// BUILD INDEX FOR REVERSE STRAND (G->A)
+    BuildIndex(chrom_files, 3, outfile + "_GA11", size_of_index);
 
     Genome genome;
     ReadGenome(chrom_files, genome);

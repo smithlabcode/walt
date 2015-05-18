@@ -117,10 +117,10 @@ void C2T(vector<char>& sequence) {
   }
 }
 
-void A2G(vector<char>& sequence) {
+void G2A(vector<char>& sequence) {
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('A' == sequence[i] || 'N' == sequence[i]) {
-      sequence[i] = 'G';
+    if ('G' == sequence[i] || 'N' == sequence[i]) {
+      sequence[i] = 'A';
     }
   }
 }

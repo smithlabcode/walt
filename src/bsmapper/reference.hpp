@@ -87,8 +87,8 @@ void ReverseGenome(Genome& genome);
 /* Cs in the genome are transferred to Ts */
 void C2T(vector<char>& sequence);
 
-/* As in the genome are transferred to Gs */
-void A2G(vector<char>& sequence);
+/* Gs in the genome are transferred to As */
+void G2A(vector<char>& sequence);
 
 /* count how many k-mers for each hash value (bucket) */
 void CountBucketSize(const Genome& genome, HashTable& hash_table);

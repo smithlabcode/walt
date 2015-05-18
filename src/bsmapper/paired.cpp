@@ -49,7 +49,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 
   string read;
   if (AG_WILDCARD) {
-    A2G(org_read, read_len, read);
+    G2A(org_read, read_len, read);
   } else {
     C2T(org_read, read_len, read);
   }
@@ -308,8 +308,8 @@ void ProcessPairedEndReads(const string& index_file,
   vector<vector<string> > index_names(2, vector<string> (2));
   index_names[0][0] = index_file + "_CT00";
   index_names[0][1] = index_file + "_CT01";
-  index_names[1][0] = index_file + "_AG10";
-  index_names[1][1] = index_file + "_AG11";
+  index_names[1][0] = index_file + "_GA10";
+  index_names[1][1] = index_file + "_GA11";
 
   vector<vector<string> > read_names(2, vector<string>(n_reads_to_process));
   vector<vector<string> > read_seqs(2, vector<string>(n_reads_to_process));

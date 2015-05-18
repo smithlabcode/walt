@@ -40,8 +40,8 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
 /* reads from _1 file, Cs are transfered to Ts*/
 void C2T(const string& org_read, const uint32_t& read_len, string& read);
 
-/* reads from _2 file, As are transfered to Gs*/
-void A2G(const string& org_read, const uint32_t& read_len, string& read);
+/* reads from _2 file, Gs are transfered to As*/
+void G2A(const string& org_read, const uint32_t& read_len, string& read);
 
 /* find the region of index where those positions started with the seed */
 void IndexRegion(const string& read, const Genome& genome,

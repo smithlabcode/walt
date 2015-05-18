@@ -60,12 +60,12 @@ void C2T(const string& org_read, const uint32_t& read_len, string& read) {
   }
 }
 
-void A2G(const string& org_read, const uint32_t& read_len, string& read) {
+void G2A(const string& org_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
     if ('N' == org_read[i]) {
-      read += 'G';
-    } else if ('A' == org_read[i]) {
-      read += 'G';
+      read += 'A';
+    } else if ('G' == org_read[i]) {
+      read += 'A';
     } else {
       read += org_read[i];
     }
@@ -132,7 +132,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
 
   string read;
   if (AG_WILDCARD) {
-    A2G(org_read, read_len, read);
+    G2A(org_read, read_len, read);
   } else {
     C2T(org_read, read_len, read);
   }
@@ -230,8 +230,8 @@ void ProcessSingledEndReads(const string& index_file,
     index_names.push_back(index_file + "_CT00");
     index_names.push_back(index_file + "_CT01");
   } else {
-    index_names.push_back(index_file + "_AG10");
-    index_names.push_back(index_file + "_AG11");
+    index_names.push_back(index_file + "_GA10");
+    index_names.push_back(index_file + "_GA11");
   }
 
   vector<string> read_names(n_reads_to_process);
