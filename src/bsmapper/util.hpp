@@ -15,14 +15,10 @@
 #include <limits>
 #include <string>
 
-using std::string;
-
-
 #ifdef SEEDPATTERN7
 #define SEEPATTERNLEN 7
 #define HASHLEN 21
 const uint32_t F2SEEDWIGTH = 12;
-const uint32_t F2SEEDPOSITION_SIZE = 60;
 const uint32_t F2SEEDPATTERN[] = {
      /* 1 */1, 1, 1, 0, 1, 0, 0,  //
      /* 2 */1, 1, 1, 0, 1, 0, 0,  //
@@ -41,6 +37,7 @@ const uint32_t F2SEEDPATTERN[] = {
     /* 15 */1, 1, 1, 0, 1, 0, 0   //
     };
 
+const uint32_t F2SEEDPOSITION_SIZE = 60;
 const uint32_t F2SEEDPOSITION[] = {
      /* 1 */0,   1,  2, 4,  //
      /* 2 */7,   8,  9, 11,  //
@@ -57,6 +54,47 @@ const uint32_t F2SEEDPOSITION[] = {
     /* 13 */84, 85, 86, 88,  //
     /* 14 */91, 92, 93, 95,  //
     /* 15 */98, 99, 100, 102 //
+    };
+#endif
+
+#ifdef SEEDPATTERN5
+#define SEEPATTERNLEN 5
+#define HASHLEN 30
+const uint32_t F2SEEDWIGTH = 12;
+const uint32_t F2SEEDPATTERN[] = {
+     /* 1 */1, 0, 1, 0, 0,  //
+     /* 2 */1, 0, 1, 0, 0,  //
+     /* 3 */1, 0, 1, 0, 0,  //
+     /* 4 */1, 0, 1, 0, 0,  //
+     /* 5 */1, 0, 1, 0, 0,  //
+     /* 6 */1, 0, 1, 0, 0,  //
+     /* 7 */1, 0, 1, 0, 0,  //
+     /* 8 */1, 0, 1, 0, 0,  //
+     /* 9 */1, 0, 1, 0, 0,  //
+    /* 10 */1, 0, 1, 0, 0,  //
+    /* 11 */1, 0, 1, 0, 0,  //
+    /* 12 */1, 0, 1, 0, 0,  //
+    /* 13 */1, 0, 1, 0, 0,  //
+    /* 14 */1, 0, 1, 0, 0,  //
+    /* 15 */1, 0, 1, 0, 0   //
+    };
+
+const uint32_t F2SEEDPOSITION_SIZE = 56;
+const uint32_t F2SEEDPOSITION[] = {
+     /* 1 */  0,   2,   5,   7,  //
+     /* 2 */ 10,  12,  15,  17,  //
+     /* 3 */ 20,  22,  25,  27,  //
+     /* 4 */ 30,  32,  35,  37,  //
+     /* 5 */ 40,  42,  45,  47,  //
+     /* 6 */ 50,  52,  55,  57,  //
+     /* 7 */ 60,  62,  65,  67,  //
+     /* 8 */ 70,  72,  75,  77,  //
+     /* 9 */ 80,  82,  85,  87,  //
+    /* 10 */ 90,  92,  95,  97,  //
+    /* 11 */100, 102, 105, 107,  //
+    /* 12 */110, 112, 115, 117,  //
+    /* 13 */120, 122, 125, 127,  //
+    /* 14 */130, 132, 135, 137,  //
     };
 #endif
 
@@ -112,8 +150,6 @@ const uint32_t F2SEEDPATTERN[] = {
     /* 44 */0, 1, 0,  //
     /* 45 */0, 1, 0   //
     };
-
-const uint32_t MAX_LINE_LENGTH = 1000;
 const uint32_t F2SEEDPOSITION_SIZE = 45;
 const uint32_t F2SEEDPOSITION[] = {  1,   4,   7,  10,  13,  16,  19,  22,  25,  28,
                                     31,  34,  37,  40,  43,  46,  49,  52,  55,  58,
@@ -122,6 +158,7 @@ const uint32_t F2SEEDPOSITION[] = {  1,   4,   7,  10,  13,  16,  19,  22,  25, 
                                    121, 124, 127, 130, 133 };
 #endif
 
+const uint32_t MAX_LINE_LENGTH = 1000;
 const uint32_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 
 inline void MemoryAllocateCheck(void* pointer, const char* file, int line) {

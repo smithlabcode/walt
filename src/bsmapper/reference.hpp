@@ -13,13 +13,15 @@
 
 #include "util.hpp"
 
+#include <set>
 #include <vector>
 #include <string>
 #include <utility>
 
+using std::set;
+using std::pair;
 using std::string;
 using std::vector;
-using std::pair;
 using std::make_pair;
 
 struct Genome {
@@ -91,10 +93,12 @@ void C2T(vector<char>& sequence);
 void G2A(vector<char>& sequence);
 
 /* count how many k-mers for each hash value (bucket) */
-void CountBucketSize(const Genome& genome, HashTable& hash_table);
+void CountBucketSize(const Genome& genome, HashTable& hash_table,
+                     set<uint32_t>& extremal_large_bucket);
 
 /* put genome positions to the corresponding bucket */
-void HashToBucket(const Genome& genome, HashTable& hash_table);
+void HashToBucket(const Genome& genome, HashTable& hash_table,
+                  const set<uint32_t>& extremal_large_bucket);
 
 /* Sort each bucket, if the seed length is more than 12, then use binary search
  * for the rest part of the seed */

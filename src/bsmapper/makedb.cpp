@@ -2,6 +2,7 @@
  * This is the main function for building index for reference genome.
  * Copyright [2015] < >
  */
+#include <set>
 #include <string>
 #include <vector>
 
@@ -40,8 +41,9 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
     G2A(genome.sequence);
   }
 
-  CountBucketSize(genome, hash_table);
-  HashToBucket(genome, hash_table);
+  set<uint32_t> extremal_large_bucket;
+  CountBucketSize(genome, hash_table, extremal_large_bucket);
+  HashToBucket(genome, hash_table, extremal_large_bucket);
   SortHashTableBucket(genome, hash_table);
   WriteIndex(output_file, genome, hash_table);
 

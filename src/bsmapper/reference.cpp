@@ -108,7 +108,6 @@ void ReverseGenome(Genome& genome) {
   }
 }
 
-
 void C2T(vector<char>& sequence) {
   for (uint32_t i = 0; i < sequence.size(); ++i) {
     if ('C' == sequence[i] || 'N' == sequence[i]) {
@@ -125,7 +124,32 @@ void G2A(vector<char>& sequence) {
   }
 }
 
-void CountBucketSize(const Genome& genome, HashTable& hash_table) {
+#ifdef DEBUG
+void TestHashTable(const Genome& genome, const HashTable& hash_table) {
+  fprintf(stderr, "[TEST HASH TABLE]\n");
+  std::ofstream fout("test.txt");
+  for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
+    if(!(i == 6030658 || i == 6030659 || i == 6030660)) continue;
+    for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
+        ++j) {
+      fout << i << " ";
+      const char* seq = &(genome.sequence[hash_table.index[j]]);
+      for (uint32_t k = 0; k < 32; ++k) {
+        fout << seq[F2SEEDPOSITION[k]];
+      }
+      fout << " ";
+      for (uint32_t k = 0; k < 32; ++k) {
+        fout << seq[k];
+      }
+      fout << " " << j << " " << hash_table.index[j] << std::endl;
+    }
+  }
+  fout.close();
+}
+#endif
+
+void CountBucketSize(const Genome& genome, HashTable& hash_table,
+                     set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[COUNT BUCKET SIZE]\n");
   hash_table.counter_size = power(4, F2SEEDWIGTH);
   hash_table.counter.resize(hash_table.counter_size + 1, 0);
@@ -148,6 +172,7 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table) {
       fprintf(stderr, "[NOTICE: ERASE THE BUCKET %u SINCE ITS SIZE IS %u]\n", i,
               hash_table.counter[i]);
       hash_table.counter[i] = 0;
+      extremal_large_bucket.insert(i);
     }
   }
 
@@ -162,7 +187,8 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table) {
   hash_table.counter[0] = 0;
 }
 
-void HashToBucket(const Genome& genome, HashTable& hash_table) {
+void HashToBucket(const Genome& genome, HashTable& hash_table,
+                  const set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[HASH TO BUCKET]\n");
   hash_table.index.resize(hash_table.index_size, 0);
 
@@ -174,9 +200,10 @@ void HashToBucket(const Genome& genome, HashTable& hash_table) {
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
       /* Extremal Large Bucket IS DELETED */
-      if (hash_table.counter[hash_value]
-          == hash_table.counter[hash_value + 1])
+      if (extremal_large_bucket.find(hash_value)
+          != extremal_large_bucket.end()) {
         continue;
+      }
       hash_table.index[hash_table.counter[hash_value]++] = j;
     }
   }
@@ -195,17 +222,18 @@ struct SortHashTableBucketCMP {
     const char* c_seq1 = &(genome.sequence[p1]);
     const char* c_seq2 = &(genome.sequence[p2]);
 
-    uint32_t chrom_id1 = getChromID(genome.start_index, p1);
-    uint32_t chrom_id2 = getChromID(genome.start_index, p2);
+    uint32_t chr_id1 = getChromID(genome.start_index, p1);
+    uint32_t chr_id2 = getChromID(genome.start_index, p2);
 
-    uint32_t l1 = genome.start_index[chrom_id1 + 1] - p1;
-    uint32_t l2 = genome.start_index[chrom_id2 + 1] - p2;
+    uint32_t l1 = genome.start_index[chr_id1 + 1] - p1;
+    uint32_t l2 = genome.start_index[chr_id2 + 1] - p2;
 
     for (uint32_t j = F2SEEDWIGTH; j < F2SEEDPOSITION_SIZE; ++j) {
-      if (F2SEEDPOSITION[j] >= l1)
-        return true;
+      /*Strict Weak Ordering */
       if (F2SEEDPOSITION[j] >= l2)
         return false;
+      if (F2SEEDPOSITION[j] >= l1)
+        return true;
 
       if (c_seq1[F2SEEDPOSITION[j]] < c_seq2[F2SEEDPOSITION[j]])
         return true;
@@ -214,12 +242,12 @@ struct SortHashTableBucketCMP {
     }
     return false;
   }
+
   const Genome& genome;
 };
 
 void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
   fprintf(stderr, "[SORTING BUCKETS FOR HASH TABLE]\n");
-
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     if (hash_table.counter[i + 1] - hash_table.counter[i] <= 1)
       continue;
@@ -229,29 +257,6 @@ void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
               SortHashTableBucketCMP(genome));
   }
 }
-
-#ifdef DEBUG
-void TestHashTable(const Genome& genome, const HashTable& hash_table) {
-  fprintf(stderr, "[TEST HASH TABLE]\n");
-  std::ofstream fout("test.txt");
-  for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
-    for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
-        ++j) {
-      fout << i << " ";
-      const char* seq = &(genome.sequence[hash_table.index[j]]);
-      for (uint32_t k = 0; k < 32; ++k) {
-        fout << seq[F2SEEDPOSITION[k]];
-      }
-      fout << " ";
-      for (uint32_t k = 0; k < 32; ++k) {
-        fout << seq[k];
-      }
-      fout << " " << j << " " << hash_table.index[j] << std::endl;
-    }
-  }
-  fout.close();
-}
-#endif
 
 void WriteIndex(const string& index_file, const Genome& genome,
                 const HashTable& hash_table) {
@@ -302,6 +307,7 @@ void ReadIndex(const string& index_file, Genome& genome,
 
 void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
                         const uint32_t& size_of_index) {
+  fprintf(stderr, "[WRITTING INDEX HEAD TO %s]\n", index_file.c_str());
   FILE * fout = fopen(index_file.c_str(), "wb");
 
   uint32_t num_of_chroms = genome.num_of_chroms;
