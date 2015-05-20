@@ -6,7 +6,7 @@
 ### Installation ###
 (1) Download the source from Github 
 
-    git clone --recursive https://github.com/smithlabcode/bsmapper.git
+    git clone git@github.com:smithlabcode/bsmapper.git
 
 (2) Build and Install
     
@@ -41,13 +41,17 @@ paired-end reads
 | -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
 | -l      | -seedlen | Integer | floor((rl - 2)/3) | the length of the space seed |
-| -m      | -mismatch | Integer | 7% of the read length | maximum allowed mismatches |
+| -m      | -mismatch | Integer | 7% * **rl** | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 
 To see the list of options, use "-?" or "-help".
+
+* **rl** is the length of the reads;
+* **floor(x)** is the largest integer less than or equal to x.
+*  seed length is in the interval [13, floor((rl - 2)/3)].
 
 
 ### Examples ###
@@ -82,7 +86,7 @@ The default number of maximum allowed mismatches is 7% of the read length. For e
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
     
-The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping.
+The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both singled-end and paired-end mapping take about 15 Gb memory. If N is 5000000, singled-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
     
     bsmapper -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
     
