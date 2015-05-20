@@ -21,7 +21,7 @@
 
 ### Bisulfite Mapping ###
 
-singled-end reads
+single-end reads
 
     bsmapper -i <index file> -r <reads file> -o <output file> [options]
 
@@ -36,7 +36,7 @@ paired-end reads
 | Option | Long Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
 | -i      | -index | String | NULL |index file created by ***makedb*** command ( .dbindex) |
-| -r      | -reads | String | NULL | singled-end reads file (.fastq or .fq) |
+| -r      | -reads | String | NULL | single-end reads file (.fastq or .fq) |
 | -1      | -reads1 | String | NULL | paired-end reads _1 file (.fastq or .fq) |
 | -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
@@ -86,7 +86,7 @@ The default number of maximum allowed mismatches is 7% of the read length. For e
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
     
-The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both singled-end and paired-end mapping take about 15 Gb memory. If N is 5000000, singled-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
+The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
     
     bsmapper -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
     
