@@ -64,7 +64,7 @@ int main(int argc, const char **argv) {
 
     uint32_t max_mismatches = MAX_UINT32;
     uint32_t n_reads_to_process = MAX_UINT32;
-    uint32_t seed_len = 25;
+    uint32_t seed_len = MAX_UINT32;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 100;
@@ -162,17 +162,6 @@ int main(int argc, const char **argv) {
 
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
-    if (seed_len < F2SEEDWIGTH) {
-      fprintf(stderr, "The seed length should be at least %u\n", F2SEEDWIGTH);
-      return EXIT_FAILURE;
-    }
-
-    if (seed_len > F2SEEDPOSITION_SIZE) {
-      fprintf(stderr, "The seed length should be no more than %u\n",
-              F2SEEDPOSITION_SIZE);
-      return EXIT_FAILURE;
-    }
-
     uint32_t read_len;
     if (!is_paired_end_reads) {
       read_len = GetReadLength(reads_file_s);
@@ -197,6 +186,21 @@ int main(int argc, const char **argv) {
     if (max_mismatches == MAX_UINT32) {
       max_mismatches = static_cast<size_t>(0.07 * read_len);
       fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
+    }
+
+    if (seed_len == MAX_UINT32) {
+      seed_len = (read_len - SEEPATTERNLEN + 1) / SEEPATTERNLEN;
+    }
+
+    if (seed_len < F2SEEDWIGTH) {
+      fprintf(stderr, "The seed length should be at least %u\n", F2SEEDWIGTH);
+      return EXIT_FAILURE;
+    }
+
+    if (seed_len > F2SEEDPOSITION_SIZE) {
+      fprintf(stderr, "The seed length should be no more than %u\n",
+              F2SEEDPOSITION_SIZE);
+      return EXIT_FAILURE;
     }
 
     if (F2SEEDPOSITION[seed_len - 1] >= read_len - SEEPATTERNLEN) {
