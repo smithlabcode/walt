@@ -4,7 +4,7 @@
 
 
 ### Installation ###
-(1) Download the source from Github 
+(1) Download the source code from Github 
 
     git clone git@github.com:smithlabcode/bsmapper.git
 
@@ -62,7 +62,7 @@ For example, to make an index for UCSC hg19
 
 	makedb -c hg19/ -o hg19.dbindex
    
-or to make an index for chromsome 2
+or to make an index for chromosome 2
 
 	makedb -c chr2.fa -o chr2.dbindex
 
