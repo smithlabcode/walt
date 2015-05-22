@@ -44,7 +44,7 @@ paired-end reads
 | -m      | -mismatch | Integer | 7% * **rl** | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
-| -k      | -topk | Integer | 100 | maximum allowed mappings for a read in paried-end mapping|
+| -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 
 To see the list of options, use "-?" or "-help".

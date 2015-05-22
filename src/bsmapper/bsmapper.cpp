@@ -67,7 +67,7 @@ int main(int argc, const char **argv) {
     uint32_t seed_len = MAX_UINT32;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
-    uint32_t top_k = 100;
+    uint32_t top_k = 50;
 
     /* max fragment length for paired end reads */
     int frag_range = 1000;
@@ -107,7 +107,7 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
                       false, AG_WILDCARD);
     opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read", false,
-                      n_reads_to_process);
+                      top_k);
     opt_parse.add_opt("fraglen", 'L', "max fragment length", false, frag_range);
 
     vector<string> leftover_args;
@@ -217,6 +217,11 @@ int main(int argc, const char **argv) {
 
     if (is_paired_end_reads && top_k < 2) {
       fprintf(stderr, "-k option should be at least 2 for paired-end reads\n");
+      return EXIT_FAILURE;
+    }
+
+    if (is_paired_end_reads && top_k > 300) {
+      fprintf(stderr, "-k option should be less than 300 for paired-end reads\n");
       return EXIT_FAILURE;
     }
 
