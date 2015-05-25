@@ -277,4 +277,9 @@ inline uint32_t getHashValue(const char* nucleotides) {
   return hash_value;
 }
 
+/* return the maximal seed length for a particular read length */
+inline uint32_t getSeedLength(const uint32_t& read_len) {
+  return (read_len - SEEPATTERNLEN + 1) / SEEPATTERNLEN;
+}
+
 #endif /* UTIL_H_ */

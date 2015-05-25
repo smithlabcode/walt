@@ -126,9 +126,9 @@ void IndexRegion(const string& read, const Genome& genome,
 
 void SingleEndMapping(const string& org_read, const Genome& genome,
                       const HashTable& hash_table, const char& strand,
-                      const bool& AG_WILDCARD, const uint32_t& seed_len,
-                      BestMatch& best_match) {
+                      const bool& AG_WILDCARD, BestMatch& best_match) {
   uint32_t read_len = org_read.size();
+  uint32_t seed_len = getSeedLength(read_len);
 
   string read;
   if (AG_WILDCARD) {
@@ -213,7 +213,6 @@ void ProcessSingledEndReads(const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
-                            const uint32_t& read_len, const uint32_t& seed_len,
                             const bool& AG_WILDCARD) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
@@ -268,7 +267,7 @@ void ProcessSingledEndReads(const string& index_file,
         char strand = fi == 0 ? '+' : '-';
         start_t = clock();
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
-                         seed_len, map_results[j]);
+                         map_results[j]);
         sum_t += clock() - start_t;
       }
       fprintf(stderr, "[%.3lf SECONDS MAPPING TIME PASSED]\n",

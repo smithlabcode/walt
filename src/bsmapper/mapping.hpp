@@ -54,7 +54,6 @@ void ProcessSingledEndReads(const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
-                            const uint32_t& read_len, const uint32_t& seed_len,
                             const bool& AG_WILDCARD);
 
 #endif /* MAPPING_HPP_ */

@@ -40,19 +40,13 @@ paired-end reads
 | -1      | -reads1 | String | NULL | paired-end reads _1 file (.fastq or .fq) |
 | -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
-| -l      | -seedlen | Integer | floor((rl - 2)/3) | the length of the space seed |
-| -m      | -mismatch | Integer | 7% * **rl** | maximum allowed mismatches |
+| -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 
 To see the list of options, use "-?" or "-help".
-
-* **rl** is the length of the reads;
-* **floor(x)** is the largest integer less than or equal to x.
-*  seed length is in the interval [13, floor((rl - 2)/3)].
-
 
 ### Examples ###
 
@@ -82,7 +76,7 @@ The seed length can be set using -L option. Longer seed makes the program run mu
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -o reads_1_mapping.out
     
-The default number of maximum allowed mismatches is 7% of the read length. For example, if the read length is 90, then the maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
+The default number of maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
     bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
     
