@@ -72,13 +72,9 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     bsmapper -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
-The seed length can be set using -L option. Longer seed makes the program run much faster while sacrificing sensetivity.
-
-    bsmapper -i hg19.dbindex -r read_1.fq -L 30 -o reads_1_mapping.out
-    
 The default number of maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
-    bsmapper -i hg19.dbindex -r read_1.fq -L 30 -m 6 -o reads_1_mapping.out
+    bsmapper -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
     
 The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
     
