@@ -68,7 +68,7 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
   genome.length_of_genome = all_chroms_len;
   fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
           genome.num_of_chroms);
-  fprintf(stderr, "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
           all_chroms_len);
 
   genome.name.resize(genome.num_of_chroms);
@@ -357,7 +357,7 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
   FREAD_CHECK(fread(&(genome.length[0]), sizeof(uint32_t), num_of_chroms, fin),
               num_of_chroms);
   FREAD_CHECK(fread(&(genome.length_of_genome), sizeof(uint32_t), 1, fin), 1);
-  fprintf(stderr, "[THE TAOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
           genome.length_of_genome);
 
   genome.start_index[0] = 0;
