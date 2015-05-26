@@ -20,28 +20,28 @@
 #
 
 ifndef SMITHLAB_CPP
-SMITHLAB_CPP=$(BSMAPPER)/src/smithlab_cpp
+SMITHLAB_CPP=$(WALT)/src/smithlab_cpp
 endif
 
-app_subdirs=bsmapper
+app_subdirs=walt
 
 all:
 	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) OPT=1; \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(WALT) OPT=1; \
 	done;
 
 install:
 	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) OPT=1 install; \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(WALT) OPT=1 install; \
 	done;
 
 test:
 	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) test; \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(WALT) test; \
 	done;
 
 clean:
 	@make -C smithlab_cpp OPT=1 clean
 	@for i in $(app_subdirs); do \
-		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(BSMAPPER) clean; \
+		make -C $${i} SMITHLAB_CPP=$(SMITHLAB_CPP) SRC_ROOT=$(WALT) clean; \
 	done;

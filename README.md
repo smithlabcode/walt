@@ -6,7 +6,7 @@
 ### Installation ###
 (1) Download the source code from Github 
 
-    git clone git@github.com:smithlabcode/bsmapper.git
+    git clone git@github.com:smithlabcode/walt.git
 
 (2) Build and Install
     

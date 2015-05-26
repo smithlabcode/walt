@@ -6,7 +6,7 @@ ifndef SMITHLAB_CPP
 SMITHLAB_CPP=./../smithlab_cpp
 endif
 
-PROGS = makedb bsmapper
+PROGS = makedb walt
 
 CXX = g++
 CFLAGS = -Wall -O3 -fPIC -fmessage-length=50
@@ -30,7 +30,7 @@ all:	$(PROGS)
 makedb : $(OBJDB) \
 	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
 
-bsmapper : $(OBJMAP) \
+walt : $(OBJMAP) \
 	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
 
 %: %.cpp

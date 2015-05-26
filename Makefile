@@ -19,23 +19,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-BSMAPPER = $(shell pwd)
+WALT = $(shell pwd)
 
 all:
-	@make -C src BSMAPPER=$(BSMAPPER) OPT=1
+	@make -C src WALT=$(WALT) OPT=1
 
 install:
-	@make -C src BSMAPPER=$(BSMAPPER) OPT=1 install
+	@make -C src WALT=$(WALT) OPT=1 install
 
 test:
-	@make -C src BSMAPPER=$(BSMAPPER) test
+	@make -C src WALT=$(WALT) test
 .PHONY: test
 
 clean:
-	@make -C src BSMAPPER=$(BSMAPPER) clean
+	@make -C src WALT=$(WALT) clean
 .PHONY: clean
 
 distclean: clean
-	@rm -rf $(BSMAPPER)/bin
-	@rm -rf $(BSMAPPER)/include
+	@rm -rf $(WALT)/bin
+	@rm -rf $(WALT)/include
 .PHONY: distclean
