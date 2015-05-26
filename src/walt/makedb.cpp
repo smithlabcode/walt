@@ -1,7 +1,8 @@
 /*
- * This is the main function for building index for reference genome.
- * Copyright [2015] < >
+ * This is the main function to build index for reference genome.
+ * Copyright [2015] <Andrew D. Smith, Ting Chen>
  */
+
 #include <set>
 #include <string>
 #include <vector>

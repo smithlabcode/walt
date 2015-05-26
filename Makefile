@@ -1,9 +1,9 @@
-#    This file is part of the bsmapper software
+#    This file is part of the WALT software
 #
-#    Copyright (C) 2014 University of Southern California and
-#                       Andrew D. Smith
+#    Copyright (C) 2015 University of Southern California
+#                       Andrew D. Smith and Ting Chen
 #
-#    Authors: Andrew D. Smith
+#    Authors: Andrew D. Smith, Ting Chen
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 /*
- * This is the main function for bisulfite sequence mapping.
- * Copyright [2015] < >
+ * This is the main function for bisulfite sequencing mapping.
+ * Copyright [2015] <Andrew D. Smith, Ting Chen>
  */
 
 #include <vector>
