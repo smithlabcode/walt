@@ -1,6 +1,6 @@
-## bsmapper v1.0 ##
+## WALT v1.0 ##
 
-***bsmapper*** is a reads mapping program for bisulfite sequencing in DNA methylation study.
+***WALT*** (Wildcard ALignment Tool) is a read mapping program for bisulfite sequencing in DNA methylation studies.
 
 
 ### Installation ###
@@ -10,7 +10,7 @@
 
 (2) Build and Install
     
-    cd bsmapper
+    cd walt
     make all
     make install
 
@@ -23,11 +23,11 @@
 
 single-end reads
 
-    bsmapper -i <index file> -r <reads file> -o <output file> [options]
+    walt -i <index file> -r <reads file> -o <output file> [options]
 
 paired-end reads
 
-    bsmapper -i <index file> -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
+    walt -i <index file> -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
 
 
 ### Mapping Options ###
@@ -50,7 +50,7 @@ To see the list of options, use "-?" or "-help".
 
 ### Examples ###
 
-(1) **Indexing Gneome**
+(1) **Indexing Genome**
 
 For example, to make an index for UCSC hg19
 
@@ -66,23 +66,23 @@ The suffix of the index file should be '.dbindex'.
 
 For example, to mapping reads to human genome hg19
 
-	bsmapper -i hg19.dbindex -r read_1.fq -o reads_1_mapping.out
+	walt -i hg19.dbindex -r read_1.fq -o reads_1_mapping.out
     
 If mapping the reads from the *_2 reads file, the -A option should be set. This means that all Gs in the reads and genome are transfered to As. If -A option is not set, all Cs in the reads and genome are transfered to Ts.
 
-    bsmapper -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
+    walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
 The default number of maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
-    bsmapper -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
+    walt -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
     
 The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
     
-    bsmapper -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
+    walt -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
     
 For paired-end reads, -1 and -2 options are used for the mate reads files.
     
-    bsmapper -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
     
     
     
