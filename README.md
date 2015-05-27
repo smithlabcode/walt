@@ -81,7 +81,7 @@ The default number of maximum allowed mismatches is 6. The maximum allowed misma
 
     walt -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
     
-The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory.
+The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory. If N is set to be larger than 5000000, the program will set N to be 5000000 since when N is too large the program will take large memory but it will not be faster.
     
     walt -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
     
