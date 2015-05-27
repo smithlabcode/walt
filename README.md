@@ -72,7 +72,7 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
-Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file names will be appended "_s1", "_s2", and so on. Notice: except the first file path, all other file paths cannot be use ~. For example, -r ~/read_file1.fq,~/read_file2.fq is not allowed. It should be -r ~/read_file1.fq,/home/read_file2.fq since linux system doesn't know it is a path except the first one.
+Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file names will be appended "_s1", "_s2", and so on. Notice: except the first file path, all other file paths cannot be use '~'. For example, "-r ~/read_file1.fq,~/read_file2.fq" is not allowed. It should be "-r ~/read_file1.fq,/home/read_file2.fq", since linux system doesn't know it is a path except the first one.
 	 
 	 walt -i hg19.dbindex -r read_file1.fq,read_file2.fq,read_file3.fq -A -o reads_2_mapping.out
 
@@ -104,6 +104,3 @@ Similarly, WALT supports comma-separated list of read files for paired-end mappi
 ***Andrew Smith***   *andrewds@usc.edu*
 
 ***Ting Chen***   *tingchen@usc.edu*
-
-
-5/14/2015
