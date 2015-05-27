@@ -72,7 +72,7 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
-Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file name will be appendeded "_s1", "_s2", and so on. Notice: except the first file path, all other file paht cannot be use ~. For example, -r ~/read_file1.fq,~/read_file2.fq is not allowed. It should be -r ~/read_file1.fq,/home/read_file2.fq since linux system doesn't know it is a path except the first one.
+Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file names will be appended "_s1", "_s2", and so on. Notice: except the first file path, all other file paths cannot be use ~. For example, -r ~/read_file1.fq,~/read_file2.fq is not allowed. It should be -r ~/read_file1.fq,/home/read_file2.fq since linux system doesn't know it is a path except the first one.
 	 
 	 walt -i hg19.dbindex -r read_file1.fq,read_file2.fq,read_file3.fq -A -o reads_2_mapping.out
 
@@ -89,7 +89,7 @@ For paired-end reads, -1 and -2 options are used for the mate reads files.
     
     walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
     
-Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each read file pair. For pair-end mapping, the output file name will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
+Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each read file pair. The output file names will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
 
 	 walt -i hg19.dbindex -1 read_file1_1.fq,read_file2_1.fq,read_file3_1.fq \ 
 	                      -2 read_file1_2.fq,read_file2_2.fq,read_file3_2.fq \
