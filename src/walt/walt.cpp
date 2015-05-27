@@ -8,6 +8,7 @@
 
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
+#include "smithlab_utils.hpp"
 
 #include "paired.hpp"
 #include "mapping.hpp"
@@ -15,18 +16,22 @@
 
 int main(int argc, const char **argv) {
   try {
-    /* singled-end reads file */
+    /* singled-end reads file, comma-separated list of files */
     string reads_file_s;
+    vector<string> v_reads_file_s;
 
-    /* paired-end reads files*/
+    /* paired-end reads files, comma-separated list of files*/
     string reads_file_p1;
     string reads_file_p2;
+    vector<string> v_reads_file_p1;
+    vector<string> v_reads_file_p2;
 
     /* index file*/
     string index_file;
 
     /* output file */
     string output_file;
+    vector<string> v_output_file;
 
     bool is_paired_end_reads = false;
     bool AG_WILDCARD = false;
@@ -50,17 +55,22 @@ int main(int argc, const char **argv) {
         (the suffix of the index file should be '.dbindex')",
         true, index_file);
     opt_parse.add_opt(
-        "reads", 'r',
-        "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
+        "reads",
+        'r',
+        "comma-separated list of read files for singled-end mapping \
+         (the suffix of read files should be '.fastq' or '.fq')",
         false, reads_file_s);
     opt_parse.add_opt(
         "reads1",
         '1',
-        "reads2 file (the suffix of the reads file should be '.fastq' or '.fq')",
+        "comma-separated list of read files for mate 1 \
+         (the suffix of read files should be '.fastq' or '.fq')",
         false, reads_file_p1);
     opt_parse.add_opt(
-        "reads2", '2',
-        "reads file (the suffix of the reads file should be '.fastq' or '.fq')",
+        "reads2",
+        '2',
+        "comma-separated list of read files for mate 2 \
+        (the suffix of read files should be '.fastq' or '.fq')",
         false, reads_file_p2);
     opt_parse.add_opt("output", 'o', "output file name", true, output_file);
     opt_parse.add_opt("mismatch", 'm', "maximum allowed mismatches", false,
@@ -70,9 +80,11 @@ int main(int argc, const char **argv) {
 
     opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
                       false, AG_WILDCARD);
-    opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read", false,
+    opt_parse.add_opt("topk", 'k',
+                      "maximum allowed mappings for a read (paired-end)", false,
                       top_k);
-    opt_parse.add_opt("fraglen", 'L', "max fragment length", false, frag_range);
+    opt_parse.add_opt("fraglen", 'L', "max fragment length (paired-end)", false,
+                      frag_range);
 
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
@@ -106,20 +118,69 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (!is_paired_end_reads && !is_valid_filename(reads_file_s, "fastq")
-        && !is_valid_filename(reads_file_s, "fq")) {
-      fprintf(stderr,
-              "The suffix of the reads file should be '.fastq', '.fq'\n");
-      return EXIT_FAILURE;
-    }
-    if (is_paired_end_reads) {
-      if ((!is_valid_filename(reads_file_p1, "fastq")
-          && !is_valid_filename(reads_file_p1, "fq"))
-          || (!is_valid_filename(reads_file_p1, "fastq")
-              && !is_valid_filename(reads_file_p1, "fq"))) {
-        fprintf(stderr,
-                "The suffix of the reads file should be '.fastq', '.fq'\n");
+    bool get_empty_fields = false;
+    if (!is_paired_end_reads) {
+      v_reads_file_s = smithlab::split(reads_file_s, ",", get_empty_fields);
+      for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
+        if (!is_valid_filename(v_reads_file_s[i], "fastq")
+            && !is_valid_filename(v_reads_file_s[i], "fq")) {
+          fprintf(stderr,
+                  "The suffix of the reads file should be '.fastq', '.fq'\n");
+          return EXIT_FAILURE;
+        }
+      }
+    } else {
+      v_reads_file_p1 = smithlab::split(reads_file_p1, ",", get_empty_fields);
+      v_reads_file_p2 = smithlab::split(reads_file_p2, ",", get_empty_fields);
+      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+        fprintf(stderr, "%s()%s\n", v_reads_file_p1[i].c_str(), v_reads_file_p2[i].c_str());
+      }
+      if (v_reads_file_p1.size() != v_reads_file_p2.size()) {
+        fprintf(
+            stderr,
+            "For paired-end mapping, mate 1 and mate 2 should \n\
+                have the same number of files, and the paired files \n\
+                should be in the same order.");
         return EXIT_FAILURE;
+      }
+      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+        if (!is_valid_filename(v_reads_file_p1[i], "fastq")
+            && !is_valid_filename(v_reads_file_p1[i], "fq")) {
+          fprintf(stderr,
+                  "The suffix of the reads file should be '.fastq', '.fq'\n");
+          return EXIT_FAILURE;
+        }
+      }
+
+      if (!is_paired_end_reads) {
+        if (v_reads_file_s.size() == 1) {
+          v_output_file.push_back(output_file);
+        } else {
+          char output_filename[1000];
+          for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
+            sprintf(output_filename, "%s_s%u", output_file.c_str(), i);
+            v_output_file.push_back(output_filename);
+          }
+        }
+      } else {
+        if (v_reads_file_p1.size() == 1) {
+          v_output_file.push_back(output_file);
+        } else {
+          char output_filename[1000];
+          for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+            sprintf(output_filename, "%s_p%u", output_file.c_str(), i);
+            v_output_file.push_back(output_filename);
+          }
+        }
+      }
+
+      for (uint32_t i = 0; i < v_reads_file_p2.size(); ++i) {
+        if (!is_valid_filename(v_reads_file_p2[i], "fastq")
+            && !is_valid_filename(v_reads_file_p2[i], "fq")) {
+          fprintf(stderr,
+                  "The suffix of the reads file should be '.fastq', '.fq'\n");
+          return EXIT_FAILURE;
+        }
       }
     }
     /****************** END COMMAND LINE OPTIONS *****************/
@@ -149,12 +210,20 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // Mapping
     if (!is_paired_end_reads) {
-      ProcessSingledEndReads(index_file, reads_file_s, output_file,
-                             n_reads_to_process, max_mismatches, AG_WILDCARD);
+      for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
+        fprintf(stderr, "[MAPPING READS FROM %s]\n", v_reads_file_s[i].c_str());
+        ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
+                               n_reads_to_process, max_mismatches, AG_WILDCARD);
+      }
     } else {
-      ProcessPairedEndReads(index_file, reads_file_p1, reads_file_p2,
-                            output_file, n_reads_to_process, max_mismatches,
-                            top_k, frag_range);
+      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+        fprintf(stderr, "[MAPPING PAIRED-END READS FROM \n   %s (AND)\n   %s\n",
+                v_reads_file_p1[i].c_str(), v_reads_file_p2[i].c_str());
+        ProcessPairedEndReads(index_file, v_reads_file_p1[i],
+                              v_reads_file_p2[i], v_output_file[i],
+                              n_reads_to_process, max_mismatches, top_k,
+                              frag_range);
+      }
     }
   } catch (const SMITHLABException &e) {
     fprintf(stderr, "%s\n", e.what().c_str());

@@ -23,11 +23,11 @@
 
 single-end reads
 
-    walt -i <index file> -r <reads file> -o <output file> [options]
+    walt -i <index file> -r <read files> -o <output file> [options]
 
 paired-end reads
 
-    walt -i <index file> -1 <reads file_1> -2 <reads file_2> -o <output file> [options]
+    walt -i <index file> -1 <mate_1 read files> -2 <mate_2 read files> -o <output file> [options]
 
 
 ### Mapping Options ###
@@ -36,9 +36,9 @@ paired-end reads
 | Option | Long Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
 | -i      | -index | String | NULL |index file created by ***makedb*** command ( .dbindex) |
-| -r      | -reads | String | NULL | single-end reads file (.fastq or .fq) |
-| -1      | -reads1 | String | NULL | paired-end reads _1 file (.fastq or .fq) |
-| -2      | -reads2 | String | NULL | paired-end reads _2 file (.fastq or .fq) |
+| -r      | -reads | String | NULL | list of single-end read files (.fastq or .fq) |
+| -1      | -reads1 | String | NULL | list of paired-end read _1 files (.fastq or .fq) |
+| -2      | -reads2 | String | NULL | list of paired-end read _2 files (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
@@ -72,6 +72,11 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.out
     
+Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file name will be appendeded "_s1", "_s2", and so on. Notice: except the first file path, all other file paht cannot be use ~. For example, -r ~/read_file1.fq,~/read_file2.fq is not allowed. It should be -r ~/read_file1.fq,/home/read_file2.fq since linux system doesn't know it is a path except the first one.
+	 
+	 walt -i hg19.dbindex -r read_file1.fq,read_file2.fq,read_file3.fq -A -o reads_2_mapping.out
+
+    
 The default number of maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
     walt -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
@@ -83,6 +88,10 @@ The option -N sets the number of reads to mapping in each loop. If N is larger, 
 For paired-end reads, -1 and -2 options are used for the mate reads files.
     
     walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
+    
+Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each read file pair. For pair-end mapping, the output file name will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
+
+	 walt -i hg19.dbindex -1 read_file1_1.fq,read_file2_1.fq,read_file3_1.fq -2 read_file1_2.fq,read_file2_2.fq,read_file3_2.fq -o paired_reads_mapping.out
     
     
     
