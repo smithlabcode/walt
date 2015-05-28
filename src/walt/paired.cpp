@@ -416,10 +416,11 @@ void ProcessPairedEndReads(const string& index_file,
   fprintf(stderr, "[UNIQUELY MAPPED READ PAIRS: %u (%.2lf%%)]\n",
           num_of_unique_mapped_pairs,
           100.00 * num_of_unique_mapped_pairs / num_of_total_read_pairs);
-  fprintf(stderr, "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
+  fprintf(stderr, "[AMBIGUOUS MAPPED READ PAIRS: %u (%.2lf%%)]\n",
           num_of_ambiguous_mapped_pairs,
           100.00 * num_of_ambiguous_mapped_pairs / num_of_total_read_pairs);
-  fprintf(stderr, "[UNMAPPED READS: %u (%.2lf%%)]\n", num_of_unmapped_pairs,
+  fprintf(stderr, "[UNMAPPED READS PAIRS: %u (%.2lf%%)]\n",
+          num_of_unmapped_pairs,
           100.00 * num_of_unmapped_pairs / num_of_total_read_pairs);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
