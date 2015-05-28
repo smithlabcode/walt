@@ -256,10 +256,7 @@ void ProcessSingledEndReads(const string& index_file,
   }
 
   uint32_t num_of_reads;
-  uint32_t num_of_total_reads = 0;
-  uint32_t num_of_unique_mapped = 0;
-  uint32_t num_of_ambiguous_mapped = 0;
-  uint32_t num_of_unmapped = 0;
+  StatSingleReads stat_single_reads;
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
@@ -273,7 +270,7 @@ void ProcessSingledEndReads(const string& index_file,
     for (uint32_t j = 0; j < num_of_reads; ++j) {
       map_results[j] = best_match;
     }
-    num_of_total_reads += num_of_reads;
+    stat_single_reads.total_reads += num_of_reads;
     for (uint32_t fi = 0; fi < 2; ++fi) {
       ReadIndex(index_names[fi], genome, hash_table);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
@@ -286,17 +283,17 @@ void ProcessSingledEndReads(const string& index_file,
     // Output
     for (uint32_t j = 0; j < num_of_reads; ++j) {
       if (map_results[j].times == 0) {
-        num_of_unmapped++;
+        stat_single_reads.unmapped_reads++;
         if (unmapped) {
           OutputUnmapped(funmapped, read_names[j], read_seqs[j],
                          read_scores[j]);
         }
       } else if (map_results[j].times == 1) {
-        num_of_unique_mapped++;
+        stat_single_reads.unique_mapped_reads++;
         OutputUniquelyAndAmbiguousMapped(fout, map_results[j], read_names[j],
                                          read_seqs[j], read_scores[j], genome);
       } else {
-        num_of_ambiguous_mapped++;
+        stat_single_reads.ambiguous_mapped_reads++;
         if (fambiguous) {
           OutputUniquelyAndAmbiguousMapped(fambiguous, map_results[j],
                                            read_names[j], read_seqs[j],
@@ -318,15 +315,26 @@ void ProcessSingledEndReads(const string& index_file,
     fclose(funmapped);
   }
 
-  fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n", num_of_total_reads);
-  fprintf(stderr, "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
-          num_of_unique_mapped,
-          100.00 * num_of_unique_mapped / num_of_total_reads);
-  fprintf(stderr, "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
-          num_of_ambiguous_mapped,
-          100.00 * num_of_ambiguous_mapped / num_of_total_reads);
-  fprintf(stderr, "[UNMAPPED READS: %u (%.2lf%%)]\n", num_of_unmapped,
-          100.00 * num_of_unmapped / num_of_total_reads);
+  fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n",
+          stat_single_reads.total_reads);
+  fprintf(
+      stderr,
+      "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
+      stat_single_reads.unique_mapped_reads,
+      100.00 * stat_single_reads.unique_mapped_reads
+          / stat_single_reads.total_reads);
+  fprintf(
+      stderr,
+      "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
+      stat_single_reads.ambiguous_mapped_reads,
+      100.00 * stat_single_reads.ambiguous_mapped_reads
+          / stat_single_reads.total_reads);
+  fprintf(
+      stderr,
+      "[UNMAPPED READS: %u (%.2lf%%)]\n",
+      stat_single_reads.unmapped_reads,
+      100.00 * stat_single_reads.unmapped_reads
+          / stat_single_reads.total_reads);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));

@@ -73,6 +73,25 @@ struct TopCandidates {
   uint32_t size;
 };
 
+/* count the number of uniquely mapped, ambiguous mapped and
+ * unmapped reads pairs */
+struct StatPairedReads {
+  StatPairedReads() {
+    total_read_pairs = 0;
+    unique_mapped_pairs = 0;
+    ambiguous_mapped_pairs = 0;
+    unmapped_pairs = 0;
+  }
+
+  uint32_t total_read_pairs;
+  uint32_t unique_mapped_pairs;
+  uint32_t ambiguous_mapped_pairs;
+  uint32_t unmapped_pairs;
+
+  StatSingleReads stat_single_reads_1;
+  StatSingleReads stat_single_reads_2;
+};
+
 /* paired-end read */
 void ProcessPairedEndReads(const string& index_file,
                            const string& reads_file_p1,

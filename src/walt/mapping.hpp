@@ -29,6 +29,21 @@ struct BestMatch {
   uint32_t mismatch;
 };
 
+/* count the number of uniquely mapped, ambiguous mapped and unmapped reads */
+struct StatSingleReads {
+  StatSingleReads() {
+    total_reads = 0;
+    unique_mapped_reads = 0;
+    ambiguous_mapped_reads = 0;
+    unmapped_reads = 0;
+  }
+
+  uint32_t total_reads;
+  uint32_t unique_mapped_reads;
+  uint32_t ambiguous_mapped_reads;
+  uint32_t unmapped_reads;
+};
+
 /* load reads from reads file, each time load n_reads_to_process reads,
  * start from  read_start_idx */
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
