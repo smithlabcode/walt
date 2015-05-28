@@ -18,7 +18,7 @@ int main(int argc, const char **argv) {
   try {
     /* singled-end reads file, comma-separated list of files */
     string reads_file_s;
-    vector<string> v_reads_file_s;
+    vector < string > v_reads_file_s;
 
     /* paired-end reads files, comma-separated list of files*/
     string reads_file_p1;
@@ -129,10 +129,8 @@ int main(int argc, const char **argv) {
     }
 
     bool get_empty_fields = false;
-    printf("is_paired_end_reads = %d\n", is_paired_end_reads);
     if (!is_paired_end_reads) {
       v_reads_file_s = smithlab::split(reads_file_s, ",", get_empty_fields);
-      printf("%s\n", v_reads_file_s.size());
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         if (!is_valid_filename(v_reads_file_s[i], "fastq")
             && !is_valid_filename(v_reads_file_s[i], "fq")) {
@@ -192,13 +190,6 @@ int main(int argc, const char **argv) {
         return EXIT_FAILURE;
       }
     }
-<<<<<<< .merge_file_mP6zsl
-    for(uint32_t i = 0;i < v_output_file.size();++i) {
-      printf("XXX=%s\n", v_output_file[i].c_str());
-    }
-=======
-
->>>>>>> .merge_file_8WqYq9
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
@@ -223,24 +214,30 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
+    /////////////////////////////
+    // Genome INFO
+    Genome genome;
+    uint32_t size_of_index;
+    ReadIndexHeadInfo(index_file, genome, size_of_index);
+    fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
+            genome.num_of_chroms);
+    fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+            genome.length_of_genome);
+
     //////////////////////////////////////////////////////////////
     // Mapping
     if (!is_paired_end_reads) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
-        fprintf(stderr, "[MAPPING READS FROM %s]\n", v_reads_file_s[i].c_str());
-        printf("%s\n", v_output_file[i].c_str());
         ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
                                n_reads_to_process, max_mismatches, AG_WILDCARD,
                                ambiguous, unmapped);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-        fprintf(stderr, "[MAPPING PAIRED-END READS FROM \n   %s (AND)\n   %s\n",
-                v_reads_file_p1[i].c_str(), v_reads_file_p2[i].c_str());
         ProcessPairedEndReads(index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
                               n_reads_to_process, max_mismatches, top_k,
-                              frag_range);
+                              frag_range, ambiguous, unmapped);
       }
     }
   } catch (const SMITHLABException &e) {

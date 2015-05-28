@@ -279,7 +279,6 @@ void WriteIndex(const string& index_file, const Genome& genome,
 
 void ReadIndex(const string& index_file, Genome& genome,
                HashTable& hash_table) {
-  fprintf(stderr, "[LOADING INDEX %s]\n", index_file.c_str());
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
@@ -332,13 +331,11 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
 
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
                        uint32_t& size_of_index) {
-  fprintf(stderr, "[LOADING INDEX HEAD %s]\n", index_file.c_str());
   FILE * fin = fopen(index_file.c_str(), "rb");
   FILE_OPEN_CHECK(fin);
 
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
-  fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n", num_of_chroms);
   genome.num_of_chroms = num_of_chroms;
   genome.name.resize(num_of_chroms);
   genome.length.resize(num_of_chroms);
@@ -357,8 +354,6 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
   FREAD_CHECK(fread(&(genome.length[0]), sizeof(uint32_t), num_of_chroms, fin),
               num_of_chroms);
   FREAD_CHECK(fread(&(genome.length_of_genome), sizeof(uint32_t), 1, fin), 1);
-  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
-          genome.length_of_genome);
 
   genome.start_index[0] = 0;
   for (uint32_t i = 1; i <= num_of_chroms; ++i) {

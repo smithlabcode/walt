@@ -214,7 +214,6 @@ void ProcessSingledEndReads(const string& index_file,
                             const bool& AG_WILDCARD, const bool& ambiguous,
                             const bool& unmapped) {
   // LOAD THE INDEX HEAD INFO
-  printf("%s\n", output_file.c_str());
   Genome genome;
   HashTable hash_table;
 
@@ -232,7 +231,7 @@ void ProcessSingledEndReads(const string& index_file,
     index_names.push_back(index_file + "_GA10");
     index_names.push_back(index_file + "_GA11");
   }
-  printf("fadsfa1\n");
+
   vector<string> read_names(n_reads_to_process);
   vector<string> read_seqs(n_reads_to_process);
   vector<string> read_scores(n_reads_to_process);
@@ -242,27 +241,24 @@ void ProcessSingledEndReads(const string& index_file,
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
-  printf("fadsfa2\n");
+
   clock_t start_t = clock();
-  printf("fadsfa2333333333333333333\n");
-  printf("%s\n", output_file.c_str());
   FILE * fout = fopen(output_file.c_str(), "w");
-  printf("fadsfa4\n");
-  FILE * fambiguous, * funmapped;
-  //printf("fadsfa3\n");
- // if (ambiguous) {
-   // fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
- // }
-  //if (unmapped) {
-    //funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
- // }
-  printf("fadsfa\n");
+  FILE * fambiguous = NULL, *funmapped = NULL;
+  if (ambiguous) {
+    fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
+  }
+  if (unmapped) {
+    funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
+  }
+
   uint32_t num_of_reads;
   uint32_t num_of_total_reads = 0;
   uint32_t num_of_unique_mapped = 0;
   uint32_t num_of_ambiguous_mapped = 0;
   uint32_t num_of_unmapped = 0;
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
+  fprintf(stderr, "[MAPPING READS 0");
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads, read_names,
                            read_seqs, read_scores);
@@ -275,8 +271,9 @@ void ProcessSingledEndReads(const string& index_file,
       map_results[j] = best_match;
     }
     num_of_total_reads += num_of_reads;
+    fprintf(stderr, "...%u", num_of_total_reads);
     for (uint32_t fi = 0; fi < 2; ++fi) {
-      TIME_INFO(ReadIndex(index_names[fi], genome, hash_table), "LOAD INDEX");
+      ReadIndex(index_names[fi], genome, hash_table);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         char strand = fi == 0 ? '+' : '-';
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
@@ -289,7 +286,8 @@ void ProcessSingledEndReads(const string& index_file,
       if (map_results[j].times == 0) {
         num_of_unmapped++;
         if (unmapped) {
-          OutputUnmapped(fout, read_names[j], read_seqs[j], read_scores[j]);
+          OutputUnmapped(funmapped, read_names[j], read_seqs[j],
+                         read_scores[j]);
         }
       } else if (map_results[j].times == 1) {
         num_of_unique_mapped++;
@@ -308,25 +306,27 @@ void ProcessSingledEndReads(const string& index_file,
     if (num_of_reads < n_reads_to_process)
       break;
   }
+  fprintf(stderr, "]\n");
 
   fclose(fin);
   fclose(fout);
-  if (fambiguous) {
+  if (ambiguous) {
     fclose(fambiguous);
   }
   if (unmapped) {
     fclose(funmapped);
   }
 
-  fprintf(stderr, "[TOTAL # OF READS: %u]\n", num_of_total_reads);
-  fprintf(stderr, "[UNIQUELY MAPPED READS: %u (%.3lf)]\n", num_of_unique_mapped,
-          (double) num_of_unique_mapped / (double) num_of_total_reads);
-  fprintf(stderr, "[AMBIGUOUS MAPPED READS: %u (%.3lf)]\n",
+  fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n", num_of_total_reads);
+  fprintf(stderr, "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
+          num_of_unique_mapped,
+          100.00 * num_of_unique_mapped / num_of_total_reads);
+  fprintf(stderr, "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
           num_of_ambiguous_mapped,
-          (double) num_of_ambiguous_mapped / (double) num_of_total_reads);
-  fprintf(stderr, "[UNMAPPED READS: %u (%.3lf)]\n", num_of_unmapped,
-          (double) num_of_unmapped / (double) num_of_total_reads);
+          100.00 * num_of_ambiguous_mapped / num_of_total_reads);
+  fprintf(stderr, "[UNMAPPED READS: %u (%.2lf%%)]\n", num_of_unmapped,
+          100.00 * num_of_unmapped / num_of_total_reads);
 
-  fprintf(stderr, "[MAPPING TAKES %.3lf SECONDS]\n",
-          static_cast<double>(clock() - start_t / CLOCKS_PER_SEC));
+  fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
+          (double(clock() - start_t) / CLOCKS_PER_SEC));
 }
