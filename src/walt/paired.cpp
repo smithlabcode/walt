@@ -134,7 +134,7 @@ void OutputStatInfo(const StatPairedReads& stat_paired_reads) {
           / stat_paired_reads.total_read_pairs);
   fprintf(
       stderr,
-      "[   UNMAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
+      "   [UNMAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_1.unmapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_1.unmapped_reads
           / stat_paired_reads.total_read_pairs);
@@ -153,7 +153,7 @@ void OutputStatInfo(const StatPairedReads& stat_paired_reads) {
           / stat_paired_reads.total_read_pairs);
   fprintf(
       stderr,
-      "[   UNMAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
+      "   [UNMAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_2.unmapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.unmapped_reads
           / stat_paired_reads.total_read_pairs);
