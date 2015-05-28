@@ -35,6 +35,8 @@ int main(int argc, const char **argv) {
 
     bool is_paired_end_reads = false;
     bool AG_WILDCARD = false;
+    bool ambiguous = false;
+    bool unmapped = false;
 
     uint32_t max_mismatches = MAX_UINT32;
     uint32_t n_reads_to_process = MAX_UINT32;
@@ -77,7 +79,15 @@ int main(int argc, const char **argv) {
                       max_mismatches);
     opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
                       false, n_reads_to_process);
-
+    opt_parse.add_opt(
+        "ambiguous",
+        'a',
+        "randomly output one mapped position for ambiguous \
+        reads in a separated file",
+        false, ambiguous);
+    opt_parse.add_opt("unmapped", 'u',
+                      "output unmapped reads in a separated file", false,
+                      unmapped);
     opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
                       false, AG_WILDCARD);
     opt_parse.add_opt("topk", 'k',
@@ -119,8 +129,10 @@ int main(int argc, const char **argv) {
     }
 
     bool get_empty_fields = false;
+    printf("is_paired_end_reads = %d\n", is_paired_end_reads);
     if (!is_paired_end_reads) {
       v_reads_file_s = smithlab::split(reads_file_s, ",", get_empty_fields);
+      printf("%s\n", v_reads_file_s.size());
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         if (!is_valid_filename(v_reads_file_s[i], "fastq")
             && !is_valid_filename(v_reads_file_s[i], "fq")) {
@@ -183,6 +195,9 @@ int main(int argc, const char **argv) {
         }
       }
     }
+    for(uint32_t i = 0;i < v_output_file.size();++i) {
+      printf("XXX=%s\n", v_output_file[i].c_str());
+    }
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
@@ -212,8 +227,10 @@ int main(int argc, const char **argv) {
     if (!is_paired_end_reads) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         fprintf(stderr, "[MAPPING READS FROM %s]\n", v_reads_file_s[i].c_str());
+        printf("%s\n", v_output_file[i].c_str());
         ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
-                               n_reads_to_process, max_mismatches, AG_WILDCARD);
+                               n_reads_to_process, max_mismatches, AG_WILDCARD,
+                               ambiguous, unmapped);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
