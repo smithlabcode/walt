@@ -258,7 +258,7 @@ void ProcessSingledEndReads(const string& index_file,
   uint32_t num_of_ambiguous_mapped = 0;
   uint32_t num_of_unmapped = 0;
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
-  fprintf(stderr, "[MAPPING READS 0");
+  fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads, read_names,
                            read_seqs, read_scores);
@@ -271,7 +271,6 @@ void ProcessSingledEndReads(const string& index_file,
       map_results[j] = best_match;
     }
     num_of_total_reads += num_of_reads;
-    fprintf(stderr, "...%u", num_of_total_reads);
     for (uint32_t fi = 0; fi < 2; ++fi) {
       ReadIndex(index_names[fi], genome, hash_table);
       for (uint32_t j = 0; j < num_of_reads; ++j) {
@@ -306,7 +305,6 @@ void ProcessSingledEndReads(const string& index_file,
     if (num_of_reads < n_reads_to_process)
       break;
   }
-  fprintf(stderr, "]\n");
 
   fclose(fin);
   fclose(fout);

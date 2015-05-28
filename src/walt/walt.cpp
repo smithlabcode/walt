@@ -221,7 +221,7 @@ int main(int argc, const char **argv) {
     ReadIndexHeadInfo(index_file, genome, size_of_index);
     fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
             genome.num_of_chroms);
-    fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
+    fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n\n",
             genome.length_of_genome);
 
     //////////////////////////////////////////////////////////////

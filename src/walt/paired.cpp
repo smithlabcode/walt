@@ -232,7 +232,9 @@ void MergePairedEndResults(
     const string& read_score2,
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, const int& frag_range,
-    const uint32_t& max_mismatches, FILE * fout) {
+    const uint32_t& max_mismatches, FILE * fout,
+    uint32_t& num_of_unique_mapped_pairs,
+    uint32_t& num_of_ambiguous_mapped_pairs, uint32_t& num_of_unmapped_pairs) {
   uint32_t read_len1 = read_seq1.size();
   uint32_t read_len2 = read_seq2.size();
   pair<int, int> best_pair(-1, -1);
@@ -277,11 +279,17 @@ void MergePairedEndResults(
   }
 
   if (best_times == 1) {
+    num_of_unique_mapped_pairs++;
     OutputBestPairedResults(ranked_results[0][best_pair.first],
                             ranked_results[1][best_pair.second], frag_range,
                             read_len1, read_len2, genome, read_name, read_seq1,
                             read_score1, read_seq2, read_score2, fout);
   } else {
+    if (best_times >= 2) {
+      num_of_ambiguous_mapped_pairs++;
+    } else {
+      num_of_unmapped_pairs++;
+    }
     OutputBestSingleResults(ranked_results[0], ranked_results_size[0], genome,
                             read_len1, read_name, read_seq1, read_score1,
                             max_mismatches, fout);
@@ -338,27 +346,21 @@ void ProcessPairedEndReads(const string& index_file,
 
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
-  FILE * fambiguous = NULL, *funmapped = NULL;
-  if (ambiguous) {
-    fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
-  }
-  if (unmapped) {
-    funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
-  }
 
   uint32_t num_of_reads[2];
-  uint32_t num_of_total_reads = 0;
-  uint32_t num_of_unique_mapped = 0;
-  uint32_t num_of_ambiguous_mapped = 0;
-  uint32_t num_of_unmapped = 0;
+  uint32_t num_of_total_read_pairs = 0;
+  uint32_t num_of_unique_mapped_pairs = 0;
+  uint32_t num_of_ambiguous_mapped_pairs = 0;
+  uint32_t num_of_unmapped_pairs = 0;
+
   bool AG_WILDCARD = true;
-  fprintf(stderr, "[MAPPING PAIRED-END READS FROM \n   %s (AND)\n   %s\n",
-          reads_file_p1.c_str(), reads_file_p1.c_str());
-  fprintf(stderr, "[MAPPING READS 0");
+  fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
+  fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
+          reads_file_p1.c_str());
+  fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
-
       LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, num_of_reads[pi],
                              read_names[pi], read_seqs[pi], read_scores[pi]);
       if (num_of_reads[pi] == 0)
@@ -379,7 +381,7 @@ void ProcessPairedEndReads(const string& index_file,
         }
       }
     }
-    num_of_total_reads += num_of_reads[0];
+    num_of_total_read_pairs += num_of_reads[0];
     ///////////////////////////////////////////////////////////
     //Merge Paired-end results
     for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
@@ -396,7 +398,9 @@ void ProcessPairedEndReads(const string& index_file,
                             read_scores[0][j], read_seqs[1][j],
                             read_scores[1][j], ranked_results,
                             ranked_results_size, frag_range, max_mismatches,
-                            fout);
+                            fout, num_of_unique_mapped_pairs,
+                            num_of_ambiguous_mapped_pairs,
+                            num_of_unmapped_pairs);
     }
 
     if (num_of_reads[0] < n_reads_to_process)
@@ -406,22 +410,17 @@ void ProcessPairedEndReads(const string& index_file,
   fclose(fin[0]);
   fclose(fin[1]);
   fclose(fout);
-  if (ambiguous) {
-    fclose(fambiguous);
-  }
-  if (unmapped) {
-    fclose(funmapped);
-  }
 
-  fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n", num_of_total_reads);
-  fprintf(stderr, "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
-          num_of_unique_mapped,
-          100.00 * num_of_unique_mapped / num_of_total_reads);
+  fprintf(stderr, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
+          num_of_total_read_pairs);
+  fprintf(stderr, "[UNIQUELY MAPPED READ PAIRS: %u (%.2lf%%)]\n",
+          num_of_unique_mapped_pairs,
+          100.00 * num_of_unique_mapped_pairs / num_of_total_read_pairs);
   fprintf(stderr, "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
-          num_of_ambiguous_mapped,
-          100.00 * num_of_ambiguous_mapped / num_of_total_reads);
-  fprintf(stderr, "[UNMAPPED READS: %u (%.2lf%%)]\n", num_of_unmapped,
-          100.00 * num_of_unmapped / num_of_total_reads);
+          num_of_ambiguous_mapped_pairs,
+          100.00 * num_of_ambiguous_mapped_pairs / num_of_total_read_pairs);
+  fprintf(stderr, "[UNMAPPED READS: %u (%.2lf%%)]\n", num_of_unmapped_pairs,
+          100.00 * num_of_unmapped_pairs / num_of_total_read_pairs);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));
