@@ -46,6 +46,9 @@ void PairEndMapping(const string& org_read, const Genome& genome,
                     const bool& AG_WILDCARD, const uint32_t& max_mismatches,
                     TopCandidates& top_match) {
   uint32_t read_len = org_read.size();
+  if (read_len < HASHLEN) {
+    return;
+  }
   uint32_t seed_len = getSeedLength(read_len);
 
   string read;

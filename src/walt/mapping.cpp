@@ -128,6 +128,9 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
                       const HashTable& hash_table, const char& strand,
                       const bool& AG_WILDCARD, BestMatch& best_match) {
   uint32_t read_len = org_read.size();
+  if (read_len < HASHLEN) {
+    return;
+  }
   uint32_t seed_len = getSeedLength(read_len);
 
   string read;
