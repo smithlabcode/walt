@@ -127,4 +127,7 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
                        uint32_t& size_of_index);
 
+/* show genome length and the number of chromosomes in the genome */
+void ShowGenomeInfo(const string& index_file);
+
 #endif /* REFERENCE_H_ */

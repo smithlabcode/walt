@@ -213,16 +213,7 @@ int main(int argc, const char **argv) {
               "-k option should be less than 300 for paired-end reads\n");
       return EXIT_FAILURE;
     }
-
-    /////////////////////////////
-    // Genome INFO
-    Genome genome;
-    uint32_t size_of_index;
-    ReadIndexHeadInfo(index_file, genome, size_of_index);
-    fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
-            genome.num_of_chroms);
-    fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n\n",
-            genome.length_of_genome);
+    ShowGenomeInfo(index_file);
 
     //////////////////////////////////////////////////////////////
     // Mapping
