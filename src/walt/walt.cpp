@@ -144,9 +144,6 @@ int main(int argc, const char **argv) {
     } else {
       v_reads_file_p1 = smithlab::split(reads_file_p1, ",", get_empty_fields);
       v_reads_file_p2 = smithlab::split(reads_file_p2, ",", get_empty_fields);
-      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-        fprintf(stderr, "%s()%s\n", v_reads_file_p1[i].c_str(), v_reads_file_p2[i].c_str());
-      }
       if (v_reads_file_p1.size() != v_reads_file_p2.size()) {
         fprintf(
             stderr,
@@ -163,41 +160,45 @@ int main(int argc, const char **argv) {
           return EXIT_FAILURE;
         }
       }
+    }
 
-      if (!is_paired_end_reads) {
-        if (v_reads_file_s.size() == 1) {
-          v_output_file.push_back(output_file);
-        } else {
-          char output_filename[1000];
-          for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
-            sprintf(output_filename, "%s_s%u", output_file.c_str(), i);
-            v_output_file.push_back(output_filename);
-          }
-        }
+    if (!is_paired_end_reads) {
+      if (v_reads_file_s.size() == 1) {
+        v_output_file.push_back(output_file);
       } else {
-        if (v_reads_file_p1.size() == 1) {
-          v_output_file.push_back(output_file);
-        } else {
-          char output_filename[1000];
-          for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-            sprintf(output_filename, "%s_p%u", output_file.c_str(), i);
-            v_output_file.push_back(output_filename);
-          }
+        char output_filename[1000];
+        for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
+          sprintf(output_filename, "%s_s%u", output_file.c_str(), i);
+          v_output_file.push_back(output_filename);
         }
       }
-
-      for (uint32_t i = 0; i < v_reads_file_p2.size(); ++i) {
-        if (!is_valid_filename(v_reads_file_p2[i], "fastq")
-            && !is_valid_filename(v_reads_file_p2[i], "fq")) {
-          fprintf(stderr,
-                  "The suffix of the reads file should be '.fastq', '.fq'\n");
-          return EXIT_FAILURE;
+    } else {
+      if (v_reads_file_p1.size() == 1) {
+        v_output_file.push_back(output_file);
+      } else {
+        char output_filename[1000];
+        for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+          sprintf(output_filename, "%s_p%u", output_file.c_str(), i);
+          v_output_file.push_back(output_filename);
         }
       }
     }
+
+    for (uint32_t i = 0; i < v_reads_file_p2.size(); ++i) {
+      if (!is_valid_filename(v_reads_file_p2[i], "fastq")
+          && !is_valid_filename(v_reads_file_p2[i], "fq")) {
+        fprintf(stderr,
+                "The suffix of the reads file should be '.fastq', '.fq'\n");
+        return EXIT_FAILURE;
+      }
+    }
+<<<<<<< .merge_file_mP6zsl
     for(uint32_t i = 0;i < v_output_file.size();++i) {
       printf("XXX=%s\n", v_output_file[i].c_str());
     }
+=======
+
+>>>>>>> .merge_file_8WqYq9
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
