@@ -378,8 +378,9 @@ void ProcessPairedEndReads(const string& index_file,
                            const string& output_file,
                            const uint32_t& n_reads_to_process,
                            const uint32_t& max_mismatches,
-                           const uint32_t& top_k, const int& frag_range,
-                           const bool& ambiguous, const bool& unmapped) {
+                           const string& adaptor, const uint32_t& top_k,
+                           const int& frag_range, const bool& ambiguous,
+                           const bool& unmapped) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -417,9 +418,10 @@ void ProcessPairedEndReads(const string& index_file,
     throw SMITHLABException("cannot open input file " + reads_file_p2);
   }
 
+  string adaptors[2];
+  extract_adaptors(adaptor, adaptors[0], adaptors[1]);
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
-
   uint32_t num_of_reads[2];
   StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file);
   bool AG_WILDCARD = true;
@@ -430,8 +432,9 @@ void ProcessPairedEndReads(const string& index_file,
   for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
-      LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, num_of_reads[pi],
-                             read_names[pi], read_seqs[pi], read_scores[pi]);
+      LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, adaptors[pi],
+                             num_of_reads[pi], read_names[pi], read_seqs[pi],
+                             read_scores[pi]);
       if (num_of_reads[pi] == 0)
         break;
 

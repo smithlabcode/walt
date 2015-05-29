@@ -5,7 +5,8 @@
 
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
                             const uint32_t n_reads_to_process,
-                            uint32_t& num_of_reads, vector<string>& read_names,
+                            const string& adaptor, uint32_t& num_of_reads,
+                            vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores) {
   char cline[MAX_LINE_LENGTH];
@@ -28,6 +29,9 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
         break;
       }
       case 1: {
+        if (!adaptor.empty()) {
+          clip_adaptor_from_read(adaptor, line);
+        }
         read_seqs[num_of_reads] = line;
         break;
       }
@@ -46,6 +50,10 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
       line_code = 0;
     }
   }
+}
+
+void TrimAdapter(vector<string>& read_seqs, const string& adapter) {
+
 }
 
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
@@ -214,8 +222,8 @@ void ProcessSingledEndReads(const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped) {
+                            const string& adaptor, const bool& AG_WILDCARD,
+                            const bool& ambiguous, const bool& unmapped) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -252,8 +260,8 @@ void ProcessSingledEndReads(const string& index_file,
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
-    LoadReadsFromFastqFile(fin, i, n_reads_to_process, num_of_reads, read_names,
-                           read_seqs, read_scores);
+    LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
+                           read_names, read_seqs, read_scores);
     if (num_of_reads == 0)
       break;
 

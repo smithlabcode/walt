@@ -369,6 +369,19 @@ clip_adaptor_from_read(const std::string &adaptor, std::string &s) {
     }
   return 0;
 }
+
+inline void
+extract_adaptors(const std::string &adaptor, std::string & T_adaptor, std::string & A_adaptor) {
+  const size_t sep_idx = adaptor.find_first_of(":");
+  if (adaptor.find_last_of(":") != sep_idx)
+    throw SMITHLABException("ERROR: adaptor format \"T_adaptor[:A_adaptor]\"");
+  if (sep_idx == std::string::npos)
+    T_adaptor = A_adaptor = adaptor;
+  else {
+    T_adaptor = adaptor.substr(0, sep_idx);
+    A_adaptor = adaptor.substr(sep_idx + 1);
+  }
+}
 /////////////////////////////////////////////////////////////////////////
 
 #endif

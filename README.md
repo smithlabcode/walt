@@ -49,6 +49,7 @@ paired-end reads
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -a      | -ambiguous | Boolean | false | randomly output one mapped position for ambiguous reads in a separated file |
 | -u      | -unmapped | Boolean | false | output unmapped reads in a separated file |
+| -C      | -clip | Boolean | false | clip the specified adaptor |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
@@ -82,8 +83,17 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file names will be appended "_s1", "_s2", and so on. Notice: except the first file path, all other file paths cannot be use '~'. For example, "-r ~/read_file1.fq,~/read_file2.fq" is not allowed. It should be "-r ~/read_file1.fq,/home/read_file2.fq", since linux system doesn't know it is a path except the first one.
 	 
 	 walt -i hg19.dbindex -r read_file1.fq,read_file2.fq,read_file3.fq -A -o reads_2_mapping.out
-
+	 
+For paired-end reads, -1 and -2 options are used for the mate reads files.
     
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
+    
+Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each read file pair. The output file names will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
+
+	 walt -i hg19.dbindex -1 read_file1_1.fq,read_file2_1.fq,read_file3_1.fq \ 
+	                      -2 read_file1_2.fq,read_file2_2.fq,read_file3_2.fq \
+	                      -o paired_reads_mapping.out
+
 The default number of maximum allowed mismatches is 6. The maximum allowed mismatches can be set using -m option.
 
     walt -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.out
@@ -96,16 +106,12 @@ To output the ambiguous mapped reads or unmapped reads, -u and -a options should
     
     walt -i hg19.dbindex -r read_1.fq -u -a -o reads_1_mapping.out
     
-For paired-end reads, -1 and -2 options are used for the mate reads files.
-    
-    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -N 5000000 -o paired_reads_mapping.out
-    
-Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each read file pair. The output file names will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
+To trim 3' end adaptor seqeunce, -C option should be set. For paired-end read mapping, using T_adaptor[:A_adaptor] format to set the adaptor. If only one adaptor seqeunce is given, the same adaptor sequence will be used for both T-rech and A-rich reads.
 
-	 walt -i hg19.dbindex -1 read_file1_1.fq,read_file2_1.fq,read_file3_1.fq \ 
-	                      -2 read_file1_2.fq,read_file2_2.fq,read_file3_2.fq \
-	                      -o paired_reads_mapping.out
-    
+    walt -i hg19.dbindex -r read_1.fq -C AGATCGGAAGAGC -o reads_1_mapping.out
+    walt -i hg19.dbindex -r read_2.fq -A -C AGATCGGAAGAGC -o reads_1_mapping.out
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -C AGATCGGAAGAGC -o paired_reads_mapping.out
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -C AGATCGGAAGAGC:AGATCGG -o paired_reads_mapping.out
     
     
 ### Contacts ###

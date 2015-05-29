@@ -72,7 +72,8 @@ struct StatSingleReads {
  * start from  read_start_idx */
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
                             const uint32_t n_reads_to_process,
-                            uint32_t& num_of_reads, vector<string>& read_names,
+                            const string& adaptor, uint32_t& num_of_reads,
+                            vector<string>& read_names,
                             vector<string>& read_seqs,
                             vector<string>& read_scores);
 
@@ -104,7 +105,7 @@ void ProcessSingledEndReads(const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped);
+                            const string& adaptor, const bool& AG_WILDCARD,
+                            const bool& ambiguous, const bool& unmapped);
 
 #endif /* MAPPING_HPP_ */

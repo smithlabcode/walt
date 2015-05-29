@@ -40,6 +40,9 @@ int main(int argc, const char **argv) {
     string output_file;
     vector<string> v_output_file;
 
+    /* trimming adaptor sequence */
+    string adaptor;
+
     bool is_paired_end_reads = false;
     bool AG_WILDCARD = false;
     bool ambiguous = false;
@@ -95,6 +98,8 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("unmapped", 'u',
                       "output unmapped reads in a separated file", false,
                       unmapped);
+    opt_parse.add_opt("clip", 'C', "clip the specified adaptor", false,
+                      adaptor);
     opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
                       false, AG_WILDCARD);
     opt_parse.add_opt("topk", 'k',
@@ -227,15 +232,15 @@ int main(int argc, const char **argv) {
     if (!is_paired_end_reads) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
-                               n_reads_to_process, max_mismatches, AG_WILDCARD,
-                               ambiguous, unmapped);
+                               n_reads_to_process, max_mismatches, adaptor,
+                               AG_WILDCARD, ambiguous, unmapped);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
         ProcessPairedEndReads(index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
-                              n_reads_to_process, max_mismatches, top_k,
-                              frag_range, ambiguous, unmapped);
+                              n_reads_to_process, max_mismatches, adaptor,
+                              top_k, frag_range, ambiguous, unmapped);
       }
     }
   } catch (const SMITHLABException &e) {
