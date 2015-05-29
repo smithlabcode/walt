@@ -31,17 +31,41 @@ struct BestMatch {
 
 /* count the number of uniquely mapped, ambiguous mapped and unmapped reads */
 struct StatSingleReads {
-  StatSingleReads() {
+  StatSingleReads(const bool& _ambiguous, const bool& _unmapped,
+                  const string& output_file)
+      : ambiguous(_ambiguous),
+        unmapped(_unmapped) {
     total_reads = 0;
     unique_mapped_reads = 0;
     ambiguous_mapped_reads = 0;
     unmapped_reads = 0;
+
+    if (ambiguous) {
+      fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
+    }
+    if (unmapped) {
+      funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
+    }
+  }
+  ~StatSingleReads() {
+    if (ambiguous) {
+      fclose(fambiguous);
+    }
+    if (unmapped) {
+      fclose(funmapped);
+    }
   }
 
   uint32_t total_reads;
   uint32_t unique_mapped_reads;
   uint32_t ambiguous_mapped_reads;
   uint32_t unmapped_reads;
+
+  FILE * fambiguous;
+  FILE * funmapped;
+
+  bool ambiguous;
+  bool unmapped;
 };
 
 /* load reads from reads file, each time load n_reads_to_process reads,
@@ -62,6 +86,17 @@ void G2A(const string& org_read, const uint32_t& read_len, string& read);
 void IndexRegion(const string& read, const Genome& genome,
                  const HashTable& hash_table, const uint32_t& seed_len,
                  pair<uint32_t, uint32_t>& region);
+
+/* output the uniquely mapped reads or ambiguously mapped reads */
+void OutputUniquelyAndAmbiguousMapped(FILE * fout, const BestMatch best_match,
+                                      const string& read_name,
+                                      const string& read_seq,
+                                      const string& read_score,
+                                      const Genome& genome);
+
+/* output the unmapped reads */
+void OutputUnmapped(FILE * fout, const string& read_name,
+                    const string& read_seq, const string& read_score);
 
 /* singled-end read */
 void ProcessSingledEndReads(const string& index_file,

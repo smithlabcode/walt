@@ -267,19 +267,16 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
 
   if (best_match.times == 0) {
     stat_single_reads.unmapped_reads++;
+    OutputUnmapped(stat_single_reads.funmapped, read_name, read_seq,
+                   read_score);
   } else if (best_match.times == 1) {
     stat_single_reads.unique_mapped_reads++;
-    uint32_t chr_id = getChromID(genome.start_index, best_match.genome_pos);
-    uint32_t start_pos = 0, end_pos = 0;
-    ForwardChromPosition(best_match.genome_pos, best_match.strand, chr_id,
-                         read_len, genome, start_pos, end_pos);
-
-    fprintf(fout, "%s\t%u\t%u\t%s\t%u\t%c\t%s\t%s\n",
-            genome.name[chr_id].c_str(), start_pos, end_pos, read_name.c_str(),
-            best_match.mismatch, best_match.strand, read_seq.c_str(),
-            read_score.c_str());
+    OutputUniquelyAndAmbiguousMapped(fout, best_match, read_name, read_seq,
+                                     read_score, genome);
   } else {
     stat_single_reads.ambiguous_mapped_reads++;
+    OutputUniquelyAndAmbiguousMapped(stat_single_reads.fambiguous, best_match,
+                                     read_name, read_seq, read_score, genome);
   }
 }
 
@@ -420,7 +417,7 @@ void ProcessPairedEndReads(const string& index_file,
   FILE * fout = fopen(output_file.c_str(), "w");
 
   uint32_t num_of_reads[2];
-  StatPairedReads stat_paired_reads;
+  StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file);
   bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),

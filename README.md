@@ -47,6 +47,8 @@ paired-end reads
 | -o      | -output | String | NULL | output file name |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
+| -a      | -ambiguous | Boolean | false | randomly output one mapped position for ambiguous reads in a separated file |
+| -u      | -unmapped | Boolean | false | output unmapped reads in a separated file |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
@@ -89,6 +91,10 @@ The default number of maximum allowed mismatches is 6. The maximum allowed misma
 The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end read mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 32 Gb memory. If N is set to be larger than 5000000, the program will set N to be 5000000 since when N is too large the program will take large memory but it will not be faster.
     
     walt -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.out
+    
+To output the ambiguous mapped reads or unmapped reads, -u and -a options should be set. The ambigous mapped reads and unmapped reads will output to a separated file. For paired-end mapping, there will be a unmapped file and an ambiguous file for each of the mate 1 and mate 2 reads file.
+    
+    walt -i hg19.dbindex -r read_1.fq -u -a -o reads_1_mapping.out
     
 For paired-end reads, -1 and -2 options are used for the mate reads files.
     

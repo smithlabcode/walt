@@ -247,16 +247,8 @@ void ProcessSingledEndReads(const string& index_file,
 
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
-  FILE * fambiguous = NULL, *funmapped = NULL;
-  if (ambiguous) {
-    fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
-  }
-  if (unmapped) {
-    funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
-  }
-
   uint32_t num_of_reads;
-  StatSingleReads stat_single_reads;
+  StatSingleReads stat_single_reads(ambiguous, unmapped, output_file);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
@@ -285,8 +277,8 @@ void ProcessSingledEndReads(const string& index_file,
       if (map_results[j].times == 0) {
         stat_single_reads.unmapped_reads++;
         if (unmapped) {
-          OutputUnmapped(funmapped, read_names[j], read_seqs[j],
-                         read_scores[j]);
+          OutputUnmapped(stat_single_reads.funmapped, read_names[j],
+                         read_seqs[j], read_scores[j]);
         }
       } else if (map_results[j].times == 1) {
         stat_single_reads.unique_mapped_reads++;
@@ -294,10 +286,11 @@ void ProcessSingledEndReads(const string& index_file,
                                          read_seqs[j], read_scores[j], genome);
       } else {
         stat_single_reads.ambiguous_mapped_reads++;
-        if (fambiguous) {
-          OutputUniquelyAndAmbiguousMapped(fambiguous, map_results[j],
-                                           read_names[j], read_seqs[j],
-                                           read_scores[j], genome);
+        if (ambiguous) {
+          OutputUniquelyAndAmbiguousMapped(stat_single_reads.fambiguous,
+                                           map_results[j], read_names[j],
+                                           read_seqs[j], read_scores[j],
+                                           genome);
         }
       }
     }
@@ -305,15 +298,8 @@ void ProcessSingledEndReads(const string& index_file,
     if (num_of_reads < n_reads_to_process)
       break;
   }
-
   fclose(fin);
   fclose(fout);
-  if (ambiguous) {
-    fclose(fambiguous);
-  }
-  if (unmapped) {
-    fclose(funmapped);
-  }
 
   fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
