@@ -111,7 +111,7 @@ To trim 3' end adaptor seqeunce, -C option should be set. For paired-end read ma
     walt -i hg19.dbindex -r read_1.fq -C AGATCGGAAGAGC -o reads_1_mapping.out
     walt -i hg19.dbindex -r read_2.fq -A -C AGATCGGAAGAGC -o reads_1_mapping.out
     walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -C AGATCGGAAGAGC -o paired_reads_mapping.out
-    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -C AGATCGGAAGAGC:AGATCGG -o paired_reads_mapping.out
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -C AGATCGGAAGAGC:AGATCGG -o paired_mapping.out
     
     
 ### Contacts ###
