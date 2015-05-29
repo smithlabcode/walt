@@ -49,7 +49,7 @@ paired-end reads
 | -N      | -number | Integer | 5000000 | number of reads to map at one loop |
 | -a      | -ambiguous | Boolean | false | randomly output one mapped position for ambiguous reads in a separated file |
 | -u      | -unmapped | Boolean | false | output unmapped reads in a separated file |
-| -C      | -clip | Boolean | false | clip the specified adaptor |
+| -C      | -clip | String | empty | clip the specified adaptor |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paried-end mapping|
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
