@@ -16,9 +16,15 @@
 
 int main(int argc, const char **argv) {
   try {
+    fprintf(stderr, "[WELCOME TO WALT v0.0]\n");
+    fprintf(stderr, "[%s", argv[0]);
+    for (int i = 1; i < argc; i++) {
+      fprintf(stderr, " %s", argv[i]);
+    }
+    fprintf(stderr, "]\n");
     /* singled-end reads file, comma-separated list of files */
     string reads_file_s;
-    vector < string > v_reads_file_s;
+    vector<string> v_reads_file_s;
 
     /* paired-end reads files, comma-separated list of files*/
     string reads_file_p1;

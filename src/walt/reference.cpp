@@ -371,6 +371,6 @@ void ShowGenomeInfo(const string& index_file) {
   ReadIndexHeadInfo(index_file, genome, size_of_index);
   fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
           genome.num_of_chroms);
-  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n\n",
+  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
           genome.length_of_genome);
 }
