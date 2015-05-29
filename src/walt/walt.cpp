@@ -22,6 +22,7 @@ int main(int argc, const char **argv) {
       fprintf(stderr, " %s", argv[i]);
     }
     fprintf(stderr, "]\n");
+
     /* singled-end reads file, comma-separated list of files */
     string reads_file_s;
     vector<string> v_reads_file_s;
