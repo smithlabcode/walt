@@ -335,4 +335,40 @@ percent(const size_t a, const size_t b) {
   return static_cast<size_t>((100.0*a)/b);
 }
 
+/////////////////////////////////////////////////////////////////////////
+// We are using a conservative approach to clip that adaptors in which
+// the adaptor sequence is only required to match some at some initial
+// portion, and then the rest of the read is not examined.
+
+const size_t head_length = 14;
+const size_t sufficient_head_match = 11;
+const size_t min_overlap = 5;
+
+inline size_t
+similarity(const std::string &s, const size_t pos, const std::string &adaptor) {
+  const size_t lim = std::min(std::min(s.length() - pos, adaptor.length()), head_length);
+  size_t count = 0;
+  for (size_t i = 0; i < lim; ++i)
+    count += (s[pos + i] == adaptor[i]);
+  return count;
+}
+
+inline size_t
+clip_adaptor_from_read(const std::string &adaptor, std::string &s) {
+  size_t lim1 = s.length() - head_length + 1;
+  for (size_t i = 0; i < lim1; ++i)
+    if (similarity(s, i, adaptor) >= sufficient_head_match) {
+      fill(s.begin() + i, s.end(), 'N');
+      return s.length() - i;
+    }
+  const size_t lim2 = s.length() - min_overlap + 1;
+  for (size_t i = lim1; i < lim2; ++i)
+    if (similarity(s, i, adaptor) >= s.length() - i - 1) {
+      fill(s.begin() + i, s.end(), 'N');
+      return s.length() - i;
+    }
+  return 0;
+}
+/////////////////////////////////////////////////////////////////////////
+
 #endif
