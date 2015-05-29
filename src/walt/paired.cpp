@@ -267,16 +267,20 @@ void OutputBestSingleResults(const vector<CandidatePosition>& ranked_results,
 
   if (best_match.times == 0) {
     stat_single_reads.unmapped_reads++;
-    OutputUnmapped(stat_single_reads.funmapped, read_name, read_seq,
-                   read_score);
+    if (stat_single_reads.unmapped) {
+      OutputUnmapped(stat_single_reads.funmapped, read_name, read_seq,
+                     read_score);
+    }
   } else if (best_match.times == 1) {
     stat_single_reads.unique_mapped_reads++;
     OutputUniquelyAndAmbiguousMapped(fout, best_match, read_name, read_seq,
                                      read_score, genome);
   } else {
     stat_single_reads.ambiguous_mapped_reads++;
-    OutputUniquelyAndAmbiguousMapped(stat_single_reads.fambiguous, best_match,
-                                     read_name, read_seq, read_score, genome);
+    if (stat_single_reads.ambiguous) {
+      OutputUniquelyAndAmbiguousMapped(stat_single_reads.fambiguous, best_match,
+                                       read_name, read_seq, read_score, genome);
+    }
   }
 }
 
@@ -421,7 +425,7 @@ void ProcessPairedEndReads(const string& index_file,
   bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
-          reads_file_p1.c_str());
+          reads_file_p2.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
