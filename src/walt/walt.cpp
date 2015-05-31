@@ -40,6 +40,9 @@ int main(int argc, const char **argv) {
     string output_file;
     vector<string> v_output_file;
 
+    /* output SAM format */
+    bool SAM = false;
+
     /* trimming adaptor sequence */
     string adaptor;
 
@@ -202,6 +205,11 @@ int main(int argc, const char **argv) {
         return EXIT_FAILURE;
       }
     }
+
+    uint32_t suffix_pos = output_file.find_last_of(".");
+    if (".sam" == output_file.substr(suffix_pos)) {
+      SAM = true;
+    }
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
@@ -233,14 +241,14 @@ int main(int argc, const char **argv) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
                                n_reads_to_process, max_mismatches, adaptor,
-                               AG_WILDCARD, ambiguous, unmapped);
+                               AG_WILDCARD, ambiguous, unmapped, SAM);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
         ProcessPairedEndReads(index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
                               n_reads_to_process, max_mismatches, adaptor,
-                              top_k, frag_range, ambiguous, unmapped);
+                              top_k, frag_range, ambiguous, unmapped, SAM);
       }
     }
   } catch (const SMITHLABException &e) {

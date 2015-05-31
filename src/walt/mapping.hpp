@@ -89,15 +89,24 @@ void IndexRegion(const string& read, const Genome& genome,
                  pair<uint32_t, uint32_t>& region);
 
 /* output the uniquely mapped reads or ambiguously mapped reads */
-void OutputUniquelyAndAmbiguousMapped(FILE * fout, const BestMatch best_match,
+void OutputUniquelyAndAmbiguousMapped(const BestMatch best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,
-                                      const Genome& genome);
+                                      const Genome& genome, FILE * fout);
 
 /* output the unmapped reads */
-void OutputUnmapped(FILE * fout, const string& read_name,
-                    const string& read_seq, const string& read_score);
+void OutputUnmapped(const string& read_name, const string& read_seq,
+                    const string& read_score, FILE * fout);
+
+/* output the single end results */
+void OutputSingleResults(const BestMatch& best_match, const string& read_name,
+                         const string& read_seq, const string& read_score,
+                         const Genome& genome,
+                         StatSingleReads& stat_single_reads, FILE * fout);
+
+/* update number of unmapped, uniquely mapped and ambiguously mapped reads */
+void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads);
 
 /* singled-end read */
 void ProcessSingledEndReads(const string& index_file,
@@ -106,6 +115,7 @@ void ProcessSingledEndReads(const string& index_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
                             const string& adaptor, const bool& AG_WILDCARD,
-                            const bool& ambiguous, const bool& unmapped);
+                            const bool& ambiguous, const bool& unmapped,
+                            const bool& SAM);
 
 #endif /* MAPPING_HPP_ */

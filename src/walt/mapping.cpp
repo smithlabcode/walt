@@ -52,10 +52,6 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
   }
 }
 
-void TrimAdapter(vector<string>& read_seqs, const string& adapter) {
-
-}
-
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
     if ('N' == org_read[i]) {
@@ -194,11 +190,21 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 }
 
-void OutputUniquelyAndAmbiguousMapped(FILE * fout, const BestMatch best_match,
+void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads) {
+  if (times == 0) {
+    stat_single_reads.unmapped_reads++;
+  } else if (times == 1) {
+    stat_single_reads.unique_mapped_reads++;
+  } else {
+    stat_single_reads.ambiguous_mapped_reads++;
+  }
+}
+
+void OutputUniquelyAndAmbiguousMapped(const BestMatch best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,
-                                      const Genome& genome) {
+                                      const Genome& genome, FILE * fout) {
   uint32_t chr_id = getChromID(genome.start_index, best_match.genome_pos);
   uint32_t start_pos = best_match.genome_pos - genome.start_index[chr_id];
   if ('-' == best_match.strand) {
@@ -211,10 +217,58 @@ void OutputUniquelyAndAmbiguousMapped(FILE * fout, const BestMatch best_match,
           best_match.strand, read_seq.c_str(), read_score.c_str());
 }
 
-void OutputUnmapped(FILE * fout, const string& read_name,
-                    const string& read_seq, const string& read_score) {
+void OutputUnmapped(const string& read_name, const string& read_seq,
+                    const string& read_score, FILE * fout) {
   fprintf(fout, "%s\t%s\t%s\n", read_name.c_str(), read_seq.c_str(),
           read_score.c_str());
+}
+
+void OutputSingleResults(const BestMatch& best_match, const string& read_name,
+                         const string& read_seq, const string& read_score,
+                         const Genome& genome,
+                         StatSingleReads& stat_single_reads, FILE * fout) {
+  if (best_match.times == 0 && stat_single_reads.unmapped) {
+    OutputUnmapped(read_name, read_seq, read_score,
+                   stat_single_reads.funmapped);
+  } else if (best_match.times == 1) {
+    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq,
+                                     read_score, genome, fout);
+  } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
+    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq,
+                                     read_score, genome,
+                                     stat_single_reads.fambiguous);
+  }
+}
+
+void OutputSingleSAM(const BestMatch best_match, const string& read_name,
+                     const string& read_seq, const string& read_score,
+                     const Genome& genome, StatSingleReads& stat_single_reads,
+                     FILE * fout) {
+  uint32_t chr_id = getChromID(genome.start_index, best_match.genome_pos);
+  uint32_t start_pos = best_match.genome_pos - genome.start_index[chr_id];
+  if ('-' == best_match.strand) {
+    start_pos = genome.length[chr_id] - start_pos - read_seq.size();
+  }
+
+  int flag = 0;
+  flag += best_match.times == 0 ? 0x8 : 0;
+  flag += '-' == best_match.strand ? 0x10 : 0;
+  if (best_match.times == 0 && stat_single_reads.unmapped) {
+    fprintf(stat_single_reads.funmapped,
+            "%s\t%d\t%s\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:0\n", read_name.c_str(),
+            flag, genome.name[chr_id].c_str(), read_seq.c_str(),
+            read_score.c_str());
+  } else if (best_match.times == 1) {
+    fprintf(fout, "%s\t%d\t%s\t%u\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
+            read_seq.c_str(), read_score.c_str(), best_match.mismatch);
+
+  } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
+    fprintf(stat_single_reads.fambiguous,
+            "%s\t%d\t%s\t%u\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
+            read_seq.c_str(), read_score.c_str(), best_match.mismatch);
+  }
 }
 
 void ProcessSingledEndReads(const string& index_file,
@@ -223,7 +277,8 @@ void ProcessSingledEndReads(const string& index_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches,
                             const string& adaptor, const bool& AG_WILDCARD,
-                            const bool& ambiguous, const bool& unmapped) {
+                            const bool& ambiguous, const bool& unmapped,
+                            const bool& SAM) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -282,24 +337,13 @@ void ProcessSingledEndReads(const string& index_file,
     //////////////////////////////////////////////////////////
     // Output
     for (uint32_t j = 0; j < num_of_reads; ++j) {
-      if (map_results[j].times == 0) {
-        stat_single_reads.unmapped_reads++;
-        if (unmapped) {
-          OutputUnmapped(stat_single_reads.funmapped, read_names[j],
-                         read_seqs[j], read_scores[j]);
-        }
-      } else if (map_results[j].times == 1) {
-        stat_single_reads.unique_mapped_reads++;
-        OutputUniquelyAndAmbiguousMapped(fout, map_results[j], read_names[j],
-                                         read_seqs[j], read_scores[j], genome);
+      StatInfoUpdate(map_results[j].times, stat_single_reads);
+      if (!SAM) {
+        OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
+                            read_scores[j], genome, stat_single_reads, fout);
       } else {
-        stat_single_reads.ambiguous_mapped_reads++;
-        if (ambiguous) {
-          OutputUniquelyAndAmbiguousMapped(stat_single_reads.fambiguous,
-                                           map_results[j], read_names[j],
-                                           read_seqs[j], read_scores[j],
-                                           genome);
-        }
+        OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],
+                        read_scores[j], genome, stat_single_reads, fout);
       }
     }
 
