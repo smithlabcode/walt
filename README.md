@@ -120,7 +120,7 @@ By default, WALT produces MR format files. If you plan to get SAM file, please m
 	 
 ### Output Format ###
 
-WALT supports MR and SAM output formats. By default, WALT produces MR format output files. To get SAM format, the suffix of the output file should be ".sam".
+WALT supports Tab-delimited MR and SAM output formats. By default, WALT produces MR format output files. To get SAM format, the suffix of the output file should be ".sam".
 
 **MR Format**
 
