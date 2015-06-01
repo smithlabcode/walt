@@ -96,7 +96,7 @@ struct StatPairedReads {
 };
 
 /* paired-end read */
-void ProcessPairedEndReads(const string& index_file,
+void ProcessPairedEndReads(const string& command, const string& index_file,
                            const string& reads_file_p1,
                            const string& reads_file_p2,
                            const string& output_file,

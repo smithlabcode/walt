@@ -374,3 +374,15 @@ void ShowGenomeInfo(const string& index_file) {
   fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
           genome.length_of_genome);
 }
+
+void SAMHead(const string& index_file, const string& command, FILE * fout) {
+  Genome genome;
+  uint32_t size_of_index;
+  ReadIndexHeadInfo(index_file, genome, size_of_index);
+  fprintf(fout, "@HD\tVN:1.0\n");
+  for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
+    fprintf(fout, "@SQ\tSN:%s\tLN:%u\n", genome.name[i].c_str(),
+            genome.length[i]);
+  }
+  fprintf(fout, "@PG\tID:WALT\tVN:0.0\tCL:%s\n", command.c_str());
+}

@@ -52,6 +52,25 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
   }
 }
 
+string ReverseString(const string& str) {
+  uint32_t size = str.size();
+  string ret(size, 'N');
+  for (uint32_t i = 0; i < size; ++i) {
+    ret[i] = str[size - i - 1];
+  }
+
+  return ret;
+}
+
+string ReverseComplimentString(const string& str) {
+  string ret = ReverseString(str);
+  for (uint32_t i = 0; i < str.size(); ++i) {
+    ret[i] = complimentBase(ret[i]);
+  }
+
+  return ret;
+}
+
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
   for (uint32_t i = 0; i < read_len; ++i) {
     if ('N' == org_read[i]) {
@@ -250,28 +269,34 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
     start_pos = genome.length[chr_id] - start_pos - read_seq.size();
   }
 
+  string read_seq_tmp = read_seq;
+  string read_score_tmp = read_score;
+  if (best_match.strand == '-') {
+    read_seq_tmp = ReverseComplimentString(read_seq_tmp);
+    read_score_tmp = ReverseString(read_score_tmp);
+  }
+
   int flag = 0;
   flag += best_match.times == 0 ? 0x8 : 0;
   flag += '-' == best_match.strand ? 0x10 : 0;
   if (best_match.times == 0 && stat_single_reads.unmapped) {
     fprintf(stat_single_reads.funmapped,
-            "%s\t%d\t%s\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:0\n", read_name.c_str(),
-            flag, genome.name[chr_id].c_str(), read_seq.c_str(),
-            read_score.c_str());
+            "%s\t%d\t*\t0\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:0\n", read_name.c_str(),
+            flag, read_seq_tmp.c_str(), read_score_tmp.c_str());
   } else if (best_match.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
-            read_seq.c_str(), read_score.c_str(), best_match.mismatch);
+            read_seq_tmp.c_str(), read_score_tmp.c_str(), best_match.mismatch);
 
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
     fprintf(stat_single_reads.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t0\t0\t0\t0\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t%s\t%u\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
-            read_seq.c_str(), read_score.c_str(), best_match.mismatch);
+            read_seq_tmp.c_str(), read_score_tmp.c_str(), best_match.mismatch);
   }
 }
 
-void ProcessSingledEndReads(const string& index_file,
+void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& reads_file_s,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
@@ -314,6 +339,7 @@ void ProcessSingledEndReads(const string& index_file,
   StatSingleReads stat_single_reads(ambiguous, unmapped, output_file);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
+  SAMHead(index_file, command, fout);
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);

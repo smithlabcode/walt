@@ -13,25 +13,6 @@ uint32_t MIN(const uint32_t& a, const uint32_t& b) {
   return a < b ? a : b;
 }
 
-string ReverseString(const string& str) {
-  uint32_t size = str.size();
-  string ret(size, 'N');
-  for (uint32_t i = 0; i < size; ++i) {
-    ret[i] = str[size - i - 1];
-  }
-
-  return ret;
-}
-
-string ReverseComplimentString(const string& str) {
-  string ret = ReverseString(str);
-  for (uint32_t i = 0; i < str.size(); ++i) {
-    ret[i] = complimentBase(ret[i]);
-  }
-
-  return ret;
-}
-
 int GetSAMFLAG(const bool& paired, const bool& paired_mapped,
                const bool& unmapped, const bool& next_unmapped, const bool& rev,
                const bool& next_rev, const bool& first, const bool& last) {
@@ -303,7 +284,6 @@ void OutputPairedSAM(const BestMatch& best_match_1,
                      const string& read_score2, const int& len,
                      const int& flag_1, const int& flag_2,
                      StatPairedReads& stat_paired_reads, FILE * fout) {
-  printf("%u %u = %s\n", best_match_1.times, best_match_2.times, read_name.c_str());
   uint32_t chr_id_1 = getChromID(genome.start_index, best_match_1.genome_pos);
   uint32_t chr_id_2 = getChromID(genome.start_index, best_match_1.genome_pos);
   uint32_t s1 = 0, s2 = 0, e1 = 0, e2 = 0;
@@ -327,40 +307,78 @@ void OutputPairedSAM(const BestMatch& best_match_1,
     s2 += 1;
   }
 
+  int len1 = best_match_1.strand == '+' ? len : -len;
+  int len2 = best_match_2.strand == '+' ? len : -len;
+
+  string rnext1 = "=", rnext2 = "=";
+  if (flag_1 & 0x2) {
+    rnext1 = "=";
+    rnext2 = "=";
+  } else {
+    if (best_match_1.times == 0) {
+      rnext1 = "*";
+    } else {
+      rnext1 = genome.name[chr_id_1].c_str();
+    }
+
+    if (best_match_2.times == 0) {
+      rnext2 = "*";
+    } else {
+      rnext2 = genome.name[chr_id_2].c_str();
+    }
+  }
+
+  string read_seq1_tmp = read_seq1;
+  string read_seq2_tmp = read_seq2;
+  string read_score1_tmp = read_score1;
+  string read_score2_tmp = read_score2;
+  if (best_match_1.strand == '-') {
+    read_seq1_tmp = ReverseComplimentString(read_seq1_tmp);
+    read_score1_tmp = ReverseString(read_score1_tmp);
+  }
+  if (best_match_2.strand == '-') {
+    read_seq2_tmp = ReverseComplimentString(read_seq2_tmp);
+    read_score2_tmp = ReverseString(read_score2_tmp);
+  }
+
   if (best_match_1.times == 0
       && stat_paired_reads.stat_single_reads_1.unmapped) {
     fprintf(stat_paired_reads.stat_single_reads_1.funmapped,
-            "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1, s2,
-            len, read_seq1.c_str(), read_score1.c_str(), mismatch1);
+            "%s\t%d\t*\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_1, s1, rnext2.c_str(), s2, len1,
+            read_seq1_tmp.c_str(), read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1 + 1,
-            s2 + 1, len, read_seq1.c_str(), read_score1.c_str(), mismatch1);
+    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1,
+            rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
+            read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times >= 2
       && stat_paired_reads.stat_single_reads_1.ambiguous) {
     fprintf(stat_paired_reads.stat_single_reads_1.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1 + 1,
-            s2 + 1, len, read_seq1.c_str(), read_score1.c_str(), mismatch1);
+            "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1,
+            rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
+            read_score1_tmp.c_str(), mismatch1);
   }
 
   if (best_match_2.times == 0
       && stat_paired_reads.stat_single_reads_2.unmapped) {
     fprintf(stat_paired_reads.stat_single_reads_2.funmapped,
-            "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2, s1,
-            len, read_seq2.c_str(), read_score2.c_str(), mismatch2);
+            "%s\t%d\t*\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_2, s2, rnext1.c_str(), s1, len2,
+            read_seq2_tmp.c_str(), read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2 + 1,
-            s1 + 1, len, read_seq2.c_str(), read_score2.c_str(), mismatch2);
+    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2,
+            rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
+            read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times >= 2
       && stat_paired_reads.stat_single_reads_2.ambiguous) {
     fprintf(stat_paired_reads.stat_single_reads_2.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t0\t=\t%u\t%d\t%s\t%s\tNM:i:%u\n",
-            read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2 + 1,
-            s1 + 1, len, read_seq2.c_str(), read_score2.c_str(), mismatch2);
+            "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2,
+            rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
+            read_score2_tmp.c_str(), mismatch2);
   }
 }
 
@@ -430,9 +448,9 @@ void MergePairedEndResults(
     if (SAM) {  // SAM
       is_paired_mapped = true;
       const CandidatePosition& r1 = ranked_results[0][best_pair.first];
-      const CandidatePosition& r2 = ranked_results[0][best_pair.second];
-      const BestMatch best_match_1(r1.genome_pos, 1, r1.strand, r1.mismatch);
-      const BestMatch best_match_2(r2.genome_pos, 1, r2.strand, r2.mismatch);
+      const CandidatePosition& r2 = ranked_results[1][best_pair.second];
+      best_match_1 = BestMatch(r1.genome_pos, 1, r1.strand, r1.mismatch);
+      best_match_2 = BestMatch(r2.genome_pos, 1, r2.strand, r2.mismatch);
     }
   } else {
     if (best_times >= 2) {
@@ -455,21 +473,20 @@ void MergePairedEndResults(
                           genome, stat_paired_reads.stat_single_reads_2, fout);
     }
   }
-  if (SAM) {    // Output SAM
+  if (SAM) {  // Output SAM
     int flag_1 = GetSAMFLAG(true, is_paired_mapped, best_match_1.times == 0,
                             best_match_2.times == 0, best_match_1.strand == '-',
                             best_match_2.strand == '-', true, false);
     int flag_2 = GetSAMFLAG(true, is_paired_mapped, best_match_2.times == 0,
                             best_match_1.times == 0, best_match_2.strand == '-',
                             best_match_1.strand == '-', false, true);
-    len = best_match_1.strand == '-' ? -len : len;
     OutputPairedSAM(best_match_1, best_match_2, genome, read_name, read_seq1,
                     read_score1, read_seq2, read_score2, len, flag_1, flag_2,
                     stat_paired_reads, fout);
   }
 }
 
-void ProcessPairedEndReads(const string& index_file,
+void ProcessPairedEndReads(const string& command, const string& index_file,
                            const string& reads_file_p1,
                            const string& reads_file_p2,
                            const string& output_file,
@@ -526,6 +543,7 @@ void ProcessPairedEndReads(const string& index_file,
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
           reads_file_p2.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
+  SAMHead(index_file, command, fout);
   for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
@@ -549,6 +567,12 @@ void ProcessPairedEndReads(const string& index_file,
                          AG_WILDCARD, max_mismatches, top_results[pi][j]);
         }
       }
+    }
+
+    if (num_of_reads[0] != num_of_reads[1]) {
+      fprintf(stderr,
+              "The number of reads in paired-end files should be the same.\n");
+      exit( EXIT_FAILURE);
     }
     stat_paired_reads.total_read_pairs += num_of_reads[0];
     ///////////////////////////////////////////////////////////

@@ -130,4 +130,7 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
 /* show genome length and the number of chromosomes in the genome */
 void ShowGenomeInfo(const string& index_file);
 
+/* show SAM head information */
+void SAMHead(const string& index_file, const string& command, FILE * fout);
+
 #endif /* REFERENCE_H_ */

@@ -17,9 +17,12 @@
 int main(int argc, const char **argv) {
   try {
     fprintf(stderr, "[WELCOME TO WALT v0.0]\n");
+    string command = argv[0];
     fprintf(stderr, "[%s", argv[0]);
     for (int i = 1; i < argc; i++) {
       fprintf(stderr, " %s", argv[i]);
+      command += " ";
+      command += argv[i];
     }
     fprintf(stderr, "]\n");
 
@@ -239,13 +242,14 @@ int main(int argc, const char **argv) {
     // Mapping
     if (!is_paired_end_reads) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
-        ProcessSingledEndReads(index_file, v_reads_file_s[i], v_output_file[i],
-                               n_reads_to_process, max_mismatches, adaptor,
-                               AG_WILDCARD, ambiguous, unmapped, SAM);
+        ProcessSingledEndReads(command, index_file, v_reads_file_s[i],
+                               v_output_file[i], n_reads_to_process,
+                               max_mismatches, adaptor, AG_WILDCARD, ambiguous,
+                               unmapped, SAM);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-        ProcessPairedEndReads(index_file, v_reads_file_p1[i],
+        ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
                               n_reads_to_process, max_mismatches, adaptor,
                               top_k, frag_range, ambiguous, unmapped, SAM);
