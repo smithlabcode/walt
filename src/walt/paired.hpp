@@ -44,6 +44,10 @@ struct TopCandidates {
     return candidates.empty();
   }
 
+  bool Full() {
+    return candidates.size() == size;
+  }
+
   void Clear() {
     while (!candidates.empty()) {
       candidates.pop();

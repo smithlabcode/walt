@@ -54,10 +54,11 @@ void PairEndMapping(const string& org_read, const Genome& genome,
     C2T(org_read, read_len, read);
   }
 
+  uint32_t cur_max_mismatches = max_mismatches;
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
-    pair < uint32_t, uint32_t > region;
+    pair<uint32_t, uint32_t> region;
     region.first = hash_table.counter[hash_value];
     region.second = hash_table.counter[hash_value + 1];
 
@@ -80,7 +81,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
       /* check the position */
       uint32_t num_of_mismatch = 0;
       for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= max_mismatches; ++q, ++p) {
+          p < read_len && num_of_mismatch <= cur_max_mismatches; ++q, ++p) {
         if (genome.sequence[q] != read[p]) {
           num_of_mismatch++;
         }
@@ -90,6 +91,9 @@ void PairEndMapping(const string& org_read, const Genome& genome,
         continue;
       }
       top_match.Push(CandidatePosition(genome_pos, strand, num_of_mismatch));
+      if (top_match.Full()) {
+        cur_max_mismatches = candidates.top().mismatch;
+      }
     }
   }
 }
