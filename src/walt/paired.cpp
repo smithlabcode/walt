@@ -543,7 +543,9 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
           reads_file_p2.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
-  SAMHead(index_file, command, fout);
+  if (SAM) {
+    SAMHead(index_file, command, fout);
+  }
   for (uint32_t i = 0;; i += n_reads_to_process) {
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;

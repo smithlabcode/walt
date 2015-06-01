@@ -339,7 +339,9 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   StatSingleReads stat_single_reads(ambiguous, unmapped, output_file);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
-  SAMHead(index_file, command, fout);
+  if(SAM) {
+    SAMHead(index_file, command, fout);
+  }
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
