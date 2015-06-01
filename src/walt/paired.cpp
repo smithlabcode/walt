@@ -92,7 +92,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
       }
       top_match.Push(CandidatePosition(genome_pos, strand, num_of_mismatch));
       if (top_match.Full()) {
-        cur_max_mismatches = candidates.top().mismatch;
+        cur_max_mismatches = top_match.Top().mismatch;
       }
     }
   }
