@@ -133,7 +133,7 @@ WALT supports Tab-delimited MR and SAM output formats. By default, WALT produces
 * SEQ
 * QUAL
 
-If paired-end reads mapped in proper pair, the QNAME is added "FRAG:" in the beginning of the read name, the STRAND is the strand of the first mate mapped and SEQ and QUAL is merged according to their mapping positions. The overlap segment of SEQ and QUAL is from mate 1 or mate 2 and it is the one with less number of N in the sequence. MISMATCH is the sum of mismatches in mate 1 and mismatches mate 2. If paired-end reads don't mapped in proper pair, they are treated as single-end reads.
+If paired-end reads mapped in proper pair, the QNAME is added "FRAG:" in the beginning of the read name, the STRAND is the strand of the first mate mapped and SEQ and QUAL is merged according to their mapping positions. The overlap segment of SEQ and QUAL is from mate 1 or mate 2 and it is the one with less number of 'N' in the read sequence. MISMATCH is the sum of mismatches in mate 1 and mismatches in mate 2. If paired-end reads don't mapped in proper pair, they are treated as single-end reads.
 
 **SAM Format**
 
