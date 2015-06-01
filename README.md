@@ -127,9 +127,9 @@ WALT supports MR and SAM output formats. By default, WALT produces MR format out
 * RNAME (chromosome name)
 * SPOS (start position, 0-based)
 * EPOS (end position, 0-based)
-* STRAND (forward or reverse strand)
 * QNAME (read name)
 * MISMATCH (number of mismatches)
+* STRAND (forward or reverse strand)
 * SEQ
 * QUAL
 
@@ -147,7 +147,7 @@ If paired-end reads mapped in proper pair, the QNAME is added "FRAG:" in the beg
 * PNEXT (start position of the mate read)
 * TLEN (observed segment length)
 * SEQ (read sequence)
-* QUAL (quality read from fastq file)
+* QUAL (quality sequence read from fastq file)
 * NM-tag (number of mismatches)
     
 ### Contacts ###
