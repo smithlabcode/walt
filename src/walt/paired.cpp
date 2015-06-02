@@ -289,7 +289,7 @@ void OutputPairedSAM(const BestMatch& best_match_1,
                      const int& flag_1, const int& flag_2,
                      StatPairedReads& stat_paired_reads, FILE * fout) {
   uint32_t chr_id_1 = getChromID(genome.start_index, best_match_1.genome_pos);
-  uint32_t chr_id_2 = getChromID(genome.start_index, best_match_1.genome_pos);
+  uint32_t chr_id_2 = getChromID(genome.start_index, best_match_2.genome_pos);
   uint32_t s1 = 0, s2 = 0, e1 = 0, e2 = 0;
   ForwardChromPosition(best_match_1.genome_pos, best_match_1.strand, chr_id_1,
                        read_seq1.size(), genome, s1, e1);
