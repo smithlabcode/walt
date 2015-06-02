@@ -15,7 +15,8 @@ uint32_t MIN(const uint32_t& a, const uint32_t& b) {
 
 int GetSAMFLAG(const bool& paired, const bool& paired_mapped,
                const bool& unmapped, const bool& next_unmapped, const bool& rev,
-               const bool& next_rev, const bool& first, const bool& last) {
+               const bool& next_rev, const bool& first, const bool& last,
+               const bool& secondary_align) {
   int flag = paired ? 0x1 : 0x0;
   flag += paired_mapped ? 0x2 : 0x0;
   flag += unmapped ? 0x4 : 0x0;
@@ -24,6 +25,7 @@ int GetSAMFLAG(const bool& paired, const bool& paired_mapped,
   flag += next_rev ? 0x20 : 0x0;
   flag += first ? 0x40 : 0x0;
   flag += last ? 0x80 : 0x0;
+  flag += secondary_align ? 0x100 : 0x0;
 
   return flag;
 }
@@ -345,43 +347,46 @@ void OutputPairedSAM(const BestMatch& best_match_1,
     read_score2_tmp = ReverseString(read_score2_tmp);
   }
 
+  uint32_t read_len1 = read_seq1.size();
+  uint32_t read_len2 = read_seq2.size();
+
   if (best_match_1.times == 0
       && stat_paired_reads.stat_single_reads_1.unmapped) {
     fprintf(stat_paired_reads.stat_single_reads_1.funmapped,
-            "%s\t%d\t*\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_1, s1, rnext2.c_str(), s2, len1,
             read_seq1_tmp.c_str(), read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1,
-            rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
+            read_len1, rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
             read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times >= 2
       && stat_paired_reads.stat_single_reads_1.ambiguous) {
     fprintf(stat_paired_reads.stat_single_reads_1.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1,
-            rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
+            read_len1, rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
             read_score1_tmp.c_str(), mismatch1);
   }
 
   if (best_match_2.times == 0
       && stat_paired_reads.stat_single_reads_2.unmapped) {
     fprintf(stat_paired_reads.stat_single_reads_2.funmapped,
-            "%s\t%d\t*\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_2, s2, rnext1.c_str(), s1, len2,
             read_seq2_tmp.c_str(), read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2,
-            rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
+            read_len2, rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
             read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times >= 2
       && stat_paired_reads.stat_single_reads_2.ambiguous) {
     fprintf(stat_paired_reads.stat_single_reads_2.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2,
-            rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
+            read_len2, rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
             read_score2_tmp.c_str(), mismatch2);
   }
 }
@@ -480,10 +485,12 @@ void MergePairedEndResults(
   if (SAM) {  // Output SAM
     int flag_1 = GetSAMFLAG(true, is_paired_mapped, best_match_1.times == 0,
                             best_match_2.times == 0, best_match_1.strand == '-',
-                            best_match_2.strand == '-', true, false);
+                            best_match_2.strand == '-', true, false,
+                            best_match_1.times >= 2);
     int flag_2 = GetSAMFLAG(true, is_paired_mapped, best_match_2.times == 0,
                             best_match_1.times == 0, best_match_2.strand == '-',
-                            best_match_1.strand == '-', false, true);
+                            best_match_1.strand == '-', false, true,
+                            best_match_2.times >= 2);
     OutputPairedSAM(best_match_1, best_match_2, genome, read_name, read_seq1,
                     read_score1, read_seq2, read_score2, len, flag_1, flag_2,
                     stat_paired_reads, fout);

@@ -275,24 +275,28 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
     read_seq_tmp = ReverseComplimentString(read_seq_tmp);
     read_score_tmp = ReverseString(read_score_tmp);
   }
+  uint32_t read_len = read_seq.size();
 
   int flag = 0;
-  flag += best_match.times == 0 ? 0x8 : 0;
+  flag += best_match.times == 0 ? 0x4 : 0;
   flag += '-' == best_match.strand ? 0x10 : 0;
+  flag += best_match.times >= 2 ? 0x100 : 0;
   if (best_match.times == 0 && stat_single_reads.unmapped) {
     fprintf(stat_single_reads.funmapped,
-            "%s\t%d\t*\t0\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:0\n", read_name.c_str(),
-            flag, read_seq_tmp.c_str(), read_score_tmp.c_str());
+            "%s\t%d\t*\t0\t255\t*\t*\t0\t0\t%s\t%s\tNM:i:0\n",
+            read_name.c_str(), flag, read_seq_tmp.c_str(),
+            read_score_tmp.c_str());
   } else if (best_match.times == 1) {
-    fprintf(fout, "%s\t%d\t%s\t%u\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
-            read_seq_tmp.c_str(), read_score_tmp.c_str(), best_match.mismatch);
-
+            read_len, read_seq_tmp.c_str(), read_score_tmp.c_str(),
+            best_match.mismatch);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
     fprintf(stat_single_reads.fambiguous,
-            "%s\t%d\t%s\t%u\t0\t*\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
+            "%s\t%d\t%s\t%u\t255\t%uM\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
-            read_seq_tmp.c_str(), read_score_tmp.c_str(), best_match.mismatch);
+            read_len, read_seq_tmp.c_str(), read_score_tmp.c_str(),
+            best_match.mismatch);
   }
 }
 
