@@ -32,7 +32,7 @@ struct CandidatePosition {
  * the top-k positions (with minimal mismatches) are recorded. Then using
  * the top-k positions in each of them to find the best pair match. */
 struct TopCandidates {
-  TopCandidates(const uint32_t& _size = 100)
+  TopCandidates(const uint32_t& _size = 50)
       : size(_size) {
   }
 
