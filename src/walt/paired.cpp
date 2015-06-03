@@ -352,8 +352,7 @@ void OutputPairedSAM(const BestMatch& best_match_1,
 
   if (best_match_1.times == 0
       && stat_paired_reads.stat_single_reads_1.unmapped) {
-    fprintf(stat_paired_reads.stat_single_reads_1.funmapped,
-            "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_1, s1, rnext2.c_str(), s2, len1,
             read_seq1_tmp.c_str(), read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times == 1) {
@@ -363,8 +362,7 @@ void OutputPairedSAM(const BestMatch& best_match_1,
             read_score1_tmp.c_str(), mismatch1);
   } else if (best_match_1.times >= 2
       && stat_paired_reads.stat_single_reads_1.ambiguous) {
-    fprintf(stat_paired_reads.stat_single_reads_1.fambiguous,
-            "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_1, genome.name[chr_id_1].c_str(), s1,
             read_len1, rnext2.c_str(), s2, len1, read_seq1_tmp.c_str(),
             read_score1_tmp.c_str(), mismatch1);
@@ -587,7 +585,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
     }
     stat_paired_reads.total_read_pairs += num_of_reads[0];
     ///////////////////////////////////////////////////////////
-    //Merge Paired-end results
+    // Merge Paired-end results
     for (uint32_t j = 0; j < num_of_reads[0]; ++j) {
       for (uint32_t pi = 0; pi < 2; ++pi) {
         ranked_results_size[pi] = 0;
