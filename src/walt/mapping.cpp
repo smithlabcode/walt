@@ -282,8 +282,7 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
   flag += '-' == best_match.strand ? 0x10 : 0;
   flag += best_match.times >= 2 ? 0x100 : 0;
   if (best_match.times == 0 && stat_single_reads.unmapped) {
-    fprintf(stat_single_reads.funmapped,
-            "%s\t%d\t*\t0\t255\t*\t*\t0\t0\t%s\t%s\tNM:i:0\n",
+    fprintf(fout, "%s\t%d\t*\t0\t255\t*\t*\t0\t0\t%s\t%s\tNM:i:0\n",
             read_name.c_str(), flag, read_seq_tmp.c_str(),
             read_score_tmp.c_str());
   } else if (best_match.times == 1) {
@@ -292,8 +291,7 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
             read_len, read_seq_tmp.c_str(), read_score_tmp.c_str(),
             best_match.mismatch);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
-    fprintf(stat_single_reads.fambiguous,
-            "%s\t%d\t%s\t%u\t255\t%uM\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t*\t0\t0\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag, genome.name[chr_id].c_str(), start_pos + 1,
             read_len, read_seq_tmp.c_str(), read_score_tmp.c_str(),
             best_match.mismatch);
@@ -340,7 +338,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
   uint32_t num_of_reads;
-  StatSingleReads stat_single_reads(ambiguous, unmapped, output_file);
+  StatSingleReads stat_single_reads(ambiguous, unmapped, output_file, SAM);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   if(SAM) {

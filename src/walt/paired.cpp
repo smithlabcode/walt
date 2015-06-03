@@ -372,8 +372,7 @@ void OutputPairedSAM(const BestMatch& best_match_1,
 
   if (best_match_2.times == 0
       && stat_paired_reads.stat_single_reads_2.unmapped) {
-    fprintf(stat_paired_reads.stat_single_reads_2.funmapped,
-            "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t*\t%u\t255\t*\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_2, s2, rnext1.c_str(), s1, len2,
             read_seq2_tmp.c_str(), read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times == 1) {
@@ -383,8 +382,7 @@ void OutputPairedSAM(const BestMatch& best_match_1,
             read_score2_tmp.c_str(), mismatch2);
   } else if (best_match_2.times >= 2
       && stat_paired_reads.stat_single_reads_2.ambiguous) {
-    fprintf(stat_paired_reads.stat_single_reads_2.fambiguous,
-            "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
+    fprintf(fout, "%s\t%d\t%s\t%u\t255\t%uM\t%s\t%u\t%d\t%s\t%s\tNM:i:%u\n",
             read_name.c_str(), flag_2, genome.name[chr_id_2].c_str(), s2,
             read_len2, rnext1.c_str(), s1, len2, read_seq2_tmp.c_str(),
             read_score2_tmp.c_str(), mismatch2);
@@ -548,7 +546,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
   uint32_t num_of_reads[2];
-  StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file);
+  StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file, SAM);
   bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),

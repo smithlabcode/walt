@@ -81,9 +81,9 @@ struct TopCandidates {
  * unmapped reads pairs */
 struct StatPairedReads {
   StatPairedReads(const bool& _ambiguous, const bool& _unmapped,
-                  const string& output_file)
-      : stat_single_reads_1(_ambiguous, _unmapped, output_file + "_1"),
-        stat_single_reads_2(_ambiguous, _unmapped, output_file + "_2") {
+                  const string& output_file, const bool& SAM)
+      : stat_single_reads_1(_ambiguous, _unmapped, output_file + "_1", SAM),
+        stat_single_reads_2(_ambiguous, _unmapped, output_file + "_2", SAM) {
     total_read_pairs = 0;
     unique_mapped_pairs = 0;
     ambiguous_mapped_pairs = 0;

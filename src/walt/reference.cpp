@@ -384,5 +384,5 @@ void SAMHead(const string& index_file, const string& command, FILE * fout) {
     fprintf(fout, "@SQ\tSN:%s\tLN:%u\n", genome.name[i].c_str(),
             genome.length[i]);
   }
-  fprintf(fout, "@PG\tID:WALT\tVN:0.1\tCL:%s\n", command.c_str());
+  fprintf(fout, "@PG\tID:WALT\tVN:%s\tCL:%s\n", walt_version, command.c_str());
 }

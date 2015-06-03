@@ -16,7 +16,8 @@
 
 int main(int argc, const char **argv) {
   try {
-    fprintf(stderr, "[WELCOME TO WALT v0.0]\n");
+    /* show the command line one the screen */
+    fprintf(stderr, "[WELCOME TO WALT v%s]\n", walt_version);
     string command = argv[0];
     fprintf(stderr, "[%s", argv[0]);
     for (int i = 1; i < argc; i++) {
@@ -43,19 +44,33 @@ int main(int argc, const char **argv) {
     string output_file;
     vector<string> v_output_file;
 
-    /* output SAM format */
-    bool SAM = false;
+    /* WALT supports Tab-delimited SAM and MR output formats.
+     * By default, WALT produces SAM format output files. To
+     * get MR format, the suffix of the output file should be
+     * ".mr". */
+    bool SAM = true;
 
     /* trimming adaptor sequence */
     string adaptor;
 
+    /* paired-end or single-end mapping */
     bool is_paired_end_reads = false;
-    bool AG_WILDCARD = false;
+
+    /* output ambiguous or unmapped reads or not, both are false by default */
     bool ambiguous = false;
     bool unmapped = false;
 
-    uint32_t max_mismatches = MAX_UINT32;
-    uint32_t n_reads_to_process = MAX_UINT32;
+    /* AG_WILDCARD is false by default, which means that all Cs
+     * in the reads and genome are transfered to Ts.
+     * If AG_WILDCARD is true, all Gs in the reads and genome
+     * are transfered to As. If option is only for single-end mapping */
+    bool AG_WILDCARD = false;
+
+    /* maximum allowed mismatches */
+    uint32_t max_mismatches = 6;
+
+    /* number of reads to map at one loop */
+    uint32_t n_reads_to_process = 5000000;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 50;
@@ -106,8 +121,9 @@ int main(int argc, const char **argv) {
                       unmapped);
     opt_parse.add_opt("clip", 'C', "clip the specified adaptor", false,
                       adaptor);
-    opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards",
-                      false, AG_WILDCARD);
+    opt_parse.add_opt("ag-wild", 'A',
+                      "map using A/G bisulfite wildcards (single-end)", false,
+                      AG_WILDCARD);
     opt_parse.add_opt("topk", 'k',
                       "maximum allowed mappings for a read (paired-end)", false,
                       top_k);
@@ -210,17 +226,14 @@ int main(int argc, const char **argv) {
     }
 
     uint32_t suffix_pos = output_file.find_last_of(".");
-    if (".sam" == output_file.substr(suffix_pos)) {
-      SAM = true;
+    if (".mr" == output_file.substr(suffix_pos)) {
+      SAM = false;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
 
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
-    if (max_mismatches == MAX_UINT32) {
-      max_mismatches = 6;
-      fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
-    }
+    fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
 
     if (n_reads_to_process > 5000000) {
       n_reads_to_process = 5000000;

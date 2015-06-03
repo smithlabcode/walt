@@ -32,26 +32,27 @@ struct BestMatch {
 /* count the number of uniquely mapped, ambiguous mapped and unmapped reads */
 struct StatSingleReads {
   StatSingleReads(const bool& _ambiguous, const bool& _unmapped,
-                  const string& output_file)
+                  const string& output_file, const bool& _SAM)
       : ambiguous(_ambiguous),
-        unmapped(_unmapped) {
+        unmapped(_unmapped),
+        SAM(_SAM) {
     total_reads = 0;
     unique_mapped_reads = 0;
     ambiguous_mapped_reads = 0;
     unmapped_reads = 0;
 
-    if (ambiguous) {
+    if (ambiguous && !SAM) {
       fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
     }
-    if (unmapped) {
+    if (unmapped && !SAM) {
       funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
     }
   }
   ~StatSingleReads() {
-    if (ambiguous) {
+    if (ambiguous && !SAM) {
       fclose(fambiguous);
     }
-    if (unmapped) {
+    if (unmapped && !SAM) {
       fclose(funmapped);
     }
   }
@@ -66,6 +67,7 @@ struct StatSingleReads {
 
   bool ambiguous;
   bool unmapped;
+  bool SAM;
 };
 
 /* load reads from reads file, each time load n_reads_to_process reads,

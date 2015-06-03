@@ -15,6 +15,8 @@
 #include <limits>
 #include <string>
 
+const char walt_version[] = "0.2";
+
 #ifdef SEEDPATTERN7
 #define SEEPATTERNLEN 7
 #define HASHLEN 21
