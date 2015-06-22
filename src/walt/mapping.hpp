@@ -110,7 +110,7 @@ void OutputUnmapped(const string& read_name, const string& read_seq,
 /* output the single end results */
 void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          const string& read_seq, const string& read_score,
-                         const Genome& genome,
+                         const Genome& genome, const bool& AG_WILDCARD,
                          StatSingleReads& stat_single_reads, FILE * fout);
 
 /* update number of unmapped, uniquely mapped and ambiguously mapped reads */

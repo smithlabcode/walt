@@ -473,9 +473,11 @@ void MergePairedEndResults(
     StatInfoUpdate(best_match_2.times, stat_paired_reads.stat_single_reads_2);
     if (!SAM) {
       OutputSingleResults(best_match_1, read_name, read_seq1, read_score1,
-                          genome, stat_paired_reads.stat_single_reads_1, fout);
+                          genome, false, stat_paired_reads.stat_single_reads_1,
+                          fout);
       OutputSingleResults(best_match_2, read_name, read_seq2, read_score2,
-                          genome, stat_paired_reads.stat_single_reads_2, fout);
+                          genome, true, stat_paired_reads.stat_single_reads_2,
+                          fout);
     }
   }
   if (SAM) {  // Output SAM

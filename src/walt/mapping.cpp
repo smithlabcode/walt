@@ -244,17 +244,24 @@ void OutputUnmapped(const string& read_name, const string& read_seq,
 
 void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          const string& read_seq, const string& read_score,
-                         const Genome& genome,
+                         const Genome& genome, const bool& AG_WILDCARD,
                          StatSingleReads& stat_single_reads, FILE * fout) {
+  string read_seq_tmp = read_seq;
+  string read_score_tmp = read_score;
+  if (AG_WILDCARD) {
+    read_seq_tmp = ReverseComplimentString(read_seq_tmp);
+    read_score_tmp = ReverseString(read_score_tmp);
+  }
+
   if (best_match.times == 0 && stat_single_reads.unmapped) {
-    OutputUnmapped(read_name, read_seq, read_score,
+    OutputUnmapped(read_name, read_seq_tmp, read_score_tmp,
                    stat_single_reads.funmapped);
   } else if (best_match.times == 1) {
-    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq,
-                                     read_score, genome, fout);
+    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
+                                     read_score_tmp, genome, fout);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
-    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq,
-                                     read_score, genome,
+    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
+                                     read_score_tmp, genome,
                                      stat_single_reads.fambiguous);
   }
 }
@@ -370,7 +377,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       StatInfoUpdate(map_results[j].times, stat_single_reads);
       if (!SAM) {
         OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
-                            read_scores[j], genome, stat_single_reads, fout);
+                            read_scores[j], genome, AG_WILDCARD, stat_single_reads, fout);
       } else {
         OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],
                         read_scores[j], genome, stat_single_reads, fout);
