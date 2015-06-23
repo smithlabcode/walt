@@ -72,8 +72,8 @@ struct StatSingleReads {
 
 /* load reads from reads file, each time load n_reads_to_process reads,
  * start from  read_start_idx */
-void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
-                            const uint32_t n_reads_to_process,
+void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
+                            const uint32_t& n_reads_to_process,
                             const string& adaptor, uint32_t& num_of_reads,
                             vector<string>& read_names,
                             vector<string>& read_seqs,
@@ -97,7 +97,7 @@ void IndexRegion(const string& read, const Genome& genome,
                  pair<uint32_t, uint32_t>& region);
 
 /* output the uniquely mapped reads or ambiguously mapped reads */
-void OutputUniquelyAndAmbiguousMapped(const BestMatch best_match,
+void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,

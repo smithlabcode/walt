@@ -3,8 +3,8 @@
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
-void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
-                            const uint32_t n_reads_to_process,
+void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
+                            const uint32_t& n_reads_to_process,
                             const string& adaptor, uint32_t& num_of_reads,
                             vector<string>& read_names,
                             vector<string>& read_seqs,
@@ -219,7 +219,7 @@ void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads) {
   }
 }
 
-void OutputUniquelyAndAmbiguousMapped(const BestMatch best_match,
+void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,
