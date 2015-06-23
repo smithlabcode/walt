@@ -556,6 +556,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
     SAMHead(index_file, command, fout);
   }
   for (uint32_t i = 0;; i += n_reads_to_process) {
+    num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
       LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, adaptors[pi],
@@ -579,11 +580,13 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
         }
       }
     }
-
     if (num_of_reads[0] != num_of_reads[1]) {
       fprintf(stderr,
               "The number of reads in paired-end files should be the same.\n");
       exit( EXIT_FAILURE);
+    }
+    if (num_of_reads[0] == 0) {
+      break;
     }
     stat_paired_reads.total_read_pairs += num_of_reads[0];
     ///////////////////////////////////////////////////////////
