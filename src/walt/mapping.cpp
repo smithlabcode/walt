@@ -252,7 +252,7 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
   if (AG_WILDCARD) {
     read_seq_tmp = ReverseComplimentString(read_seq_tmp);
     read_score_tmp = ReverseString(read_score_tmp);
-    best_match_tmp.strand = best_match.strand == '+' ? '-':'+';
+    best_match_tmp.strand = best_match.strand == '+' ? '-' : '+';
   }
 
   if (best_match.times == 0 && stat_single_reads.unmapped) {
