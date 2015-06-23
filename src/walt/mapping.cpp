@@ -248,19 +248,21 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          StatSingleReads& stat_single_reads, FILE * fout) {
   string read_seq_tmp = read_seq;
   string read_score_tmp = read_score;
+  BestMatch best_match_tmp = best_match;
   if (AG_WILDCARD) {
     read_seq_tmp = ReverseComplimentString(read_seq_tmp);
     read_score_tmp = ReverseString(read_score_tmp);
+    best_match_tmp.strand = best_match.strand == '+' ? '-':'+';
   }
 
   if (best_match.times == 0 && stat_single_reads.unmapped) {
     OutputUnmapped(read_name, read_seq_tmp, read_score_tmp,
                    stat_single_reads.funmapped);
   } else if (best_match.times == 1) {
-    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
+    OutputUniquelyAndAmbiguousMapped(best_match_tmp, read_name, read_seq_tmp,
                                      read_score_tmp, genome, fout);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
-    OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
+    OutputUniquelyAndAmbiguousMapped(best_match_tmp, read_name, read_seq_tmp,
                                      read_score_tmp, genome,
                                      stat_single_reads.fambiguous);
   }
