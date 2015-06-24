@@ -97,7 +97,8 @@ void IndexRegion(const string& read, const Genome& genome,
                  pair<uint32_t, uint32_t>& region);
 
 /* output the uniquely mapped reads or ambiguously mapped reads */
-void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
+void OutputUniquelyAndAmbiguousMapped(const bool AG_WILDCARD,
+                                      const BestMatch& best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,

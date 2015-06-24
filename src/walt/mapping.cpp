@@ -219,7 +219,8 @@ void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads) {
   }
 }
 
-void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
+void OutputUniquelyAndAmbiguousMapped(const bool AG_WILDCARD,
+                                      const BestMatch& best_match,
                                       const string& read_name,
                                       const string& read_seq,
                                       const string& read_score,
@@ -231,9 +232,14 @@ void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
   }
   uint32_t end_pos = start_pos + read_seq.size();
 
+  char strand = best_match.strand;
+  if (AG_WILDCARD) {
+    strand = ( best_match.strand == '+') ? '-' : '+';
+  }
+
   fprintf(fout, "%s\t%u\t%u\t%s\t%u\t%c\t%s\t%s\n", genome.name[chr_id].c_str(),
           start_pos, end_pos, read_name.c_str(), best_match.mismatch,
-          best_match.strand, read_seq.c_str(), read_score.c_str());
+          strand, read_seq.c_str(), read_score.c_str());
 }
 
 void OutputUnmapped(const string& read_name, const string& read_seq,
@@ -248,22 +254,21 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          StatSingleReads& stat_single_reads, FILE * fout) {
   string read_seq_tmp = read_seq;
   string read_score_tmp = read_score;
-  BestMatch best_match_tmp = best_match;
   if (AG_WILDCARD) {
     read_seq_tmp = ReverseComplimentString(read_seq_tmp);
     read_score_tmp = ReverseString(read_score_tmp);
-    best_match_tmp.strand = best_match.strand == '+' ? '-' : '+';
   }
 
   if (best_match.times == 0 && stat_single_reads.unmapped) {
     OutputUnmapped(read_name, read_seq_tmp, read_score_tmp,
                    stat_single_reads.funmapped);
   } else if (best_match.times == 1) {
-    OutputUniquelyAndAmbiguousMapped(best_match_tmp, read_name, read_seq_tmp,
-                                     read_score_tmp, genome, fout);
+    OutputUniquelyAndAmbiguousMapped(AG_WILDCARD, best_match, read_name, 
+                                     read_seq_tmp, read_score_tmp, 
+                                     genome, fout);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
-    OutputUniquelyAndAmbiguousMapped(best_match_tmp, read_name, read_seq_tmp,
-                                     read_score_tmp, genome,
+    OutputUniquelyAndAmbiguousMapped(AG_WILDCARD, best_match, read_name, 
+                                     read_seq_tmp, read_score_tmp, genome,
                                      stat_single_reads.fambiguous);
   }
 }
