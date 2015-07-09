@@ -78,6 +78,9 @@ int main(int argc, const char **argv) {
     /* max fragment length for paired end reads */
     int frag_range = 1000;
 
+    /* number of threads for mapping */
+    int num_of_threads = 1;
+
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
                            "");
@@ -129,6 +132,8 @@ int main(int argc, const char **argv) {
                       top_k);
     opt_parse.add_opt("fraglen", 'L', "max fragment length (paired-end)", false,
                       frag_range);
+    opt_parse.add_opt("thread", 't', "number of threads for mapping", false,
+                      num_of_threads);
 
     vector<string> leftover_args;
     opt_parse.parse(argc, argv, leftover_args);
@@ -258,14 +263,15 @@ int main(int argc, const char **argv) {
         ProcessSingledEndReads(command, index_file, v_reads_file_s[i],
                                v_output_file[i], n_reads_to_process,
                                max_mismatches, adaptor, AG_WILDCARD, ambiguous,
-                               unmapped, SAM);
+                               unmapped, SAM, num_of_threads);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
         ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
                               n_reads_to_process, max_mismatches, adaptor,
-                              top_k, frag_range, ambiguous, unmapped, SAM);
+                              top_k, frag_range, ambiguous, unmapped, SAM,
+                              num_of_threads);
       }
     }
   } catch (const SMITHLABException &e) {

@@ -30,7 +30,7 @@ endif
 PROGS = makedb walt
 
 CXX = g++
-CFLAGS = -Wall -O3 -fPIC -fmessage-length=50
+CFLAGS = -Wall -O3 -fPIC -fmessage-length=50 -fopenmp
 
 TEST_DIR = $(SRC_ROOT)/test
 

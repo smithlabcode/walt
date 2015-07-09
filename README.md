@@ -53,6 +53,7 @@ paired-end reads
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paired-end mapping |
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
+| -t      | -thread | Integer | 1 | number of threads for mapping |
 
 To see the list of options, use "-?" or "-help".
 

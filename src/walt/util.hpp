@@ -17,6 +17,7 @@
 
 const char walt_version[] = "0.4";
 
+//#define SEEDPATTERN7
 #ifdef SEEDPATTERN7
 #define SEEPATTERNLEN 7
 #define HASHLEN 21
@@ -59,6 +60,7 @@ const uint32_t F2SEEDPOSITION[] = {
     };
 #endif
 
+//#define SEEDPATTERN5
 #ifdef SEEDPATTERN5
 #define SEEPATTERNLEN 5
 #define HASHLEN 30

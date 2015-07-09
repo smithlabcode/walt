@@ -3,6 +3,8 @@
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 
+#include <omp.h>
+
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
                             const uint32_t& n_reads_to_process,
                             const string& adaptor, uint32_t& num_of_reads,
@@ -176,7 +178,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
-    if(region.second - region.first + 1 > 50000){
+    if (region.second - region.first + 1 > 50000) {
       continue;
     }
     for (uint32_t j = region.first; j <= region.second; ++j) {
@@ -318,7 +320,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const uint32_t& max_mismatches,
                             const string& adaptor, const bool& AG_WILDCARD,
                             const bool& ambiguous, const bool& unmapped,
-                            const bool& SAM) {
+                            const bool& SAM, const int& num_of_threads) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -357,6 +359,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   if(SAM) {
     SAMHead(index_file, command, fout);
   }
+  omp_set_num_threads(num_of_threads);
+  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_thread_num());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
@@ -371,6 +375,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
     stat_single_reads.total_reads += num_of_reads;
     for (uint32_t fi = 0; fi < 2; ++fi) {
       ReadIndex(index_names[fi], genome, hash_table);
+#pragma omp for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         char strand = fi == 0 ? '+' : '-';
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,

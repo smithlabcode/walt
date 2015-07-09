@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include <omp.h>
+
 uint32_t MAX(const uint32_t& a, const uint32_t& b) {
   return a > b ? a : b;
 }
@@ -503,7 +505,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                            const uint32_t& max_mismatches,
                            const string& adaptor, const uint32_t& top_k,
                            const int& frag_range, const bool& ambiguous,
-                           const bool& unmapped, const bool& SAM) {
+                           const bool& unmapped, const bool& SAM,
+                           const int& num_of_threads) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -514,22 +517,22 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
   hash_table.index.resize(size_of_index);
 
-  vector<vector<string> > index_names(2, vector<string> (2));
+  vector<vector<string> > index_names(2, vector<string>(2));
   index_names[0][0] = index_file + "_CT00";
   index_names[0][1] = index_file + "_CT01";
   index_names[1][0] = index_file + "_GA10";
   index_names[1][1] = index_file + "_GA11";
 
-  vector<vector<string> > read_names(2, vector<string> (n_reads_to_process));
-  vector<vector<string> > read_seqs(2, vector<string> (n_reads_to_process));
-  vector<vector<string> > read_scores(2, vector<string> (n_reads_to_process));
+  vector<vector<string> > read_names(2, vector<string>(n_reads_to_process));
+  vector<vector<string> > read_seqs(2, vector<string>(n_reads_to_process));
+  vector<vector<string> > read_scores(2, vector<string>(n_reads_to_process));
 
   vector<int> ranked_results_size(2);
   vector<vector<CandidatePosition> > ranked_results(2,
           vector<CandidatePosition>(top_k));
 
   vector<vector<TopCandidates> > top_results(2,
-         vector<TopCandidates> (n_reads_to_process));
+         vector<TopCandidates>(n_reads_to_process));
 
   FILE * fin[2];
   fin[0] = fopen(reads_file_p1.c_str(), "r");
@@ -555,6 +558,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   if (SAM) {
     SAMHead(index_file, command, fout);
   }
+  omp_set_num_threads(num_of_threads);
+  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_thread_num());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
@@ -573,6 +578,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
       for (uint32_t fi = 0; fi < 2; ++fi) {
         ReadIndex(index_names[pi][fi], genome, hash_table);
+#pragma omp for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
           char strand = fi == 0 ? '+' : '-';
           PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,

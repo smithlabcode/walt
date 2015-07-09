@@ -125,6 +125,6 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const uint32_t& max_mismatches,
                             const string& adaptor, const bool& AG_WILDCARD,
                             const bool& ambiguous, const bool& unmapped,
-                            const bool& SAM);
+                            const bool& SAM, const int& num_of_threads);
 
 #endif /* MAPPING_HPP_ */
