@@ -580,7 +580,6 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   if (SAM) {
     SAMHead(index_file, command, fout);
   }
-  fprintf(stderr, "num_of_trheads = %d\n", num_of_threads);
   omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);
   for (uint32_t i = 0;; i += n_reads_to_process) {
