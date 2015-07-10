@@ -1,7 +1,7 @@
 /*
  *    This file is part of the WALT program
  *
- *    Copyright (C) 2015 University of Southern California and
+ *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
  *    Authors: Andrew D. Smith and Ting Chen
