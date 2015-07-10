@@ -1,3 +1,25 @@
+/*
+ *    This file is part of the WALT program
+ *
+ *    Copyright (C) 2015 University of Southern California and
+ *                       Andrew D. Smith and Ting Chen
+ *
+ *    Authors: Andrew D. Smith and Ting Chen
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "mapping.hpp"
 
 #include "smithlab_os.hpp"
@@ -360,7 +382,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
     SAMHead(index_file, command, fout);
   }
   omp_set_num_threads(num_of_threads);
-  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_thread_num());
+  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_num_threads());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
