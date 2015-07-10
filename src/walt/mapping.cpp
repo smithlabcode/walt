@@ -381,8 +381,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   if(SAM) {
     SAMHead(index_file, command, fout);
   }
+  omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);
-  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_num_threads());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
@@ -397,9 +397,9 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
     stat_single_reads.total_reads += num_of_reads;
     for (uint32_t fi = 0; fi < 2; ++fi) {
       ReadIndex(index_names[fi], genome, hash_table);
-#pragma omp for
+      char strand = fi == 0 ? '+' : '-';
+#pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        char strand = fi == 0 ? '+' : '-';
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
                          map_results[j]);
       }

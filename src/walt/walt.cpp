@@ -260,6 +260,7 @@ int main(int argc, const char **argv) {
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
     fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
+    fprintf(stderr, "[NUMBER OF THREADS FOR MAPPING IS %d]\n", num_of_threads);
 
     if (n_reads_to_process > 5000000) {
       n_reads_to_process = 5000000;

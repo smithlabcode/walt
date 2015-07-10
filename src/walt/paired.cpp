@@ -580,8 +580,9 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   if (SAM) {
     SAMHead(index_file, command, fout);
   }
+  fprintf(stderr, "num_of_trheads = %d\n", num_of_threads);
+  omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);
-  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_num_threads());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
@@ -600,9 +601,9 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
       for (uint32_t fi = 0; fi < 2; ++fi) {
         ReadIndex(index_names[pi][fi], genome, hash_table);
-#pragma omp for
+        char strand = fi == 0 ? '+' : '-';
+#pragma omp parallel for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
-          char strand = fi == 0 ? '+' : '-';
           PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,
                          AG_WILDCARD, max_mismatches, top_results[pi][j]);
         }
