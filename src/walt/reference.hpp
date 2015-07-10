@@ -1,4 +1,26 @@
 /*
+ *    This file is part of the WALT program
+ *
+ *    Copyright (C) 2015 University of Southern California and
+ *                       Andrew D. Smith and Ting Chen
+ *
+ *    Authors: Andrew D. Smith and Ting Chen
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
  * reference.cpp loads chromosomes from the genome file, builds hash table
  * and stores them in struct Genome and HashTable.
  *
@@ -6,7 +28,7 @@
  *
  * Ns in the genome are transfered to T when mapping _1 read files, and
  * transfered to G when mapping _2 read files.
- * */
+ */
 
 #ifndef REFERENCE_H_
 #define REFERENCE_H_

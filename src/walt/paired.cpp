@@ -1,3 +1,25 @@
+/*
+ *    This file is part of the WALT program
+ *
+ *    Copyright (C) 2015 University of Southern California and
+ *                       Andrew D. Smith and Ting Chen
+ *
+ *    Authors: Andrew D. Smith and Ting Chen
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "paired.hpp"
 
 #include "smithlab_os.hpp"
@@ -558,8 +580,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   if (SAM) {
     SAMHead(index_file, command, fout);
   }
+  omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);
-  fprintf(stderr, "[%d THREADS FOR MAPPING]\n", omp_get_thread_num());
   for (uint32_t i = 0;; i += n_reads_to_process) {
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
@@ -578,9 +600,9 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
       for (uint32_t fi = 0; fi < 2; ++fi) {
         ReadIndex(index_names[pi][fi], genome, hash_table);
-#pragma omp for
+        char strand = fi == 0 ? '+' : '-';
+#pragma omp parallel for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
-          char strand = fi == 0 ? '+' : '-';
           PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,
                          AG_WILDCARD, max_mismatches, top_results[pi][j]);
         }

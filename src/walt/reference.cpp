@@ -1,4 +1,28 @@
-/* The detail description of each function please refer to head file */
+/*
+ *    This file is part of the WALT program
+ *
+ *    Copyright (C) 2015 University of Southern California and
+ *                       Andrew D. Smith and Ting Chen
+ *
+ *    Authors: Andrew D. Smith and Ting Chen
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ *  The detail description of each function please refer to head file
+ */
 
 #include <cmath>
 
@@ -129,7 +153,6 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
   fprintf(stderr, "[TEST HASH TABLE]\n");
   std::ofstream fout("test.txt");
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
-    if(!(i == 6030658 || i == 6030659 || i == 6030660)) continue;
     for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
         ++j) {
       fout << i << " ";
