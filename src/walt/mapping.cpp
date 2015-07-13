@@ -1,10 +1,11 @@
 /*
- *    This file is part of the WALT program
+ *    This file contains the functions for mapping single-end reads.
+ *    The detail description of each function please refer to head file.
  *
  *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by

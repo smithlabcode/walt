@@ -1,10 +1,10 @@
 /*
- *    This file is part of the WALT program
+ *    This is the main function for bisulfite sequencing mapping.
  *
  *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
- * This is the main function for bisulfite sequencing mapping.
  */
 
 #include <vector>
@@ -82,9 +78,9 @@ int main(int argc, const char **argv) {
     bool unmapped = false;
 
     /* AG_WILDCARD is false by default, which means that all Cs
-     * in the reads and genome are transfered to Ts.
+     * in the reads and genome are converted to Ts.
      * If AG_WILDCARD is true, all Gs in the reads and genome
-     * are transfered to As. If option is only for single-end mapping */
+     * are converted to As. If option is only for single-end mapping */
     bool AG_WILDCARD = false;
 
     /* maximum allowed mismatches */

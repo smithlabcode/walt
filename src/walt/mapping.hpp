@@ -1,10 +1,10 @@
 /*
- *    This file is part of the WALT program
+ *    The head file for mapping single-end reads
  *
  *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -20,9 +20,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * singled-end read mapping
- */
 #ifndef MAPPING_HPP_
 #define MAPPING_HPP_
 
@@ -107,10 +104,10 @@ string ReverseString(const string& str);
 /* reverse compliment string */
 string ReverseComplimentString(const string& str);
 
-/* reads from _1 file, Cs are transfered to Ts*/
+/* reads from _1 file, Cs are converted to Ts*/
 void C2T(const string& org_read, const uint32_t& read_len, string& read);
 
-/* reads from _2 file, Gs are transfered to As*/
+/* reads from _2 file, Gs are converted to As*/
 void G2A(const string& org_read, const uint32_t& read_len, string& read);
 
 /* find the region of index where those positions started with the seed */

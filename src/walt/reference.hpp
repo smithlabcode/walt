@@ -1,10 +1,10 @@
 /*
- *    This file is part of the WALT program
+ *    The is the header file for building index.
  *
  *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@
  * reference.cpp loads chromosomes from the genome file, builds hash table
  * and stores them in struct Genome and HashTable.
  *
- * All the characters in the genome are transfered into capital letters.
+ * All the characters in the genome are converted into capital letters.
  *
- * Ns in the genome are transfered to T when mapping _1 read files, and
- * transfered to G when mapping _2 read files.
+ * Ns in the genome are converted to T when mapping _1 read files, and
+ * converted to A when mapping _2 read files.
  */
 
 #ifndef REFERENCE_H_
@@ -108,10 +108,10 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome);
 /* get the reverse complimentary strand of genome */
 void ReverseGenome(Genome& genome);
 
-/* Cs in the genome are transferred to Ts */
+/* Cs in the genome are converted to Ts */
 void C2T(vector<char>& sequence);
 
-/* Gs in the genome are transferred to As */
+/* Gs in the genome are converted to As */
 void G2A(vector<char>& sequence);
 
 /* count how many k-mers for each hash value (bucket) */
