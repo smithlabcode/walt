@@ -37,7 +37,7 @@
 #include <limits>
 #include <string>
 
-const char walt_version[] = "0.4";
+const char walt_version[] = "1.0";
 
 //#define SEEDPATTERN7
 #ifdef SEEDPATTERN7
