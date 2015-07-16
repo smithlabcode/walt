@@ -77,7 +77,7 @@ For example, to mapping reads to human genome hg19
 
 	walt -i hg19.dbindex -r read_1.fq -o reads_1_mapping.sam
     
-If mapping the reads from the *_2 reads file, the -A option should be set. This means that all Gs in the reads and genome are transfered to As. If -A option is not set, all Cs in the reads and genome are transfered to Ts.
+If mapping the reads from the *_2 reads file, the -A option should be set. This means that all Gs in the reads and genome are converted to As. If -A option is not set, all Cs in the reads and genome are converted to Ts.
 
     walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.sam
     

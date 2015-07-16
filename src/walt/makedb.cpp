@@ -1,10 +1,10 @@
 /*
- *    This file is part of the WALT program
+ *    This is the main function to build index for reference genome.
  *
- *    Copyright (C) 2015 University of Southern California and
+ *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,6 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
- * This is the main function to build index for reference genome.
  */
 
 #include <set>

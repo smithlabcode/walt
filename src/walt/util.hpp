@@ -1,10 +1,10 @@
 /*
  *    This file is part of the WALT program
  *
- *    Copyright (C) 2015 University of Southern California and
+ *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
- *    Authors: Andrew D. Smith and Ting Chen
+ *    Authors: Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
  *    This program is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 #include <limits>
 #include <string>
 
-const char walt_version[] = "0.4";
+const char walt_version[] = "1.0";
 
 //#define SEEDPATTERN7
 #ifdef SEEDPATTERN7
