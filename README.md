@@ -162,8 +162,8 @@ If paired-end reads mapped in proper pair, the QNAME is added "FRAG:" in the beg
 
     Copyright (C) 2015 University of Southern California
                    Andrew D. Smith and Ting Chen
+                   
     Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
-
 
     WALT is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
