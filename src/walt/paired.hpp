@@ -80,6 +80,10 @@ struct TopCandidates {
   }
 
   void Push(const CandidatePosition& cand) {
+    if (cand.mismatch == 0) {
+      candidates.push(cand);
+      return;
+    }
     if (candidates.size() < size) {
       candidates.push(cand);
     } else {

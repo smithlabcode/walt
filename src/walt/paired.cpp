@@ -423,6 +423,32 @@ void MergePairedEndResults(
     const vector<int>& ranked_results_size, const int& frag_range,
     const uint32_t& max_mismatches, const bool& SAM,
     StatPairedReads& stat_paired_reads, FILE * fout) {
+#ifdef DEBUG
+  for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
+    const CandidatePosition& r1 = ranked_results[0][i];
+    uint32_t chr_id1 = getChromID(genome.start_index, r1.genome_pos);
+    uint32_t start_pos = r1.genome_pos - genome.start_index[chr_id1];
+    if ('-' == r1.strand) {
+      start_pos = genome.length[chr_id1] - start_pos - read_seq1.size();
+    }
+    uint32_t end_pos = start_pos + read_seq1.size();
+    fprintf(stderr, "%u %s %u %u %c %u\n", r1.genome_pos,
+            genome.name[chr_id1].c_str(), start_pos, end_pos, r1.strand,
+            r1.mismatch);
+  }
+  for (int j = ranked_results_size[1] - 1; j >= 0; --j) {
+    const CandidatePosition& r2 = ranked_results[1][j];
+    uint32_t chr_id2 = getChromID(genome.start_index, r2.genome_pos);
+    uint32_t start_pos = r2.genome_pos - genome.start_index[chr_id2];
+    if ('-' == r2.strand) {
+      start_pos = genome.length[chr_id2] - start_pos - read_seq2.size();
+    }
+    uint32_t end_pos = start_pos + read_seq2.size();
+    fprintf(stderr, "%u %s %u %u %c %u\n", r2.genome_pos,
+            genome.name[chr_id2].c_str(), start_pos, end_pos, r2.strand,
+            r2.mismatch);
+  }
+#endif
   uint32_t read_len1 = read_seq1.size();
   uint32_t read_len2 = read_seq2.size();
   pair<int, int> best_pair(-1, -1);

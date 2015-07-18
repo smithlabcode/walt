@@ -45,6 +45,8 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
   while (line_count < lim && fgets(cline, MAX_LINE_LENGTH, fin)) {
     cline[strlen(cline) - 1] = 0;
     line = cline;
+    if (line.size() == 0)
+      continue;
     switch (line_code) {
       case 0: {
         size_t space_pos = line.find_first_of(' ');
