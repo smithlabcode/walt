@@ -132,16 +132,26 @@ void ReverseGenome(Genome& genome) {
 }
 
 void C2T(vector<char>& sequence) {
+  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('C' == sequence[i] || 'N' == sequence[i]) {
+    if ('N' == sequence[i]) {
+      int r = rand() % 4;
+      sequence[i] = getNT(r);
+    }
+    if ('C' == sequence[i]) {
       sequence[i] = 'T';
     }
   }
 }
 
 void G2A(vector<char>& sequence) {
+  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('G' == sequence[i] || 'N' == sequence[i]) {
+    if ('N' == sequence[i]) {
+      int r = rand() % 4;
+      sequence[i] = getNT(r);
+    }
+    if ('G' == sequence[i]) {
       sequence[i] = 'A';
     }
   }

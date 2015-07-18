@@ -99,25 +99,35 @@ string ReverseComplimentString(const string& str) {
 }
 
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
+  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
-    if ('N' == org_read[i]) {
-      read += 'T';
-    } else if ('C' == org_read[i]) {
+    char c = org_read[i];
+    if ('N' == c) {
+      int r = rand() % 4;
+      c = getNT(r);
+    }
+
+    if ('C' == c) {
       read += 'T';
     } else {
-      read += org_read[i];
+      read += c;
     }
   }
 }
 
 void G2A(const string& org_read, const uint32_t& read_len, string& read) {
+  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
-    if ('N' == org_read[i]) {
-      read += 'A';
-    } else if ('G' == org_read[i]) {
+    char c = org_read[i];
+    if ('N' == c) {
+      int r = rand() % 4;
+      c = getNT(r);
+    }
+
+    if ('G' == c) {
       read += 'A';
     } else {
-      read += org_read[i];
+      read += c;
     }
   }
 }
