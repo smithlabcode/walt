@@ -29,6 +29,8 @@
 
 #include <queue>
 
+#define MAX_NUM_EXACT_MAPPED 500
+
 /* CandidatePosition stores the candidate genome positions with number of
  * mismatches less or equal to max_mismatches */
 struct CandidatePosition {
@@ -80,7 +82,7 @@ struct TopCandidates {
   }
 
   void Push(const CandidatePosition& cand) {
-    if (cand.mismatch == 0) {
+    if (cand.mismatch == 0 && candidates.size() < MAX_NUM_EXACT_MAPPED) {
       candidates.push(cand);
       return;
     }

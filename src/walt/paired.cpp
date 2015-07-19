@@ -580,7 +580,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
   vector<int> ranked_results_size(2);
   vector<vector<CandidatePosition> > ranked_results(2,
-          vector<CandidatePosition>(top_k));
+          vector<CandidatePosition>(MAX_NUM_EXACT_MAPPED));
 
   vector<vector<TopCandidates> > top_results(2,
          vector<TopCandidates>(n_reads_to_process));
