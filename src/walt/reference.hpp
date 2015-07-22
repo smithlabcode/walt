@@ -108,7 +108,7 @@ void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
 void ReadGenome(const vector<string>& chrom_files, Genome& genome);
 
 /* get the reverse complimentary strand of genome */
-void ReverseGenome(Genome& genome);
+void ReverseComplementGenome(Genome& genome);
 
 /* Cs in the genome are converted to Ts */
 void C2T(vector<char>& sequence);

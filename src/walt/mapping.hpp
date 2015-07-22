@@ -26,6 +26,7 @@
 #define MAPPING_HPP_
 
 #include "reference.hpp"
+#include "smithlab_utils.hpp"
 
 #include <string>
 #include <vector>
@@ -64,9 +65,17 @@ struct StatSingleReads {
 
     if (ambiguous && !SAM) {
       fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
+      if (!fambiguous) {
+        throw SMITHLABException(
+            "cannot open input file " + string(output_file + "_ambiguous"));
+      }
     }
     if (unmapped && !SAM) {
       funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
+      if (!funmapped) {
+        throw SMITHLABException(
+            "cannot open input file " + string(output_file + "_unmapped"));
+      }
     }
   }
   ~StatSingleReads() {
