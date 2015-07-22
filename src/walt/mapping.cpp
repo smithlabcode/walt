@@ -7,18 +7,20 @@
  *
  *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of WALT.
+ *
+ *    WALT is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    This program is distributed in the hope that it will be useful,
+ *    WALT is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with WALT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "mapping.hpp"
@@ -43,6 +45,8 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
   while (line_count < lim && fgets(cline, MAX_LINE_LENGTH, fin)) {
     cline[strlen(cline) - 1] = 0;
     line = cline;
+    if (line.size() == 0)
+      continue;
     switch (line_code) {
       case 0: {
         size_t space_pos = line.find_first_of(' ');
@@ -97,25 +101,35 @@ string ReverseComplimentString(const string& str) {
 }
 
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
+  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
-    if ('N' == org_read[i]) {
-      read += 'T';
-    } else if ('C' == org_read[i]) {
+    char c = org_read[i];
+    if ('N' == c) {
+      int r = rand() % 4;
+      c = getNT(r);
+    }
+
+    if ('C' == c) {
       read += 'T';
     } else {
-      read += org_read[i];
+      read += c;
     }
   }
 }
 
 void G2A(const string& org_read, const uint32_t& read_len, string& read) {
+  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
-    if ('N' == org_read[i]) {
-      read += 'A';
-    } else if ('G' == org_read[i]) {
+    char c = org_read[i];
+    if ('N' == c) {
+      int r = rand() % 4;
+      c = getNT(r);
+    }
+
+    if ('G' == c) {
       read += 'A';
     } else {
-      read += org_read[i];
+      read += c;
     }
   }
 }

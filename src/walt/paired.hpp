@@ -6,18 +6,20 @@
  *
  *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of WALT.
+ *
+ *    WALT is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    This program is distributed in the hope that it will be useful,
+ *    WALT is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    along with WALT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef PAIRED_HPP_
@@ -26,6 +28,8 @@
 #include "mapping.hpp"
 
 #include <queue>
+
+#define MAX_NUM_EXACT_MAPPED 500
 
 /* CandidatePosition stores the candidate genome positions with number of
  * mismatches less or equal to max_mismatches */
@@ -78,6 +82,10 @@ struct TopCandidates {
   }
 
   void Push(const CandidatePosition& cand) {
+    if (cand.mismatch == 0 && candidates.size() < MAX_NUM_EXACT_MAPPED) {
+      candidates.push(cand);
+      return;
+    }
     if (candidates.size() < size) {
       candidates.push(cand);
     } else {

@@ -1,27 +1,25 @@
 /*
- *    This file is part of the WALT program
+ *    This file contains several basic functions for global use.
  *
  *    Copyright (C) 2015 University of Southern California
  *                       Andrew D. Smith and Ting Chen
  *
  *    Authors: Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of WALT.
+ *
+ *    WALT is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    This program is distributed in the hope that it will be useful,
+ *    WALT is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
- * This file contains several basic functions for global use.
+ *    along with WALT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef UTIL_H_

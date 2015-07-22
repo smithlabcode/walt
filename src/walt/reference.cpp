@@ -7,22 +7,20 @@
  *
  *    Authors: Haifeng Chen, Andrew D. Smith and Ting Chen
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of WALT.
+ *
+ *    WALT is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
  *
- *    This program is distributed in the hope that it will be useful,
+ *    WALT is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/*
- *  The detail description of each function please refer to head file
+ *    along with WALT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <cmath>
@@ -134,16 +132,26 @@ void ReverseGenome(Genome& genome) {
 }
 
 void C2T(vector<char>& sequence) {
+  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('C' == sequence[i] || 'N' == sequence[i]) {
+    if ('N' == sequence[i]) {
+      int r = rand() % 4;
+      sequence[i] = getNT(r);
+    }
+    if ('C' == sequence[i]) {
       sequence[i] = 'T';
     }
   }
 }
 
 void G2A(vector<char>& sequence) {
+  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('G' == sequence[i] || 'N' == sequence[i]) {
+    if ('N' == sequence[i]) {
+      int r = rand() % 4;
+      sequence[i] = getNT(r);
+    }
+    if ('G' == sequence[i]) {
       sequence[i] = 'A';
     }
   }
