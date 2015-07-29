@@ -587,10 +587,10 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
   FILE * fin[2];
   fin[0] = fopen(reads_file_p1.c_str(), "r");
-  fin[1] = fopen(reads_file_p2.c_str(), "r");
   if (!fin[0]) {
     throw SMITHLABException("cannot open input file " + reads_file_p1);
   }
+  fin[1] = fopen(reads_file_p2.c_str(), "r");
   if (!fin[1]) {
     throw SMITHLABException("cannot open input file " + reads_file_p2);
   }
@@ -599,6 +599,9 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   extract_adaptors(adaptor, adaptors[0], adaptors[1]);
   clock_t start_t = clock();
   FILE * fout = fopen(output_file.c_str(), "w");
+  if (!fout) {
+    throw SMITHLABException("cannot open input file " + output_file);
+  }
   uint32_t num_of_reads[2];
   StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file, SAM);
   bool AG_WILDCARD = true;

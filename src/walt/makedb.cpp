@@ -52,7 +52,7 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
   ReadGenome(chrom_files, genome);
 
   if (indicator % 2) {
-    ReverseGenome(genome);
+    ReverseComplementGenome(genome);
   }
 
   if (indicator == 0 || indicator == 1) {

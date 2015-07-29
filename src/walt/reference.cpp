@@ -27,6 +27,7 @@
 
 #include "reference.hpp"
 #include "smithlab_os.hpp"
+#include "smithlab_utils.hpp"
 
 #include <fstream>
 #include <algorithm>
@@ -114,7 +115,7 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
   genome.start_index[genome.num_of_chroms] = k;
 }
 
-void ReverseGenome(Genome& genome) {
+void ReverseComplementGenome(Genome& genome) {
   genome.strand = '-';
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
     for (uint32_t j = 0; j < genome.length[i] / 2; ++j) {
@@ -294,6 +295,9 @@ void WriteIndex(const string& index_file, const Genome& genome,
                 const HashTable& hash_table) {
   fprintf(stderr, "[WRITTING INDEX TO %s]\n", index_file.c_str());
   FILE * fout = fopen(index_file.c_str(), "wb");
+  if (!fout) {
+    throw SMITHLABException("cannot open input file " + index_file);
+  }
 
   fwrite(&(genome.strand), sizeof(char), 1, fout);
   fwrite(&(genome.sequence[0]), sizeof(char), genome.length_of_genome, fout);
@@ -312,7 +316,9 @@ void WriteIndex(const string& index_file, const Genome& genome,
 void ReadIndex(const string& index_file, Genome& genome,
                HashTable& hash_table) {
   FILE * fin = fopen(index_file.c_str(), "rb");
-  FILE_OPEN_CHECK(fin);
+  if (!fin) {
+    throw SMITHLABException("cannot open input file " + index_file);
+  }
 
   FREAD_CHECK(fread(&(genome.strand), sizeof(char), 1, fin), 1);
   FREAD_CHECK(
@@ -340,6 +346,9 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
                         const uint32_t& size_of_index) {
   fprintf(stderr, "[WRITTING INDEX HEAD TO %s]\n", index_file.c_str());
   FILE * fout = fopen(index_file.c_str(), "wb");
+  if (!fout) {
+    throw SMITHLABException("cannot open input file " + index_file);
+  }
 
   uint32_t num_of_chroms = genome.num_of_chroms;
   fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
@@ -364,7 +373,9 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
                        uint32_t& size_of_index) {
   FILE * fin = fopen(index_file.c_str(), "rb");
-  FILE_OPEN_CHECK(fin);
+  if (!fin) {
+    throw SMITHLABException("cannot open input file " + index_file);
+  }
 
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);

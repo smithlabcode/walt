@@ -386,9 +386,12 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
+  FILE * fout = fopen(output_file.c_str(), "w");
+  if (!fout) {
+    throw SMITHLABException("cannot open input file " + output_file);
+  }
 
   clock_t start_t = clock();
-  FILE * fout = fopen(output_file.c_str(), "w");
   uint32_t num_of_reads;
   StatSingleReads stat_single_reads(ambiguous, unmapped, output_file, SAM);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
