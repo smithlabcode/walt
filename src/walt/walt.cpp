@@ -185,6 +185,7 @@ int main(int argc, const char **argv) {
               "-1 and -2 options to set paired-end reads\n");
       return EXIT_FAILURE;
     }
+    /****************** END COMMAND LINE OPTIONS *****************/
 
     bool get_empty_fields = false;
     if (!is_paired_end_reads) {

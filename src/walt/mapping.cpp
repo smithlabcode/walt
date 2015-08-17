@@ -428,7 +428,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       StatInfoUpdate(map_results[j].times, stat_single_reads);
       if (!SAM) {
         OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
-                            read_scores[j], genome, AG_WILDCARD, stat_single_reads, fout);
+                            read_scores[j], genome, AG_WILDCARD,
+                            stat_single_reads, fout);
       } else {
         OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],
                         read_scores[j], genome, stat_single_reads, fout);
@@ -441,22 +442,23 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  fprintf(stderr, "[TOTAL NUMBER OF READS: %u]\n",
+  freopen(string(output_file + ".mapping_state_log").c_str(), "w", stdout);
+  fprintf(stdout, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
-      stderr,
+      stdout,
       "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.unique_mapped_reads,
       100.00 * stat_single_reads.unique_mapped_reads
           / stat_single_reads.total_reads);
   fprintf(
-      stderr,
+      stdout,
       "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.ambiguous_mapped_reads,
       100.00 * stat_single_reads.ambiguous_mapped_reads
           / stat_single_reads.total_reads);
   fprintf(
-      stderr,
+      stdout,
       "[UNMAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.unmapped_reads,
       100.00 * stat_single_reads.unmapped_reads
@@ -464,4 +466,5 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));
+  fclose (stdout);
 }

@@ -127,65 +127,68 @@ void PairEndMapping(const string& org_read, const Genome& genome,
   }
 }
 
-void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads) {
-  fprintf(stderr, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
+void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
+                          const string& output_file) {
+  freopen(string(output_file + ".mapping_state_log").c_str(), "w", stdout);
+  fprintf(stdout, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
           stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "[UNIQUELY MAPPED READ PAIRS: %u (%.2lf%%)]\n",
       stat_paired_reads.unique_mapped_pairs,
       100.00 * stat_paired_reads.unique_mapped_pairs
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "[AMBIGUOUS MAPPED READ PAIRS: %u (%.2lf%%)]\n",
       stat_paired_reads.ambiguous_mapped_pairs,
       100.00 * stat_paired_reads.ambiguous_mapped_pairs
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "[UNMAPPED READS PAIRS: %u (%.2lf%%)]\n",
       stat_paired_reads.unmapped_pairs,
       100.00 * stat_paired_reads.unmapped_pairs
           / stat_paired_reads.total_read_pairs);
   //////////////////MATE 1////////////////////////
   fprintf(
-      stderr,
+      stdout,
       "   [UNIQUELY MAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_1.unique_mapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_1.unique_mapped_reads
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "   [AMBIGUOUS MAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_1.ambiguous_mapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_1.ambiguous_mapped_reads
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "   [UNMAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_1.unmapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_1.unmapped_reads
           / stat_paired_reads.total_read_pairs);
   //////////////////MATE 2////////////////////////
   fprintf(
-      stderr,
+      stdout,
       "   [UNIQUELY MAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_2.unique_mapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.unique_mapped_reads
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "   [AMBIGUOUS MAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_2.ambiguous_mapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.ambiguous_mapped_reads
           / stat_paired_reads.total_read_pairs);
   fprintf(
-      stderr,
+      stdout,
       "   [UNMAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
       stat_paired_reads.stat_single_reads_2.unmapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.unmapped_reads
           / stat_paired_reads.total_read_pairs);
+  fclose (stdout);
 }
 
 int OutputBestPairedResults(const CandidatePosition& r1,
@@ -676,7 +679,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   fclose(fin[1]);
   fclose(fout);
 
-  OutputPairedStatInfo(stat_paired_reads);
+  OutputPairedStatInfo(stat_paired_reads, output_file);
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));
 }
