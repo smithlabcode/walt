@@ -161,17 +161,22 @@ void G2A(vector<char>& sequence) {
 #ifdef DEBUG
 void TestHashTable(const Genome& genome, const HashTable& hash_table) {
   fprintf(stderr, "[TEST HASH TABLE]\n");
-  std::ofstream fout("test.txt");
+
+  std::ofstream fout("test_all.txt");
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     for (uint32_t j = hash_table.counter[i]; j < hash_table.counter[i + 1];
         ++j) {
       fout << i << " ";
       const char* seq = &(genome.sequence[hash_table.index[j]]);
-      for (uint32_t k = 0; k < 32; ++k) {
+      for (uint32_t k = 0;
+          k < 13
+              && F2SEEDPOSITION[k] + hash_table.index[j]
+                  < genome.sequence.size(); ++k) {
         fout << seq[F2SEEDPOSITION[k]];
       }
       fout << " ";
-      for (uint32_t k = 0; k < 32; ++k) {
+      for (uint32_t k = 0;
+          k < 110 && k + hash_table.index[j] < genome.sequence.size(); ++k) {
         fout << seq[k];
       }
       fout << " " << j << " " << hash_table.index[j] << std::endl;
