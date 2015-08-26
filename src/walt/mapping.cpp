@@ -418,7 +418,6 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       fread(&(repeats_markers[1][0]), sizeof(uint32_t), mark_size, frepeats),
       mark_size);
 
-
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
