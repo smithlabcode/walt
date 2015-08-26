@@ -132,7 +132,7 @@ void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
                                       const string& read_seq,
                                       const string& read_score,
                                       const Genome& genome,
-                                      const bool AG_WILDCARD, FILE * fout);
+                                      const bool& AG_WILDCARD, FILE * fout);
 
 /* output the unmapped reads */
 void OutputUnmapped(const string& read_name, const string& read_seq,

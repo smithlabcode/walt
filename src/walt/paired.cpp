@@ -607,7 +607,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   }
   uint32_t num_of_reads[2];
   StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file, SAM);
-  bool AG_WILDCARD = true;
+  int AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
           reads_file_p2.c_str());

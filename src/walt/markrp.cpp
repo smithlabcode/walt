@@ -104,6 +104,7 @@ void SetBit(const pair<uint32_t, int>& pos, vector<vector<uint32_t> >& mark) {
 
 void MarkRepeats(const string& index_file, const vector<Genome>& genome,
                  vector<HashTable>& hash_table,
+                 const bool& AG_WILDCARD,
                  const uint32_t& num_of_nucleotide_for_sort) {
   uint32_t num_of_bucket = power(4, F2SEEDWIGTH);
   uint32_t max_bucket_size = 0;
@@ -148,24 +149,27 @@ void MarkRepeats(const string& index_file, const vector<Genome>& genome,
     }
   }
 
-  FILE * fout = fopen(string(index_file + ".markrp_90").c_str(), "wb");
+  char repeats_file[256];
+  string CTorGA = "CT";
+  CTorGA = AG_WILDCARD ? "GA" : "CT";
+  sprintf(repeats_file, "%s.markrp_%s_90", index_file.c_str(), CTorGA.c_str());
+  FILE * fout = fopen(repeats_file, "wb");
   if (!fout) {
-    throw SMITHLABException(
-        "cannot open input file " + string(index_file + ".markrp_90"));
+    throw SMITHLABException("cannot open input file " + string(repeats_file));
   }
-  fwrite(&bucket_size, sizeof(uint32_t), 1, fout);
-  fwrite(&(mark_90[0]), sizeof(uint32_t), bucket_size, fout);
-  fwrite(&(mark_90[1]), sizeof(uint32_t), bucket_size, fout);
+  fwrite(&mark_size, sizeof(uint32_t), 1, fout);
+  fwrite(&(mark_90[0][0]), sizeof(uint32_t), mark_size, fout);
+  fwrite(&(mark_90[1][0]), sizeof(uint32_t), mark_size, fout);
   fclose(fout);
 
-  fout = fopen(string(index_file + ".markrp_100").c_str(), "wb");
+  sprintf(repeats_file, "%s.markrp_%s_100", index_file.c_str(), CTorGA.c_str());
+  fout = fopen(repeats_file, "wb");
   if (!fout) {
-    throw SMITHLABException(
-        "cannot open input file " + string(index_file + ".markrp_100"));
+    throw SMITHLABException("cannot open input file " + string(repeats_file));
   }
-  fwrite(&bucket_size, sizeof(uint32_t), 1, fout);
-  fwrite(&(mark_100[0]), sizeof(uint32_t), bucket_size, fout);
-  fwrite(&(mark_100[1]), sizeof(uint32_t), bucket_size, fout);
+  fwrite(&mark_size, sizeof(uint32_t), 1, fout);
+  fwrite(&(mark_100[0][0]), sizeof(uint32_t), mark_size, fout);
+  fwrite(&(mark_100[1][0]), sizeof(uint32_t), mark_size, fout);
   fclose(fout);
 }
 
@@ -224,14 +228,18 @@ int main(int argc, const char **argv) {
     }
 
     ////////// MARK REPEATS FOR (C->T)
+    bool AG_WILDCARD = false;
     ReadIndex(index_file + "_CT00", genome[0], hash_table[0]);
     ReadIndex(index_file + "_CT01", genome[1], hash_table[1]);
-    MarkRepeats(index_file, genome, hash_table, num_of_nucleotide_for_sort);
+    MarkRepeats(index_file, genome, hash_table, AG_WILDCARD,
+                num_of_nucleotide_for_sort);
 
     ////////// MARK REPEATS FOR (G->A)
+    AG_WILDCARD = true;
     ReadIndex(index_file + "_GA10", genome[0], hash_table[0]);
     ReadIndex(index_file + "_GA11", genome[1], hash_table[1]);
-    MarkRepeats(index_file, genome, hash_table, num_of_nucleotide_for_sort);
+    MarkRepeats(index_file, genome, hash_table, AG_WILDCARD,
+                num_of_nucleotide_for_sort);
   } catch (const SMITHLABException &e) {
     fprintf(stderr, "%s\n", e.what().c_str());
     return EXIT_FAILURE;
