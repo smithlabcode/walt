@@ -186,19 +186,9 @@ void IndexRegion(const string& read, const Genome& genome,
   region.second = u;
 }
 
-// get bit
-int GetBit(const uint32_t& pos, const vector<uint32_t>& repeats_markers) {
-  uint32_t word = pos / 32;
-  uint32_t bit = pos % 32;
-
-  return (repeats_markers[word] >> bit) & 0x1;
-}
-
 void SingleEndMapping(const string& org_read, const Genome& genome,
-                      const HashTable& hash_table,
-                      const vector<vector<uint32_t> >& repeats_markers,
-                      const char& strand, const bool& AG_WILDCARD,
-                      BestMatch& best_match) {
+                      const HashTable& hash_table, const char& strand,
+                      const bool& AG_WILDCARD, BestMatch& best_match) {
   uint32_t read_len = org_read.size();
   if (read_len < HASHLEN) {
     return;
@@ -212,12 +202,10 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
     C2T(org_read, read_len, read);
   }
 
-  const vector<uint32_t>& repeats_marker =
-      AG_WILDCARD ? repeats_markers[1] : repeats_markers[0];
-
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
     if (best_match.mismatch == 0 && seed_i) /* different with paired-end*/
       break;
+
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
@@ -233,8 +221,6 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
     }
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
-      if (GetBit(genome_pos, repeats_marker))
-        continue;
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);
       if (genome_pos - genome.start_index[chr_id] < seed_i)
         continue;
@@ -365,29 +351,6 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
   }
 }
 
-/* get the length of the reads in the fastq file */
-uint32_t GetReadLength(const string& reads_file) {
-  FILE * fin = fopen(reads_file.c_str(), "r");
-  if (!fin) {
-    throw SMITHLABException("cannot open input file " + reads_file);
-  }
-
-  vector<string> read_names(10);
-  vector<string> read_seqs(10);
-  vector<string> read_scores(10);
-  uint32_t num_of_reads = 0;
-  LoadReadsFromFastqFile(fin, 0, 10, "", num_of_reads, read_names, read_seqs,
-                         read_scores);
-  if (read_seqs.size() == 0)
-    return 0;
-  uint32_t read_len = read_seqs[0].size();
-
-  fclose(fin);
-
-  return read_len;
-}
-
-
 void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& reads_file_s,
                             const string& output_file,
@@ -396,28 +359,6 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& adaptor, const bool& AG_WILDCARD,
                             const bool& ambiguous, const bool& unmapped,
                             const bool& SAM, const int& num_of_threads) {
-  // LOAD MARK REPEATS
-  uint32_t read_len = GetReadLength(reads_file_s);
-  string CTorGA = "CT";
-  CTorGA = AG_WILDCARD ? "GA" : "CT";
-  char repeats_file[256];
-  sprintf(repeats_file, "%s.markrp_%s_%u", index_file.c_str(), CTorGA.c_str(),
-          read_len);
-  fprintf(stderr, "[READ REPEATS MARKER FILE %s]\n", repeats_file);
-  FILE * frepeats = fopen(repeats_file, "r");
-  if (!frepeats) {
-    throw SMITHLABException("cannot open input file " + string(repeats_file));
-  }
-  uint32_t mark_size;
-  FREAD_CHECK(fread(&mark_size, sizeof(uint32_t), 1, frepeats), 1);
-  vector<vector<uint32_t> > repeats_markers(2, vector<uint32_t>(mark_size, 0));
-  FREAD_CHECK(
-      fread(&(repeats_markers[0][0]), sizeof(uint32_t), mark_size, frepeats),
-      mark_size);
-  FREAD_CHECK(
-      fread(&(repeats_markers[1][0]), sizeof(uint32_t), mark_size, frepeats),
-      mark_size);
-
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -478,8 +419,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       char strand = fi == 0 ? '+' : '-';
 #pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, hash_table, repeats_markers,
-                         strand, AG_WILDCARD, map_results[j]);
+        SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
+                         map_results[j]);
       }
     }
     //////////////////////////////////////////////////////////
