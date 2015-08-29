@@ -174,6 +174,12 @@ void IndexRegion(const string& read, const Genome& genome,
     uint32_t care_pos = F2SEEDPOSITION[p];
     l = LowerBound(l, u, read[care_pos], care_pos, genome, hash_table);
     u = UpperBound(l, u, read[care_pos], care_pos, genome, hash_table);
+    if (l == u
+        && read[care_pos] != genome.sequence[hash_table.index[l] + care_pos]) {
+      region.first = 1;
+      region.second = 0;
+      return;
+    }
   }
 
   if (l > u) {
@@ -203,9 +209,12 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (best_match.mismatch == 0 && seed_i) /* different with paired-end*/
+    /* all exact matches are covered by the first seed */
+    if (best_match.mismatch == 0 && seed_i)
       break;
-
+    /* all matches with 1 mismatch are covered by the first two seeds */
+    if (best_match.mismatch == 1 && seed_i == 2)
+      break;
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
@@ -229,10 +238,17 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
         continue;
 
       /* check the position */
-      uint32_t num_of_mismatch = 0;
-      for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= best_match.mismatch; ++q, ++p) {
-        if (genome.sequence[q] != read[p]) {
+      uint32_t num_of_mismatch = 0, num_of_nocared = 2 * seed_len + seed_i;
+      for (uint32_t p = 0;
+          p < num_of_nocared && num_of_mismatch <= best_match.mismatch; ++p) {
+        if (genome.sequence[genome_pos + NOCARED[seed_i][p]]
+            != read[NOCARED[seed_i][p]]) {
+          num_of_mismatch++;
+        }
+      }
+      for (uint32_t p = 3 * seed_len + seed_i;
+          p < read_len && num_of_mismatch <= best_match.mismatch; ++p) {
+        if (genome.sequence[genome_pos + p] != read[p]) {
           num_of_mismatch++;
         }
       }

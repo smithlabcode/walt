@@ -85,6 +85,13 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 
   uint32_t cur_max_mismatches = max_mismatches;
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
+    /* all exact matches are covered by the first seed */
+    if (top_match.Top().mismatch == 0 && seed_i)
+      break;
+    /* all matches with 1 mismatch are covered by the first two seeds */
+    if (top_match.Top().mismatch == 1 && seed_i == 2)
+      break;
+
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
@@ -108,10 +115,17 @@ void PairEndMapping(const string& org_read, const Genome& genome,
         continue;
 
       /* check the position */
-      uint32_t num_of_mismatch = 0;
-      for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= cur_max_mismatches; ++q, ++p) {
-        if (genome.sequence[q] != read[p]) {
+      uint32_t num_of_mismatch = 0, num_of_nocared = 2 * seed_len + seed_i;
+      for (uint32_t p = 0;
+          p < num_of_nocared && num_of_mismatch <= cur_max_mismatches; ++p) {
+        if (genome.sequence[genome_pos + NOCARED[seed_i][p]]
+            != read[NOCARED[seed_i][p]]) {
+          num_of_mismatch++;
+        }
+      }
+      for (uint32_t p = 3 * seed_len + seed_i;
+          p < read_len && num_of_mismatch <= cur_max_mismatches; ++p) {
+        if (genome.sequence[genome_pos + p] != read[p]) {
           num_of_mismatch++;
         }
       }
@@ -607,7 +621,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   }
   uint32_t num_of_reads[2];
   StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file, SAM);
-  int AG_WILDCARD = true;
+  bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
           reads_file_p2.c_str());
