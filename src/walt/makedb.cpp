@@ -32,7 +32,8 @@
 #include "reference.hpp"
 
 void BuildIndex(const vector<string>& chrom_files, const int& indicator,
-                const string& output_file, uint32_t& size_of_index) {
+                const string& output_file, uint32_t& size_of_index,
+                const uint32_t& F2SEEDWIGTH) {
   switch (indicator) {
     case 0:
       fprintf(stderr, "[BIULD INDEX FOR FORWARD STRAND (C->T)]\n");
@@ -62,9 +63,9 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
   }
 
   set<uint32_t> extremal_large_bucket;
-  CountBucketSize(genome, hash_table, extremal_large_bucket);
-  HashToBucket(genome, hash_table, extremal_large_bucket);
-  SortHashTableBucket(genome, hash_table);
+  CountBucketSize(genome, hash_table, F2SEEDWIGTH, extremal_large_bucket);
+  HashToBucket(genome, hash_table, F2SEEDWIGTH, extremal_large_bucket);
+  SortHashTableBucket(genome, hash_table, F2SEEDWIGTH);
   WriteIndex(output_file, genome, hash_table);
 
   size_of_index =
@@ -76,6 +77,7 @@ int main(int argc, const char **argv) {
   try {
     string chrom_file;
     string outfile;
+    uint32_t F2SEEDWIGTH = 13;
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]),
                            "build index for reference genome", "");
@@ -85,6 +87,9 @@ int main(int argc, const char **argv) {
         "chromosomes in FASTA file or dir \
         (the suffix of the chromosome file should be '.fa')",
         true, chrom_file);
+    opt_parse.add_opt(
+        "kmer", 'k', "k-mer length which is also the length keys in hash table",
+        false, F2SEEDWIGTH);
     opt_parse.add_opt(
         "output", 'o',
         "output file name (the suffix of the file should be '.dbindex')", true,
@@ -114,7 +119,10 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
-
+    if (F2SEEDWIGTH < 8 || F2SEEDWIGTH > 14) {
+      fprintf(stderr, "The length of k-mer should be in [8, 14].\n");
+      return EXIT_FAILURE;
+    }
     //////////////////////////////////////////////////////////////
     // READ GENOME
     //
@@ -126,20 +134,20 @@ int main(int argc, const char **argv) {
     //
     uint32_t size_of_index = 0;
     ////////// BUILD INDEX FOR FORWARD STRAND (C->T)
-    BuildIndex(chrom_files, 0, outfile + "_CT00", size_of_index);
+    BuildIndex(chrom_files, 0, outfile + "_CT00", size_of_index, F2SEEDWIGTH);
 
     ////////// BUILD INDEX FOR REVERSE STRAND (C->T)
-    BuildIndex(chrom_files, 1, outfile + "_CT01", size_of_index);
+    BuildIndex(chrom_files, 1, outfile + "_CT01", size_of_index, F2SEEDWIGTH);
 
     ////////// BUILD INDEX FOR FORWARD STRAND (G->A)
-    BuildIndex(chrom_files, 2, outfile + "_GA10", size_of_index);
+    BuildIndex(chrom_files, 2, outfile + "_GA10", size_of_index, F2SEEDWIGTH);
 
     ////////// BUILD INDEX FOR REVERSE STRAND (G->A)
-    BuildIndex(chrom_files, 3, outfile + "_GA11", size_of_index);
+    BuildIndex(chrom_files, 3, outfile + "_GA11", size_of_index, F2SEEDWIGTH);
 
     Genome genome;
     ReadGenome(chrom_files, genome);
-    WriteIndexHeadInfo(outfile, genome, size_of_index);
+    WriteIndexHeadInfo(outfile, genome, size_of_index, F2SEEDWIGTH);
   } catch (const SMITHLABException &e) {
     fprintf(stderr, "%s\n", e.what().c_str());
     return EXIT_FAILURE;

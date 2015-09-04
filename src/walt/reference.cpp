@@ -63,7 +63,7 @@ void IdentifyChromosomes(const string& chrom_file,
   fprintf(stderr, "[DONE]\n");
   fprintf(stderr, "chromosome files found (approx size):\n");
   for (uint32_t i = 0; i < chrom_files.size(); ++i) {
-    fprintf(stderr, "%s (%lfMbp)\n", chrom_files[i].c_str(),
+    fprintf(stderr, "%s (%.2lfMbp)\n", chrom_files[i].c_str(),
             roundf(get_filesize(chrom_files[i]) / 1e06));
   }
 }
@@ -187,18 +187,20 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
 #endif
 
 void CountBucketSize(const Genome& genome, HashTable& hash_table,
+                     const uint32_t& F2SEEDWIGTH,
                      set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[COUNT BUCKET SIZE]\n");
   hash_table.counter_size = power(4, F2SEEDWIGTH);
   hash_table.counter.resize(hash_table.counter_size + 1, 0);
 
+  uint32_t HASHLEN = SEEPATTERNLEN * F2SEEDWIGTH;
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
     if (genome.length[i] < HASHLEN)
       continue;
     size = genome.start_index[i + 1] - HASHLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
-      hash_value = getHashValue(&(genome.sequence[j]));
+      hash_value = getHashValue(&(genome.sequence[j]), F2SEEDWIGTH);
       hash_table.counter[hash_value]++;
     }
   }
@@ -226,9 +228,11 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table,
 }
 
 void HashToBucket(const Genome& genome, HashTable& hash_table,
+                  const uint32_t& F2SEEDWIGTH,
                   const set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[HASH TO BUCKET]\n");
   hash_table.index.resize(hash_table.index_size, 0);
+  uint32_t HASHLEN = SEEPATTERNLEN * F2SEEDWIGTH;
 
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
@@ -236,7 +240,7 @@ void HashToBucket(const Genome& genome, HashTable& hash_table,
       continue;
     size = genome.start_index[i + 1] - HASHLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
-      hash_value = getHashValue(&(genome.sequence[j]));
+      hash_value = getHashValue(&(genome.sequence[j]), F2SEEDWIGTH);
       /* Extremal Large Bucket IS DELETED */
       if (extremal_large_bucket.find(hash_value)
           != extremal_large_bucket.end()) {
@@ -253,8 +257,10 @@ void HashToBucket(const Genome& genome, HashTable& hash_table,
 }
 
 struct SortHashTableBucketCMP {
-  explicit SortHashTableBucketCMP(const Genome& _genome)
-      : genome(_genome) {
+  explicit SortHashTableBucketCMP(const Genome& _genome,
+                                  const uint32_t& _F2SEEDWIGTH)
+      : genome(_genome),
+        F2SEEDWIGTH(_F2SEEDWIGTH) {
   }
   bool operator()(const uint32_t& p1, const uint32_t& p2) {
     const char* c_seq1 = &(genome.sequence[p1]);
@@ -282,9 +288,11 @@ struct SortHashTableBucketCMP {
   }
 
   const Genome& genome;
+  const uint32_t& F2SEEDWIGTH;
 };
 
-void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
+void SortHashTableBucket(const Genome& genome, HashTable& hash_table,
+                         const uint32_t& F2SEEDWIGTH) {
   fprintf(stderr, "[SORTING BUCKETS FOR HASH TABLE]\n");
   for (uint32_t i = 0; i < hash_table.counter_size; ++i) {
     if (hash_table.counter[i + 1] - hash_table.counter[i] <= 1)
@@ -292,7 +300,7 @@ void SortHashTableBucket(const Genome& genome, HashTable& hash_table) {
 
     std::sort(hash_table.index.begin() + hash_table.counter[i],
               hash_table.index.begin() + hash_table.counter[i + 1],
-              SortHashTableBucketCMP(genome));
+              SortHashTableBucketCMP(genome, F2SEEDWIGTH));
   }
 }
 
@@ -348,13 +356,15 @@ void ReadIndex(const string& index_file, Genome& genome,
 }
 
 void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
-                        const uint32_t& size_of_index) {
+                        const uint32_t& size_of_index,
+                        const uint32_t& F2SEEDWIGTH) {
   fprintf(stderr, "[WRITTING INDEX HEAD TO %s]\n", index_file.c_str());
   FILE * fout = fopen(index_file.c_str(), "wb");
   if (!fout) {
     throw SMITHLABException("cannot open input file " + index_file);
   }
 
+  fwrite(&F2SEEDWIGTH, sizeof(uint32_t), 1, fout);
   uint32_t num_of_chroms = genome.num_of_chroms;
   fwrite(&num_of_chroms, sizeof(uint32_t), 1, fout);
 
@@ -376,12 +386,13 @@ void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
 }
 
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
-                       uint32_t& size_of_index) {
+                       uint32_t& size_of_index, uint32_t& F2SEEDWIGTH) {
   FILE * fin = fopen(index_file.c_str(), "rb");
   if (!fin) {
     throw SMITHLABException("cannot open input file " + index_file);
   }
 
+  FREAD_CHECK(fread(&F2SEEDWIGTH, sizeof(uint32_t), 1, fin), 1);
   uint32_t num_of_chroms;
   FREAD_CHECK(fread(&num_of_chroms, sizeof(uint32_t), 1, fin), 1);
   genome.num_of_chroms = num_of_chroms;
@@ -415,8 +426,8 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
 
 void ShowGenomeInfo(const string& index_file) {
   Genome genome;
-  uint32_t size_of_index;
-  ReadIndexHeadInfo(index_file, genome, size_of_index);
+  uint32_t size_of_index, F2SEEDWIGTH;
+  ReadIndexHeadInfo(index_file, genome, size_of_index, F2SEEDWIGTH);
   fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
           genome.num_of_chroms);
   fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
@@ -425,8 +436,8 @@ void ShowGenomeInfo(const string& index_file) {
 
 void SAMHead(const string& index_file, const string& command, FILE * fout) {
   Genome genome;
-  uint32_t size_of_index;
-  ReadIndexHeadInfo(index_file, genome, size_of_index);
+  uint32_t size_of_index, F2SEEDWIGTH;
+  ReadIndexHeadInfo(index_file, genome, size_of_index, F2SEEDWIGTH);
   fprintf(fout, "@HD\tVN:1.0\n");
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
     fprintf(fout, "@SQ\tSN:%s\tLN:%u\n", genome.name[i].c_str(),

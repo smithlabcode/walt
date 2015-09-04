@@ -123,8 +123,8 @@ void G2A(const string& org_read, const uint32_t& read_len, string& read);
 
 /* find the region of index where those positions started with the seed */
 void IndexRegion(const string& read, const Genome& genome,
-                 const HashTable& hash_table, const uint32_t& seed_len,
-                 pair<uint32_t, uint32_t>& region);
+                 const HashTable& hash_table, const uint32_t& F2SEEDWIGTH,
+                 const uint32_t& seed_len, pair<uint32_t, uint32_t>& region);
 
 /* output the uniquely mapped reads or ambiguously mapped reads */
 void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,

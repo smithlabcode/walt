@@ -146,7 +146,7 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("ag-wild", 'A',
                       "map using A/G bisulfite wildcards (single-end)", false,
                       AG_WILDCARD);
-    opt_parse.add_opt("topk", 'k',
+    opt_parse.add_opt("topk", 'K',
                       "maximum allowed mappings for a read (paired-end)", false,
                       top_k);
     opt_parse.add_opt("fraglen", 'L', "max fragment length (paired-end)", false,
