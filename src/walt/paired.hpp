@@ -68,7 +68,7 @@ struct TopCandidates {
   }
 
   bool Full() {
-    return candidates.size() == size;
+    return candidates.size() >= size;
   }
 
   void Clear() {

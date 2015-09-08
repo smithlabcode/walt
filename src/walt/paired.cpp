@@ -86,10 +86,12 @@ void PairEndMapping(const string& org_read, const Genome& genome,
   uint32_t cur_max_mismatches = max_mismatches;
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
     /* all exact matches are covered by the first seed */
-    if (!top_match.Empty() && top_match.Top().mismatch == 0 && seed_i)
+    if (!top_match.Empty() && top_match.Full() && top_match.Top().mismatch == 0
+        && seed_i)
       break;
     /* all matches with 1 mismatch are covered by the first two seeds */
-    if (!top_match.Empty() && top_match.Top().mismatch == 1 && seed_i == 2)
+    if (!top_match.Empty() && top_match.Full() && top_match.Top().mismatch == 1
+        && seed_i == 2)
       break;
 
     string read_seed = read.substr(seed_i);
