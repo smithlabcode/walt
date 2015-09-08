@@ -28,7 +28,7 @@ ifndef SMITHLAB_CPP
 SMITHLAB_CPP=./../smithlab_cpp
 endif
 
-PROGS = makedb walt markrp
+PROGS = makedb walt
 
 CXX = g++
 CFLAGS = -Wall -O3 -fPIC -fmessage-length=50 -fopenmp
@@ -50,9 +50,6 @@ all:	$(PROGS)
 	$(CXX) $(CFLAGS) -c -o $@ $<  -I$(SMITHLAB_CPP)
 
 makedb : $(OBJDB) \
-	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
-
-markrp : $(OBJDB) \
 	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
 
 walt : $(OBJMAP) \
