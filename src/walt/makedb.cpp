@@ -114,6 +114,7 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
+
     //////////////////////////////////////////////////////////////
     // READ GENOME
     //

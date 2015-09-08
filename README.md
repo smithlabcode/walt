@@ -36,7 +36,6 @@ paired-end reads
 | Option | Long Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
 | -i      | -index | String | NULL | index file created by ***makedb*** command ( .dbindex) |
-| -k      | -kmer | Integer | 13 | k-mer length which is also the length keys in hash table |
 | -r      | -reads | String | NULL | list of single-end read files (.fastq or .fq) |
 | -1      | -reads1 | String | NULL | list of paired-end read _1 files (.fastq or .fq) |
 | -2      | -reads2 | String | NULL | list of paired-end read _2 files (.fastq or .fq) |
@@ -47,7 +46,7 @@ paired-end reads
 | -u      | -unmapped | Boolean | false | output unmapped reads |
 | -C      | -clip | String | empty | clip the specified adaptor |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
-| -K      | -topk | Integer | 50 | maximum allowed mappings for a read in paired-end mapping |
+| -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paired-end mapping |
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 | -t      | -thread | Integer | 1 | number of threads for mapping |
 
@@ -66,10 +65,6 @@ or to make an index for chromosome 2
 	makedb -c chr2.fa -o chr2.dbindex
 
 The suffix of the index file should be '.dbindex'.
-
-The option -k sets the length of k-mer or the number of nucleotides for hash keys. The default value is 13. Generally, there is no need to change the default value for this option. However, when the read is short than 39, you should set this option smaller. The read length cannot be longer than 3k. If the read is longer than 3k, it will be ignored. Therefore, if you want to map the reads with length 36, then the k should not be large than 12. Longer read runs faster in WALT, so it may take a long time for WALT to map short reads.
-
-	makedb -c hg19/ -k 12 -o hg19_kmer12.dbindex
     
 (2) **Bisulfite Mapping**
 
