@@ -37,10 +37,9 @@
 
 const char walt_version[] = "1.0";
 
-
 #define SEEPATTERNLEN 3
-//#define HASHLEN 39
-//const uint32_t F2SEEDWIGTH = 13;
+#define HASHLEN 39
+const uint32_t F2SEEDWIGTH = 13;
 const uint32_t F2SEEDPATTERN[] = {
      /* 1 */0, 1, 0,  //
      /* 2 */0, 1, 0,  //
@@ -224,8 +223,7 @@ inline uint32_t power(const uint32_t& x, const uint32_t& p) {
 }
 
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
-inline uint32_t getHashValue(const char* nucleotides,
-                             const uint32_t& F2SEEDWIGTH) {
+inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
   for (uint32_t i = 0; i < F2SEEDWIGTH; ++i) {
     hash_value <<= 2;

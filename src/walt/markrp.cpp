@@ -103,8 +103,7 @@ void SetBit(const pair<uint32_t, int>& pos, vector<vector<uint32_t> >& mark) {
 }
 
 void MarkRepeats(const string& index_file, const vector<Genome>& genome,
-                 vector<HashTable>& hash_table, const uint32_t& F2SEEDWIGTH,
-                 const bool& AG_WILDCARD,
+                 vector<HashTable>& hash_table, const bool& AG_WILDCARD,
                  const uint32_t& num_of_nucleotide_for_sort) {
   uint32_t num_of_bucket = power(4, F2SEEDWIGTH);
   uint32_t max_bucket_size = 0;
@@ -219,9 +218,9 @@ int main(int argc, const char **argv) {
     vector<Genome> genome(2);
     vector<HashTable> hash_table(2);
 
-    uint32_t size_of_index, F2SEEDWIGTH;
+    uint32_t size_of_index;
     for (int i = 0; i < 2; ++i) {
-      ReadIndexHeadInfo(index_file, genome[i], size_of_index, F2SEEDWIGTH);
+      ReadIndexHeadInfo(index_file, genome[i], size_of_index);
       genome[i].sequence.resize(genome[i].length_of_genome);
       hash_table[i].counter.resize(power(4, F2SEEDWIGTH) + 1);
       hash_table[i].index.resize(size_of_index);
@@ -231,14 +230,14 @@ int main(int argc, const char **argv) {
     bool AG_WILDCARD = false;
     ReadIndex(index_file + "_CT00", genome[0], hash_table[0]);
     ReadIndex(index_file + "_CT01", genome[1], hash_table[1]);
-    MarkRepeats(index_file, genome, hash_table, F2SEEDWIGTH, AG_WILDCARD,
+    MarkRepeats(index_file, genome, hash_table, AG_WILDCARD,
                 num_of_nucleotide_for_sort);
 
     ////////// MARK REPEATS FOR (G->A)
     AG_WILDCARD = true;
     ReadIndex(index_file + "_GA10", genome[0], hash_table[0]);
     ReadIndex(index_file + "_GA11", genome[1], hash_table[1]);
-    MarkRepeats(index_file, genome, hash_table, F2SEEDWIGTH, AG_WILDCARD,
+    MarkRepeats(index_file, genome, hash_table, AG_WILDCARD,
                 num_of_nucleotide_for_sort);
   } catch (const SMITHLABException &e) {
     fprintf(stderr, "%s\n", e.what().c_str());

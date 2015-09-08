@@ -118,18 +118,15 @@ void G2A(vector<char>& sequence);
 
 /* count how many k-mers for each hash value (bucket) */
 void CountBucketSize(const Genome& genome, HashTable& hash_table,
-                     const uint32_t& F2SEEDWIGTH,
                      set<uint32_t>& extremal_large_bucket);
 
 /* put genome positions to the corresponding bucket */
 void HashToBucket(const Genome& genome, HashTable& hash_table,
-                  const uint32_t& F2SEEDWIGTH,
                   const set<uint32_t>& extremal_large_bucket);
 
 /* Sort each bucket, if the seed length is more than 12, then use binary search
  * for the rest part of the seed */
-void SortHashTableBucket(const Genome& genome, HashTable& hash_table,
-                         const uint32_t& F2SEEDWIGTH);
+void SortHashTableBucket(const Genome& genome, HashTable& hash_table);
 
 #ifdef DEBUG
 /* Output the Hash Table to a human readable file for testing */
@@ -148,12 +145,11 @@ void ReadIndex(const string& index_file, Genome& genome, HashTable& hash_table);
 /* write the head information to disk, including 4 index names, chromosome names
  * and lengths, and also the largest size of index array in HashTable */
 void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
-                        const uint32_t& size_of_index,
-                        const uint32_t& F2SEEDWIGTH);
+                        const uint32_t& size_of_index);
 
 /* read the head information from disk */
 void ReadIndexHeadInfo(const string& index_file, Genome& genome,
-                       uint32_t& size_of_index, uint32_t& F2SEEDWIGTH);
+                       uint32_t& size_of_index);
 
 /* show genome length and the number of chromosomes in the genome */
 void ShowGenomeInfo(const string& index_file);

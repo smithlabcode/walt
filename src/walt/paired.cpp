@@ -67,8 +67,7 @@ void ForwardChromPosition(const uint32_t& genome_pos, const char& strand,
 }
 
 void PairEndMapping(const string& org_read, const Genome& genome,
-                    const HashTable& hash_table, const uint32_t& F2SEEDWIGTH,
-                    const uint32_t& HASHLEN, const char& strand,
+                    const HashTable& hash_table, const char& strand,
                     const bool& AG_WILDCARD, const uint32_t& max_mismatches,
                     TopCandidates& top_match) {
   uint32_t read_len = org_read.size();
@@ -94,7 +93,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
       break;
 
     string read_seed = read.substr(seed_i);
-    uint32_t hash_value = getHashValue(read_seed.c_str(), F2SEEDWIGTH);
+    uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
     region.first = hash_table.counter[hash_value];
     region.second = hash_table.counter[hash_value + 1];
@@ -102,7 +101,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
     if (region.first == region.second)
       continue;
 
-    IndexRegion(read_seed, genome, hash_table, F2SEEDWIGTH, seed_len, region);
+    IndexRegion(read_seed, genome, hash_table, seed_len, region);
     if (region.second - region.first + 1 > 50000) {
       continue;
     }
@@ -580,12 +579,11 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   Genome genome;
   HashTable hash_table;
 
-  uint32_t size_of_index, F2SEEDWIGTH;
-  ReadIndexHeadInfo(index_file, genome, size_of_index, F2SEEDWIGTH);
+  uint32_t size_of_index;
+  ReadIndexHeadInfo(index_file, genome, size_of_index);
   genome.sequence.resize(genome.length_of_genome);
   hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
   hash_table.index.resize(size_of_index);
-  uint32_t HASHLEN = SEEPATTERNLEN * F2SEEDWIGTH;
 
   vector<vector<string> > index_names(2, vector<string>(2));
   index_names[0][0] = index_file + "_CT00";
@@ -654,9 +652,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
         char strand = fi == 0 ? '+' : '-';
 #pragma omp parallel for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
-          PairEndMapping(read_seqs[pi][j], genome, hash_table, F2SEEDWIGTH,
-                         HASHLEN, strand, AG_WILDCARD, max_mismatches,
-                         top_results[pi][j]);
+          PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,
+                         AG_WILDCARD, max_mismatches, top_results[pi][j]);
         }
       }
     }
