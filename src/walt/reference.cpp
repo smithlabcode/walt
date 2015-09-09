@@ -170,9 +170,9 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
       const char* seq = &(genome.sequence[hash_table.index[j]]);
       for (uint32_t k = 0;
           k < 13
-              && F2SEEDPOSITION[k] + hash_table.index[j]
+              && F2CAREDPOSITION[k] + hash_table.index[j]
                   < genome.sequence.size(); ++k) {
-        fout << seq[F2SEEDPOSITION[k]];
+        fout << seq[F2CAREDPOSITION[k]];
       }
       fout << " ";
       for (uint32_t k = 0;
@@ -189,14 +189,14 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
 void CountBucketSize(const Genome& genome, HashTable& hash_table,
                      set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[COUNT BUCKET SIZE]\n");
-  hash_table.counter_size = power(4, F2SEEDWIGTH);
+  hash_table.counter_size = power(4, F2SEEDKEYWIGTH);
   hash_table.counter.resize(hash_table.counter_size + 1, 0);
 
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
-    if (genome.length[i] < HASHLEN)
+    if (genome.length[i] < MINIMALREADLEN)
       continue;
-    size = genome.start_index[i + 1] - HASHLEN;
+    size = genome.start_index[i + 1] - MINIMALREADLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
       hash_table.counter[hash_value]++;
@@ -232,9 +232,9 @@ void HashToBucket(const Genome& genome, HashTable& hash_table,
 
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
-    if (genome.length[i] < HASHLEN)
+    if (genome.length[i] < MINIMALREADLEN)
       continue;
-    size = genome.start_index[i + 1] - HASHLEN;
+    size = genome.start_index[i + 1] - MINIMALREADLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
       /* Extremal Large Bucket IS DELETED */
@@ -266,16 +266,16 @@ struct SortHashTableBucketCMP {
     uint32_t l1 = genome.start_index[chr_id1 + 1] - p1;
     uint32_t l2 = genome.start_index[chr_id2 + 1] - p2;
 
-    for (uint32_t j = F2SEEDWIGTH; j < F2SEEDPOSITION_SIZE; ++j) {
+    for (uint32_t j = F2SEEDKEYWIGTH; j < F2CAREDPOSITION_SIZE; ++j) {
       /*Strict Weak Ordering */
-      if (F2SEEDPOSITION[j] >= l2)
+      if (F2CAREDPOSITION[j] >= l2)
         return false;
-      if (F2SEEDPOSITION[j] >= l1)
+      if (F2CAREDPOSITION[j] >= l1)
         return true;
 
-      if (c_seq1[F2SEEDPOSITION[j]] < c_seq2[F2SEEDPOSITION[j]])
+      if (c_seq1[F2CAREDPOSITION[j]] < c_seq2[F2CAREDPOSITION[j]])
         return true;
-      else if (c_seq1[F2SEEDPOSITION[j]] > c_seq2[F2SEEDPOSITION[j]])
+      else if (c_seq1[F2CAREDPOSITION[j]] > c_seq2[F2CAREDPOSITION[j]])
         return false;
     }
     return false;
