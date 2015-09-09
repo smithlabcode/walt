@@ -276,7 +276,7 @@ const uint32_t F2CAREDPOSITION[] = {
     /* 13 */120, 122, 125, 127,  //
     /* 14 */130, 132, 135, 137,  //
     };
-const uint32_t F2NOCAREDPOSITION[5][100] = {
+const uint32_t F2NOCAREDPOSITION[5][90] = {
                     /* 0 */ {   1,   3,   4,   6,   8,   9,
                                11,  13,  14,  16,  18,  19,
                                21,  23,  24,  26,  28,  29,
