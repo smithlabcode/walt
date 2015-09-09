@@ -94,10 +94,10 @@ void PairEndMapping(const string& org_read, const Genome& genome,
         && seed_i)
       break;
 
-#ifdef SEEDPATTERN3
+#if defined SEEDPATTERN3 || SEEDPATTERN5
     /* all matches with 1 mismatch are covered by the first two seeds */
     if (!top_match.Empty() && top_match.Full() && top_match.Top().mismatch == 1
-        && seed_i == 2)
+        && seed_i >= 2)
       break;
 #endif
 
@@ -161,7 +161,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 
 void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
                           const string& output_file) {
-  freopen(string(output_file + ".mapping_state_log").c_str(), "w", stdout);
+  freopen(string(output_file + ".mapping_rate").c_str(), "w", stdout);
   fprintf(stdout, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
           stat_paired_reads.total_read_pairs);
   fprintf(

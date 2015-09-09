@@ -217,9 +217,9 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
     if (best_match.mismatch == 0 && seed_i)
       break;
 
-#ifdef SEEDPATTERN3
+#if defined SEEDPATTERN3 || SEEDPATTERN5
     /* all matches with 1 mismatch are covered by the first two seeds */
-    if (best_match.mismatch == 1 && seed_i == 2)
+    if (best_match.mismatch == 1 && seed_i >= 2)
       break;
 #endif
 
@@ -475,7 +475,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  freopen(string(output_file + ".mapping_state_log").c_str(), "w", stdout);
+  freopen(string(output_file + ".mapping_rate").c_str(), "w", stdout);
   fprintf(stdout, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
