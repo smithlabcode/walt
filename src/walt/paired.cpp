@@ -161,7 +161,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 
 void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
                           const string& output_file) {
-  freopen(string(output_file + ".mapping_rate").c_str(), "w", stdout);
+  freopen(string(output_file + ".mapstats").c_str(), "w", stdout);
   fprintf(stdout, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
           stat_paired_reads.total_read_pairs);
   fprintf(

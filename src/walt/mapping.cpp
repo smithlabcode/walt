@@ -475,7 +475,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  freopen(string(output_file + ".mapping_rate").c_str(), "w", stdout);
+  freopen(string(output_file + ".mapstats").c_str(), "w", stdout);
   fprintf(stdout, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
