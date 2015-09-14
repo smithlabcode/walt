@@ -35,7 +35,7 @@ paired-end reads
 
 | Option | Long Tag | Type | Default | Brief Description |
 | :-------------: |:-------------:|:-----:|:-----:| :-----|
-| -i      | -index | String | NULL |index file created by ***makedb*** command ( .dbindex) |
+| -i      | -index | String | NULL | index file created by ***makedb*** command ( .dbindex) |
 | -r      | -reads | String | NULL | list of single-end read files (.fastq or .fq) |
 | -1      | -reads1 | String | NULL | list of paired-end read _1 files (.fastq or .fq) |
 | -2      | -reads2 | String | NULL | list of paired-end read _2 files (.fastq or .fq) |

@@ -25,8 +25,8 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#include <assert.h>
 #include <stdio.h>
+#include <assert.h>
 #include <stdint.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -35,152 +35,9 @@
 #include <limits>
 #include <string>
 
+#include "seedpattern.hpp"
+
 const char walt_version[] = "1.0";
-
-//#define SEEDPATTERN7
-#ifdef SEEDPATTERN7
-#define SEEPATTERNLEN 7
-#define HASHLEN 21
-const uint32_t F2SEEDWIGTH = 12;
-const uint32_t F2SEEDPATTERN[] = {
-     /* 1 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 2 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 3 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 4 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 5 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 6 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 7 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 8 */1, 1, 1, 0, 1, 0, 0,  //
-     /* 9 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 10 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 11 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 12 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 13 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 14 */1, 1, 1, 0, 1, 0, 0,  //
-    /* 15 */1, 1, 1, 0, 1, 0, 0   //
-    };
-
-const uint32_t F2SEEDPOSITION_SIZE = 60;
-const uint32_t F2SEEDPOSITION[] = {
-     /* 1 */0,   1,  2, 4,  //
-     /* 2 */7,   8,  9, 11,  //
-     /* 3 */14, 15, 16, 18,  //
-     /* 4 */21, 22, 23, 25,  //
-     /* 5 */28, 29, 30, 32,  //
-     /* 6 */35, 36, 37, 39,  //
-     /* 7 */42, 43, 44, 46,  //
-     /* 8 */49, 50, 51, 53,  //
-     /* 9 */56, 57, 58, 60,  //
-    /* 10 */63, 64, 65, 67,  //
-    /* 11 */70, 71, 72, 74,  //
-    /* 12 */77, 78, 79, 81,  //
-    /* 13 */84, 85, 86, 88,  //
-    /* 14 */91, 92, 93, 95,  //
-    /* 15 */98, 99, 100, 102 //
-    };
-#endif
-
-//#define SEEDPATTERN5
-#ifdef SEEDPATTERN5
-#define SEEPATTERNLEN 5
-#define HASHLEN 30
-const uint32_t F2SEEDWIGTH = 12;
-const uint32_t F2SEEDPATTERN[] = {
-     /* 1 */1, 0, 1, 0, 0,  //
-     /* 2 */1, 0, 1, 0, 0,  //
-     /* 3 */1, 0, 1, 0, 0,  //
-     /* 4 */1, 0, 1, 0, 0,  //
-     /* 5 */1, 0, 1, 0, 0,  //
-     /* 6 */1, 0, 1, 0, 0,  //
-     /* 7 */1, 0, 1, 0, 0,  //
-     /* 8 */1, 0, 1, 0, 0,  //
-     /* 9 */1, 0, 1, 0, 0,  //
-    /* 10 */1, 0, 1, 0, 0,  //
-    /* 11 */1, 0, 1, 0, 0,  //
-    /* 12 */1, 0, 1, 0, 0,  //
-    /* 13 */1, 0, 1, 0, 0,  //
-    /* 14 */1, 0, 1, 0, 0,  //
-    /* 15 */1, 0, 1, 0, 0   //
-    };
-
-const uint32_t F2SEEDPOSITION_SIZE = 56;
-const uint32_t F2SEEDPOSITION[] = {
-     /* 1 */  0,   2,   5,   7,  //
-     /* 2 */ 10,  12,  15,  17,  //
-     /* 3 */ 20,  22,  25,  27,  //
-     /* 4 */ 30,  32,  35,  37,  //
-     /* 5 */ 40,  42,  45,  47,  //
-     /* 6 */ 50,  52,  55,  57,  //
-     /* 7 */ 60,  62,  65,  67,  //
-     /* 8 */ 70,  72,  75,  77,  //
-     /* 9 */ 80,  82,  85,  87,  //
-    /* 10 */ 90,  92,  95,  97,  //
-    /* 11 */100, 102, 105, 107,  //
-    /* 12 */110, 112, 115, 117,  //
-    /* 13 */120, 122, 125, 127,  //
-    /* 14 */130, 132, 135, 137,  //
-    };
-#endif
-
-#define SEEDPATTERN3
-#ifdef SEEDPATTERN3
-#define SEEPATTERNLEN 3
-#define HASHLEN 39
-const uint32_t F2SEEDWIGTH = 13;
-const uint32_t F2SEEDPATTERN[] = {
-     /* 1 */0, 1, 0,  //
-     /* 2 */0, 1, 0,  //
-     /* 3 */0, 1, 0,  //
-     /* 4 */0, 1, 0,  //
-     /* 5 */0, 1, 0,  //
-     /* 6 */0, 1, 0,  //
-     /* 7 */0, 1, 0,  //
-     /* 8 */0, 1, 0,  //
-     /* 9 */0, 1, 0,  //
-    /* 10 */0, 1, 0,  //
-    /* 11 */0, 1, 0,  //
-    /* 12 */0, 1, 0,  //
-    /* 13 */0, 1, 0,  //
-    /* 14 */0, 1, 0,  //
-    /* 15 */0, 1, 0,  //
-    /* 16 */0, 1, 0,  //
-    /* 17 */0, 1, 0,  //
-    /* 18 */0, 1, 0,  //
-    /* 19 */0, 1, 0,  //
-    /* 20 */0, 1, 0,  //
-    /* 21 */0, 1, 0,  //
-    /* 22 */0, 1, 0,  //
-    /* 23 */0, 1, 0,  //
-    /* 24 */0, 1, 0,  //
-    /* 25 */0, 1, 0,  //
-    /* 26 */0, 1, 0,  //
-    /* 27 */0, 1, 0,  //
-    /* 28 */0, 1, 0,  //
-    /* 29 */0, 1, 0,  //
-    /* 30 */0, 1, 0,  //
-    /* 31 */0, 1, 0,  //
-    /* 32 */0, 1, 0,  //
-    /* 33 */0, 1, 0,  //
-    /* 34 */0, 1, 0,  //
-    /* 35 */0, 1, 0,  //
-    /* 36 */0, 1, 0,  //
-    /* 37 */0, 1, 0,  //
-    /* 38 */0, 1, 0,  //
-    /* 39 */0, 1, 0,  //
-    /* 40 */0, 1, 0,  //
-    /* 41 */0, 1, 0,  //
-    /* 42 */0, 1, 0,  //
-    /* 43 */0, 1, 0,  //
-    /* 44 */0, 1, 0,  //
-    /* 45 */0, 1, 0   //
-    };
-const uint32_t F2SEEDPOSITION_SIZE = 45;
-const uint32_t F2SEEDPOSITION[] = {  1,   4,   7,  10,  13,  16,  19,  22,  25,  28,
-                                    31,  34,  37,  40,  43,  46,  49,  52,  55,  58,
-                                    61,  64,  67,  70,  73,  76,  79,  82,  85,  88,
-                                    91,  94,  97, 100, 103, 106, 109, 112, 115, 118,
-                                   121, 124, 127, 130, 133 };
-#endif
 
 const uint32_t MAX_LINE_LENGTH = 1000;
 const uint32_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
@@ -294,16 +151,11 @@ inline uint32_t power(const uint32_t& x, const uint32_t& p) {
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
-  for (uint32_t i = 0; i < F2SEEDWIGTH; ++i) {
+  for (uint32_t i = 0; i < F2SEEDKEYWIGTH; ++i) {
     hash_value <<= 2;
-    hash_value += getBits(nucleotides[F2SEEDPOSITION[i]]);
+    hash_value += getBits(nucleotides[F2CAREDPOSITION[i]]);
   }
   return hash_value;
-}
-
-/* return the maximal seed length for a particular read length */
-inline uint32_t getSeedLength(const uint32_t& read_len) {
-  return (read_len - SEEPATTERNLEN + 1) / SEEPATTERNLEN;
 }
 
 #endif /* UTIL_H_ */

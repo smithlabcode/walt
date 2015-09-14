@@ -170,10 +170,16 @@ void IndexRegion(const string& read, const Genome& genome,
                  const HashTable& hash_table, const uint32_t& seed_len,
                  pair<uint32_t, uint32_t>& region) {
   uint32_t l = region.first, u = region.second - 1;
-  for (uint32_t p = F2SEEDWIGTH; p < seed_len; ++p) {
-    uint32_t care_pos = F2SEEDPOSITION[p];
+  for (uint32_t p = F2SEEDKEYWIGTH; p < seed_len; ++p) {
+    uint32_t care_pos = F2CAREDPOSITION[p];
     l = LowerBound(l, u, read[care_pos], care_pos, genome, hash_table);
     u = UpperBound(l, u, read[care_pos], care_pos, genome, hash_table);
+    if (l == u
+        && read[care_pos] != genome.sequence[hash_table.index[l] + care_pos]) {
+      region.first = 1;
+      region.second = 0;
+      return;
+    }
   }
 
   if (l > u) {
@@ -190,10 +196,14 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
                       const HashTable& hash_table, const char& strand,
                       const bool& AG_WILDCARD, BestMatch& best_match) {
   uint32_t read_len = org_read.size();
-  if (read_len < HASHLEN) {
+  if (read_len < MINIMALREADLEN) {
     return;
   }
-  uint32_t seed_len = getSeedLength(read_len);
+
+  /* return the maximal seed length for a particular read length */
+  uint32_t seed_pattern_repeats = (read_len - SEEPATTERNLEN + 1)
+      / SEEPATTERNLEN;
+  uint32_t seed_len = seed_pattern_repeats * SEEPATTERNCAREDWEIGHT;
 
   string read;
   if (AG_WILDCARD) {
@@ -203,8 +213,22 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 
   for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
-    if (best_match.mismatch == 0 && seed_i) /* different with paired-end*/
+    /* all exact matches are covered by the first seed */
+    if (best_match.mismatch == 0 && seed_i)
       break;
+
+#if defined SEEDPATTERN3 || SEEDPATTERN5
+    /* all matches with 1 mismatch are covered by the first two seeds */
+    if (best_match.mismatch == 1 && seed_i >= 2)
+      break;
+#endif
+
+#ifdef SEEDPATTERN7
+    /* all matches with 1 mismatch are covered by the first two seeds */
+    if (best_match.mismatch == 1 && seed_i >= 4)
+      break;
+#endif
+
     string read_seed = read.substr(seed_i);
     uint32_t hash_value = getHashValue(read_seed.c_str());
     pair<uint32_t, uint32_t> region;
@@ -229,9 +253,18 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
 
       /* check the position */
       uint32_t num_of_mismatch = 0;
-      for (uint32_t q = genome_pos, p = 0;
-          p < read_len && num_of_mismatch <= best_match.mismatch; ++q, ++p) {
-        if (genome.sequence[q] != read[p]) {
+      uint32_t num_of_nocared = seed_pattern_repeats * SEEPATTERNNOCAREDWEIGHT
+          + seed_i;
+      for (uint32_t p = 0;
+          p < num_of_nocared && num_of_mismatch <= best_match.mismatch; ++p) {
+        if (genome.sequence[genome_pos + F2NOCAREDPOSITION[seed_i][p]]
+            != read[F2NOCAREDPOSITION[seed_i][p]]) {
+          num_of_mismatch++;
+        }
+      }
+      for (uint32_t p = seed_pattern_repeats * SEEPATTERNLEN + seed_i;
+          p < read_len && num_of_mismatch <= best_match.mismatch; ++p) {
+        if (genome.sequence[genome_pos + p] != read[p]) {
           num_of_mismatch++;
         }
       }
@@ -263,7 +296,7 @@ void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
                                       const string& read_seq,
                                       const string& read_score,
                                       const Genome& genome,
-                                      const bool AG_WILDCARD, FILE * fout) {
+                                      const bool& AG_WILDCARD, FILE * fout) {
   uint32_t chr_id = getChromID(genome.start_index, best_match.genome_pos);
   uint32_t start_pos = best_match.genome_pos - genome.start_index[chr_id];
   if ('-' == best_match.strand) {
@@ -365,7 +398,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   uint32_t size_of_index;
   ReadIndexHeadInfo(index_file, genome, size_of_index);
   genome.sequence.resize(genome.length_of_genome);
-  hash_table.counter.resize(power(4, F2SEEDWIGTH) + 1);
+  hash_table.counter.resize(power(4, F2SEEDKEYWIGTH) + 1);
   hash_table.index.resize(size_of_index);
 
   vector<string> index_names;
@@ -442,7 +475,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  freopen(string(output_file + ".mapping_state_log").c_str(), "w", stdout);
+  freopen(string(output_file + ".mapstats").c_str(), "w", stdout);
   fprintf(stdout, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
