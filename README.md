@@ -41,7 +41,7 @@ paired-end reads
 | -2      | -reads2 | String | NULL | list of paired-end read _2 files (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name (.sam or .mr) |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
-| -N      | -number | Integer | 5000000 | number of reads to map at one loop |
+| -N      | -number | Integer | 5000000 | number of reads to map in one loop |
 | -a      | -ambiguous | Boolean | false | randomly output one mapped position for ambiguous reads |
 | -u      | -unmapped | Boolean | false | output unmapped reads |
 | -C      | -clip | String | empty | clip the specified adaptor |
@@ -84,7 +84,7 @@ For paired-end reads, -1 and -2 options are used for the mate read files.
     
     walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -o paired_mapping.sam
     
-Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each pair of read files. The output file names will be appended "_p1", "_p2", and so on. One other thing to note is mate 1 and mate 2 paired files should be in the same order.
+Similarly, WALT supports comma-separated list of read files for paired-end mapping. WALT produces one mapping output file for each pair of read files. The output file names will be appended "_p1", "_p2", and so on. One other thing to note is the mate 1 and mate 2 paired files should be in the same order.
 
 	 walt -i hg19.dbindex -1 read_file1_1.fq,read_file2_1.fq,read_file3_1.fq \ 
 	                      -2 read_file1_2.fq,read_file2_2.fq,read_file3_2.fq \
@@ -94,7 +94,7 @@ The default number of maximum allowed mismatches is 6. The maximum allowed misma
 
     walt -i hg19.dbindex -r read_1.fq -m 4 -o reads_1_mapping.sam
     
-The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end mapping. If N is 1000000, both single-end and paired-end mapping take about 15 Gb memory. If N is 5000000, single-end mapping takes about 16 Gb memory, and paired-end mapping takes about 25 Gb memory. If N is set to be larger than 5000000, the program will set N to be 5000000 since when N is too large the program will take large memory but it will not be faster. The estimate memory for single-end mapping is 14 + N * (2 * rl + rnl + 16) / (1024^3) Gb, and for paired-end mapping is 14 + N * (4 * rl + 2 * rnl + 24 * k + 16) / (1024^3) Gb. N is the number of reads to map at one loop. rl is the length of reads (WALT supports mix of different lengths reads, so here rl is estimate of the average length). rnl is the length of read names. k is maximum allowed mappings for a read in paired-end mapping
+The option -N sets the number of reads to mapping in each loop. If N is larger, the program takes large memory, especially for paired-end mapping. For Human Genome, if N is 1000000, both single-end and paired-end mapping take about 16 Gb memory. If N is 5000000, single-end mapping takes about 18 Gb memory, while paired-end mapping takes about 28 Gb memory. If N is set to be larger than 5000000, the program will set N to be 5000000 since when N is too large the program will take large memory but it will not be faster. The estimate memory for single-end mapping is 15 + N * (2 * rl + rnl + 16) / (1024^3) Gb, and for paired-end mapping is 15 + N * (4 * rl + 2 * rnl + 24 * k + 16) / (1024^3) Gb. The index size of human genome is about 15Gb. N is the number of reads to map in one loop. rl is the length of reads (WALT supports mix of different lengths reads, so here rl is estimation of the average length). rnl is the length of read names. k is maximum allowed mappings for a read in paired-end mapping.
     
     walt -i hg19.dbindex -r read_1.fq -N 1000000 -o reads_1_mapping.sam
     
@@ -146,7 +146,7 @@ By default, WALT only outputs uniquely mapped reads. If -u or -a option is set, 
 * SEQ
 * QUAL
 
-If paired-end reads mapped in proper pair, the QNAME is added "FRAG:" in the beginning of the read name, the STRAND is the strand of the first mate mapped and SEQ and QUAL is merged according to their mapping positions. The overlap segment of SEQ and QUAL is from mate 1 or mate 2 and it is the one with less number of 'N' in the read sequence. MISMATCH is the sum of mismatches in mate 1 and mismatches in mate 2. If paired-end reads don't mapped in proper pair, they are treated as single-end reads. If -u and/or -a option is set, the ambiguous mapped or unmapped reads are output in a separate files.
+If paired-end reads are mapped in proper pair, the QNAME is added "FRAG:" in the beginning of the read name, the STRAND is the strand of the first mate mapped and SEQ and QUAL is merged according to their mapping positions. The overlap segment of SEQ and QUAL is from the mate 1 or mate 2 and it is the one with less number of 'N' in the read sequence. MISMATCH is the sum of mismatches in the mate 1 and mismatches in the mate 2. If paired-end reads are not mapped in proper pair, they are treated as single-end reads. If -u and/or -a option is set, the ambiguous mapped or unmapped reads are output in separate files.
 
     
 ### Contacts ###
