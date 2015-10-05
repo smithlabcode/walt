@@ -239,7 +239,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
-    if (region.second - region.first + 1 > 50000) {
+    if (region.second - region.first + 1 > 5000) {
       continue;
     }
     for (uint32_t j = region.first; j <= region.second; ++j) {
@@ -475,29 +475,30 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  freopen(string(output_file + ".mapstats").c_str(), "w", stdout);
-  fprintf(stdout, "[TOTAL NUMBER OF READS: %u]\n",
+  FILE * fstat = fopen(string(output_file + ".mapstats").c_str(), "w");
+  fprintf(fstat, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
-      stdout,
+      fstat,
       "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.unique_mapped_reads,
       100.00 * stat_single_reads.unique_mapped_reads
           / stat_single_reads.total_reads);
   fprintf(
-      stdout,
+      fstat,
       "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.ambiguous_mapped_reads,
       100.00 * stat_single_reads.ambiguous_mapped_reads
           / stat_single_reads.total_reads);
   fprintf(
-      stdout,
+      fstat,
       "[UNMAPPED READS: %u (%.2lf%%)]\n",
       stat_single_reads.unmapped_reads,
       100.00 * stat_single_reads.unmapped_reads
           / stat_single_reads.total_reads);
+  fclose(fstat);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));
-  fclose (stdout);
+
 }

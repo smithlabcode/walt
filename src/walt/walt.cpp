@@ -35,16 +35,26 @@
 
 int main(int argc, const char **argv) {
   try {
-    /* show the command line one the screen */
-    fprintf(stderr, "[WELCOME TO WALT v%s]\n", walt_version);
     string command = argv[0];
-    fprintf(stderr, "[%s", argv[0]);
+    bool help_info = false;
     for (int i = 1; i < argc; i++) {
-      fprintf(stderr, " %s", argv[i]);
       command += " ";
       command += argv[i];
+      if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "-about") == 0
+          || strcmp(argv[i], "-?") == 0) {
+        help_info = true;
+      }
     }
-    fprintf(stderr, "]\n");
+
+    if (argc > 1 && help_info == false) {
+      /* show the command line one the screen */
+      fprintf(stderr, "[WELCOME TO WALT v%s]\n", walt_version);
+      fprintf(stderr, "[%s", argv[0]);
+      for (int i = 1; i < argc; i++) {
+        fprintf(stderr, " %s", argv[i]);
+      }
+      fprintf(stderr, "]\n");
+    }
 
     /* singled-end reads file, comma-separated list of files */
     string reads_file_s;
