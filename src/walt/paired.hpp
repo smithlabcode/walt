@@ -112,6 +112,9 @@ struct StatPairedReads {
     unmapped_pairs = 0;
 
     fragment_len_count.resize(frag_range + 1);
+    for (uint32_t i = 0; i < fragment_len_count.size(); ++i) {
+      fragment_len_count[i] = 0;
+    }
   }
 
   uint32_t total_read_pairs;
