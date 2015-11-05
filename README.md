@@ -41,7 +41,7 @@ paired-end reads
 | -2      | -reads2 | String | NULL | list of paired-end read _2 files (.fastq or .fq) |
 | -o      | -output | String | NULL | output file name (.sam or .mr) |
 | -m      | -mismatch | Integer | 6 | maximum allowed mismatches |
-| -N      | -number | Integer | 5000000 | number of reads to map in one loop |
+| -N      | -number | Integer | 1000000 | number of reads to map in one loop |
 | -a      | -ambiguous | Boolean | false | randomly output one mapped position for ambiguous reads |
 | -u      | -unmapped | Boolean | false | output unmapped reads |
 | -C      | -clip | String | empty | clip the specified adaptor |
