@@ -29,8 +29,6 @@
 
 #include <queue>
 
-#define MAX_NUM_EXACT_MAPPED 500
-
 /* CandidatePosition stores the candidate genome positions with number of
  * mismatches less or equal to max_mismatches */
 struct CandidatePosition {
@@ -82,10 +80,6 @@ struct TopCandidates {
   }
 
   void Push(const CandidatePosition& cand) {
-    if (cand.mismatch == 0 && candidates.size() < MAX_NUM_EXACT_MAPPED) {
-      candidates.push(cand);
-      return;
-    }
     if (candidates.size() < size) {
       candidates.push(cand);
     } else {
@@ -108,13 +102,16 @@ struct TopCandidates {
  * unmapped reads pairs */
 struct StatPairedReads {
   StatPairedReads(const bool& _ambiguous, const bool& _unmapped,
-                  const string& output_file, const bool& SAM)
+                  const uint32_t& frag_range, const string& output_file,
+                  const bool& SAM)
       : stat_single_reads_1(_ambiguous, _unmapped, output_file + "_1", SAM),
         stat_single_reads_2(_ambiguous, _unmapped, output_file + "_2", SAM) {
     total_read_pairs = 0;
     unique_mapped_pairs = 0;
     ambiguous_mapped_pairs = 0;
     unmapped_pairs = 0;
+
+    fragment_len_count.resize(frag_range + 1);
   }
 
   uint32_t total_read_pairs;
@@ -124,6 +121,9 @@ struct StatPairedReads {
 
   StatSingleReads stat_single_reads_1;
   StatSingleReads stat_single_reads_2;
+
+  // distribution of fragment length
+  vector<uint32_t> fragment_len_count;
 };
 
 /* paired-end read */

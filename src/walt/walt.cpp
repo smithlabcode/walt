@@ -99,7 +99,7 @@ int main(int argc, const char **argv) {
     uint32_t max_mismatches = 6;
 
     /* number of reads to map at one loop */
-    uint32_t n_reads_to_process = 5000000;
+    uint32_t n_reads_to_process = 1000000;
 
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 50;

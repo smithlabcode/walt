@@ -220,6 +220,21 @@ void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
       stat_paired_reads.stat_single_reads_2.unmapped_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.unmapped_reads
           / stat_paired_reads.total_read_pairs);
+
+  // distribution of fragment length
+  fprintf(fstat, "\n\nDISTRIBUTION OF PAIRED-END FRAGMNET LENGTH\n");
+  for (uint32_t i = 1; i < stat_paired_reads.fragment_len_count.size(); ++i) {
+    if (stat_paired_reads.fragment_len_count[i] != 0) {
+      fprintf(
+          fstat,
+          "%u:\t%u\t(%.2lf%%)\n",
+          i,
+          stat_paired_reads.fragment_len_count[i],
+          100.00 * stat_paired_reads.fragment_len_count[i]
+              / stat_paired_reads.unique_mapped_pairs);
+    }
+  }
+
   fclose(fstat);
 }
 
@@ -538,6 +553,7 @@ void MergePairedEndResults(
                                   frag_range, read_len1, read_len2, genome,
                                   read_name, read_seq1, read_score1, read_seq2,
                                   read_score2, SAM, fout);
+    stat_paired_reads.fragment_len_count[len]++;
     if (SAM) {  // SAM
       is_paired_mapped = true;
       const CandidatePosition& r1 = ranked_results[0][best_pair.first];
@@ -615,7 +631,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
   vector<int> ranked_results_size(2);
   vector<vector<CandidatePosition> > ranked_results(2,
-          vector<CandidatePosition>(MAX_NUM_EXACT_MAPPED));
+          vector<CandidatePosition>(top_k));
 
   vector<vector<TopCandidates> > top_results(2,
          vector<TopCandidates>(n_reads_to_process));
@@ -638,7 +654,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
     throw SMITHLABException("cannot open input file " + output_file);
   }
   uint32_t num_of_reads[2];
-  StatPairedReads stat_paired_reads(ambiguous, unmapped, output_file, SAM);
+  StatPairedReads stat_paired_reads(ambiguous, unmapped, frag_range,
+                                    output_file, SAM);
   bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
