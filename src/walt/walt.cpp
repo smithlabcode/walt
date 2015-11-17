@@ -260,7 +260,7 @@ int main(int argc, const char **argv) {
       }
     }
 
-    uint32_t suffix_pos = output_file.find_last_of(".");
+    size_t suffix_pos = output_file.find_last_of(".");
     if (suffix_pos == string::npos) {
       SAM = true;
     } else if (".mr" == output_file.substr(suffix_pos)) {
