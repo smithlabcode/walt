@@ -78,6 +78,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
   /* return the maximal seed length for a particular read length */
   uint32_t seed_pattern_repeats = (read_len - SEEPATTERNLEN + 1)
       / SEEPATTERNLEN;
+  seed_pattern_repeats = seed_pattern_repeats < 50 ? seed_pattern_repeats : 50;
   uint32_t seed_len = seed_pattern_repeats * SEEPATTERNCAREDWEIGHT;
 
   string read;
