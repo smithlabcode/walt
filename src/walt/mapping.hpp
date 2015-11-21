@@ -63,6 +63,8 @@ struct StatSingleReads {
     ambiguous_mapped_reads = 0;
     unmapped_reads = 0;
 
+    num_of_short_reads = 0;
+
     if (ambiguous && !SAM) {
       fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
       if (!fambiguous) {
@@ -91,6 +93,9 @@ struct StatSingleReads {
   uint32_t unique_mapped_reads;
   uint32_t ambiguous_mapped_reads;
   uint32_t unmapped_reads;
+
+  // number of reads that are shorter than the minimum length requirement
+  uint32_t num_of_short_reads;
 
   FILE * fambiguous;
   FILE * funmapped;

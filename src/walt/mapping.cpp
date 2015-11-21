@@ -194,9 +194,11 @@ void IndexRegion(const string& read, const Genome& genome,
 
 void SingleEndMapping(const string& org_read, const Genome& genome,
                       const HashTable& hash_table, const char& strand,
-                      const bool& AG_WILDCARD, BestMatch& best_match) {
+                      const bool& AG_WILDCARD, BestMatch& best_match,
+                      StatSingleReads& stat_single_reads) {
   uint32_t read_len = org_read.size();
   if (read_len < MINIMALREADLEN) {
+    stat_single_reads.num_of_short_reads++;
     return;
   }
 
@@ -453,7 +455,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
 #pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
-                         map_results[j]);
+                         map_results[j], stat_single_reads);
       }
     }
     //////////////////////////////////////////////////////////
@@ -497,6 +499,19 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       stat_single_reads.unmapped_reads,
       100.00 * stat_single_reads.unmapped_reads
           / stat_single_reads.total_reads);
+
+  if (stat_single_reads.num_of_short_reads != 0) {
+    fprintf(fstat, "\n\n[READS SHORTER THAN %d ARE IGNORED]\n",
+            MINIMALREADLEN);
+    fprintf(
+        fstat,
+        "[%u (%.2lf%%) READS ARE SHORTER THAN %d]\n",
+        stat_single_reads.num_of_short_reads,
+        100.00 * stat_single_reads.num_of_short_reads
+            / stat_single_reads.total_reads,
+        MINIMALREADLEN);
+  }
+
   fclose(fstat);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",

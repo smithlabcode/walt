@@ -69,9 +69,11 @@ void ForwardChromPosition(const uint32_t& genome_pos, const char& strand,
 void PairEndMapping(const string& org_read, const Genome& genome,
                     const HashTable& hash_table, const char& strand,
                     const bool& AG_WILDCARD, const uint32_t& max_mismatches,
-                    TopCandidates& top_match) {
+                    TopCandidates& top_match,
+                    StatSingleReads& stat_single_reads) {
   uint32_t read_len = org_read.size();
   if (read_len < MINIMALREADLEN) {
+    stat_single_reads.num_of_short_reads++;
     return;
   }
 
@@ -222,6 +224,26 @@ void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
       100.00 * stat_paired_reads.stat_single_reads_2.unmapped_reads
           / stat_paired_reads.total_read_pairs);
 
+  if (stat_paired_reads.stat_single_reads_1.num_of_short_reads != 0
+      || stat_paired_reads.stat_single_reads_2.num_of_short_reads != 0) {
+    fprintf(fstat, "\n\n[READS SHORTER THAN %d ARE IGNORED]\n",
+            MINIMALREADLEN);
+    fprintf(
+        fstat,
+        "[%u (%.2lf%%) READS ARE SHORTER THAN %d IN MATE_1]\n",
+        stat_paired_reads.stat_single_reads_1.num_of_short_reads,
+        100.00 * stat_paired_reads.stat_single_reads_1.num_of_short_reads
+            / stat_paired_reads.total_read_pairs,
+        MINIMALREADLEN);
+    fprintf(
+        fstat,
+        "[%u (%.2lf%%) READS ARE SHORTER THAN %d IN MATE_2]\n",
+        stat_paired_reads.stat_single_reads_2.num_of_short_reads,
+        100.00 * stat_paired_reads.stat_single_reads_2.num_of_short_reads
+            / stat_paired_reads.total_read_pairs,
+        MINIMALREADLEN);
+  }
+
   // distribution of fragment length
   fprintf(fstat, "\n\nDISTRIBUTION OF PAIRED-END FRAGMNET LENGTH\n");
   for (uint32_t i = 1; i < stat_paired_reads.fragment_len_count.size(); ++i) {
@@ -321,7 +343,7 @@ int OutputBestPairedResults(const CandidatePosition& r1,
           read_name.c_str(), r1.mismatch + r2.mismatch, r1.strand, seq.c_str(),
           scr.c_str());
 
-  return 0;
+  return len;
 }
 
 void GetBestMatch4Single(const vector<CandidatePosition>& ranked_results,
@@ -671,6 +693,10 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
       AG_WILDCARD = pi == 1 ? true : false;
+      StatSingleReads& stat_single_reads =
+          pi == 0 ?
+              stat_paired_reads.stat_single_reads_1 :
+              stat_paired_reads.stat_single_reads_2;
       LoadReadsFromFastqFile(fin[pi], i, n_reads_to_process, adaptors[pi],
                              num_of_reads[pi], read_names[pi], read_seqs[pi],
                              read_scores[pi]);
@@ -686,10 +712,12 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
       for (uint32_t fi = 0; fi < 2; ++fi) {
         ReadIndex(index_names[pi][fi], genome, hash_table);
         char strand = fi == 0 ? '+' : '-';
+
 #pragma omp parallel for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
           PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,
-                         AG_WILDCARD, max_mismatches, top_results[pi][j]);
+                         AG_WILDCARD, max_mismatches, top_results[pi][j],
+                         stat_single_reads);
         }
       }
     }
