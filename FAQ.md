@@ -1,6 +1,6 @@
 ## Frequently Asked Questions ##
 
-1. When does WALT get much lower mapping rate (mapping effiency) compared to other bisulfite mappers?
+1. Why does WALT get much lower mapping rate (mapping effiency) compared to other bisulfite mappers?
 	
 	By default, WALT ignores reads shorter than 39. If you get lower mapping rate, please go to mapstats file and check the 			percentage of reads that are shorter than 39. If a large portion of reads are shorter than 39, I suggest you use WALT seed 	pattern 7.
 
