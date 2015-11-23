@@ -354,8 +354,8 @@ const uint32_t F2NOCAREDPOSITION[5][90] = {
 #define SEEPATTERNLEN 3
 #define SEEPATTERNCAREDWEIGHT 1
 #define SEEPATTERNNOCAREDWEIGHT 2
-#define MINIMALREADLEN 39
-const uint32_t F2SEEDKEYWIGTH = 13;
+#define MINIMALREADLEN 36
+const uint32_t F2SEEDKEYWIGTH = 12;
 const uint32_t F2SEEDPATTERN[] = {
      /* 1 */0, 1, 0,  //
      /* 2 */0, 1, 0,  //
