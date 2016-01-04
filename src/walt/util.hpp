@@ -97,7 +97,9 @@ inline char getNT(const int& nt) {
     case 3:
       return 'T';
   }
-  return 'A';
+
+  srand(time(NULL));
+  return getNT(rand() % 4);
 }
 
 /* transfer nucleotide to integer number */
@@ -112,7 +114,9 @@ inline uint32_t getBits(const char& nt) {
     case 'T':
       return 3;
   }
-  return 4;
+
+  srand(time(NULL));
+  return rand() % 4;
 }
 
 /* get the compliment strand nucleotide */
