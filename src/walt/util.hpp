@@ -154,7 +154,6 @@ inline bool nonACGT(const char& nt) {
 inline char toACGT(const char& nt) {
   if (nonACGT(nt)) {
     int r = rand() % 4;
-    fprintf(stderr, "r = %d\n", r);
     return getNT(r);
   }
 
