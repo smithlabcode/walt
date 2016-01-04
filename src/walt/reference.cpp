@@ -109,7 +109,9 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
     genome.start_index[i] = k;
 
     for (uint32_t j = 0; j < chrom_seqs[i].size(); ++j) {
-      genome.sequence[k++] = toupper(chrom_seqs[i][j]);
+      genome.sequence[k] = toupper(chrom_seqs[i][j]);
+      genome.sequence[k] = toACGT(genome.sequence[k]);
+      k++;
     }
   }
   genome.start_index[genome.num_of_chroms] = k;
@@ -133,12 +135,7 @@ void ReverseComplementGenome(Genome& genome) {
 }
 
 void C2T(vector<char>& sequence) {
-  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('N' == sequence[i]) {
-      int r = rand() % 4;
-      sequence[i] = getNT(r);
-    }
     if ('C' == sequence[i]) {
       sequence[i] = 'T';
     }
@@ -146,12 +143,7 @@ void C2T(vector<char>& sequence) {
 }
 
 void G2A(vector<char>& sequence) {
-  srand(time(NULL));
   for (uint32_t i = 0; i < sequence.size(); ++i) {
-    if ('N' == sequence[i]) {
-      int r = rand() % 4;
-      sequence[i] = getNT(r);
-    }
     if ('G' == sequence[i]) {
       sequence[i] = 'A';
     }

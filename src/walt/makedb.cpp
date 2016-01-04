@@ -73,6 +73,7 @@ void BuildIndex(const vector<string>& chrom_files, const int& indicator,
 }
 
 int main(int argc, const char **argv) {
+  srand (time(NULL));
   try {
     string chrom_file;
     string outfile;

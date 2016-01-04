@@ -34,6 +34,7 @@
 #include "reference.hpp"
 
 int main(int argc, const char **argv) {
+  srand (time(NULL));
   try {
     string command = argv[0];
     bool help_info = false;

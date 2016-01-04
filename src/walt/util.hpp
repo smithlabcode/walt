@@ -25,6 +25,7 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
+#include <time.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdint.h>
@@ -96,10 +97,10 @@ inline char getNT(const int& nt) {
       return 'G';
     case 3:
       return 'T';
+    default:
+      fprintf(stderr, "[ERROR: NON-ACGT NUCLEOTIDE]");
+      exit(EXIT_FAILURE);
   }
-
-  srand(time(NULL));
-  return getNT(rand() % 4);
 }
 
 /* transfer nucleotide to integer number */
@@ -113,10 +114,10 @@ inline uint32_t getBits(const char& nt) {
       return 2;
     case 'T':
       return 3;
+    default:
+      fprintf(stderr, "[ERROR: NON-ACGT NUCLEOTIDE]");
+      exit(EXIT_FAILURE);
   }
-
-  srand(time(NULL));
-  return rand() % 4;
 }
 
 /* get the compliment strand nucleotide */
@@ -139,8 +140,25 @@ inline char complimentBase(const char& nt) {
     case 'T':
       return ('A');
     default:
-      return ('N');
+      fprintf(stderr, "[ERROR: NON-ACGT NUCLEOTIDE]");
+      exit(EXIT_FAILURE);
   }
+}
+
+/* not A, C, G, or T */
+inline bool nonACGT(const char& nt) {
+  return !(nt == 'A' || nt == 'C' || nt == 'G' || nt == 'T');
+}
+
+/* non-ACGT nucleotide to A, C, G, or T */
+inline char toACGT(const char& nt) {
+  if (nonACGT(nt)) {
+    int r = rand() % 4;
+    fprintf(stderr, "r = %d\n", r);
+    return getNT(r);
+  }
+
+  return nt;
 }
 
 /* return x^p */

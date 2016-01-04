@@ -62,6 +62,9 @@ void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
           clip_adaptor_from_read(adaptor, line);
         }
         read_seqs[num_of_reads] = line;
+        for (uint32_t i = 0; i < line.size(); ++i) {
+          read_seqs[num_of_reads][i] = toACGT(read_seqs[num_of_reads][i]);
+        }
         break;
       }
       case 2: {
@@ -101,13 +104,8 @@ string ReverseComplimentString(const string& str) {
 }
 
 void C2T(const string& org_read, const uint32_t& read_len, string& read) {
-  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
     char c = org_read[i];
-    if ('N' == c) {
-      int r = rand() % 4;
-      c = getNT(r);
-    }
 
     if ('C' == c) {
       read += 'T';
@@ -118,13 +116,8 @@ void C2T(const string& org_read, const uint32_t& read_len, string& read) {
 }
 
 void G2A(const string& org_read, const uint32_t& read_len, string& read) {
-  srand (time(NULL));
   for (uint32_t i = 0; i < read_len; ++i) {
     char c = org_read[i];
-    if ('N' == c) {
-      int r = rand() % 4;
-      c = getNT(r);
-    }
 
     if ('G' == c) {
       read += 'A';
