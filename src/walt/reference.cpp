@@ -186,9 +186,9 @@ void CountBucketSize(const Genome& genome, HashTable& hash_table,
 
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
-    if (genome.length[i] < MINIMALREADLEN)
+    if (genome.length[i] < MINIMALSEEDLEN)
       continue;
-    size = genome.start_index[i + 1] - MINIMALREADLEN;
+    size = genome.start_index[i + 1] - MINIMALSEEDLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
       hash_table.counter[hash_value]++;
@@ -224,9 +224,9 @@ void HashToBucket(const Genome& genome, HashTable& hash_table,
 
   uint32_t size = 0, hash_value = 0;
   for (uint32_t i = 0; i < genome.num_of_chroms; ++i) {
-    if (genome.length[i] < MINIMALREADLEN)
+    if (genome.length[i] < MINIMALSEEDLEN)
       continue;
-    size = genome.start_index[i + 1] - MINIMALREADLEN;
+    size = genome.start_index[i + 1] - MINIMALSEEDLEN;
     for (uint32_t j = genome.start_index[i]; j < size; ++j) {
       hash_value = getHashValue(&(genome.sequence[j]));
       /* Extremal Large Bucket IS DELETED */
