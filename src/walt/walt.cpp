@@ -196,6 +196,10 @@ int main(int argc, const char **argv) {
               "-1 and -2 options to set paired-end reads\n");
       return EXIT_FAILURE;
     }
+    if (!leftover_args.empty()) {
+      fprintf(stderr, "%s\n", opt_parse.help_message().c_str());
+      return EXIT_SUCCESS;
+    }
     /****************** END COMMAND LINE OPTIONS *****************/
 
     bool get_empty_fields = false;

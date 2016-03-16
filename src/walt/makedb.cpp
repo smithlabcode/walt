@@ -111,8 +111,12 @@ int main(int argc, const char **argv) {
     }
     if (outfile.size() > 1000) {
       fprintf(stderr, "The output file name is too long, "
-          "please select a shorter name\n");
+              "please select a shorter name\n");
       return EXIT_FAILURE;;
+    }
+    if (!leftover_args.empty()) {
+      fprintf(stderr, "%s\n", opt_parse.help_message().c_str());
+      return EXIT_SUCCESS;
     }
     /****************** END COMMAND LINE OPTIONS *****************/
 
