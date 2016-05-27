@@ -102,6 +102,9 @@ int main(int argc, const char **argv) {
     /* number of reads to map at one loop */
     uint32_t n_reads_to_process = 1000000;
 
+    /* ignore seeds which have more than b candidates */
+    uint32_t b = 5000;
+
     /* paired-end reads: keep top k genome positions for each in the pair */
     uint32_t top_k = 50;
 
@@ -157,6 +160,8 @@ int main(int argc, const char **argv) {
     opt_parse.add_opt("ag-wild", 'A',
                       "map using A/G bisulfite wildcards (single-end)", false,
                       AG_WILDCARD);
+    opt_parse.add_opt("bucket", 'b', "maximum candidates for a seed",
+                      false, top_k);
     opt_parse.add_opt("topk", 'k',
                       "maximum allowed mappings for a read (paired-end)", false,
                       top_k);
@@ -300,14 +305,14 @@ int main(int argc, const char **argv) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         ProcessSingledEndReads(command, index_file, v_reads_file_s[i],
                                v_output_file[i], n_reads_to_process,
-                               max_mismatches, adaptor, AG_WILDCARD, ambiguous,
-                               unmapped, SAM, num_of_threads);
+                               max_mismatches, b, adaptor, AG_WILDCARD,
+                               ambiguous, unmapped, SAM, num_of_threads);
       }
     } else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
         ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
-                              n_reads_to_process, max_mismatches, adaptor,
+                              n_reads_to_process, max_mismatches, b, adaptor,
                               top_k, frag_range, ambiguous, unmapped, SAM,
                               num_of_threads);
       }

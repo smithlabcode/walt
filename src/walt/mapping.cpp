@@ -187,7 +187,8 @@ void IndexRegion(const string& read, const Genome& genome,
 
 void SingleEndMapping(const string& org_read, const Genome& genome,
                       const HashTable& hash_table, const char& strand,
-                      const bool& AG_WILDCARD, BestMatch& best_match,
+                      const bool& AG_WILDCARD, const uint32_t& b,
+                      BestMatch& best_match,
                       StatSingleReads& stat_single_reads) {
   uint32_t read_len = org_read.size();
   if (read_len < MINIMALREADLEN) {
@@ -235,9 +236,11 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
-    if (region.second - region.first + 1 > 5000) {
+
+    if (region.second - region.first + 1 > b) {
       continue;
     }
+
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);
@@ -383,7 +386,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& reads_file_s,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
-                            const uint32_t& max_mismatches,
+                            const uint32_t& max_mismatches, const uint32_t& b,
                             const string& adaptor, const bool& AG_WILDCARD,
                             const bool& ambiguous, const bool& unmapped,
                             const bool& SAM, const int& num_of_threads) {
@@ -448,7 +451,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
 #pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
-                         map_results[j], stat_single_reads);
+                         b, map_results[j], stat_single_reads);
       }
     }
     //////////////////////////////////////////////////////////

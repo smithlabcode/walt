@@ -69,7 +69,7 @@ void ForwardChromPosition(const uint32_t& genome_pos, const char& strand,
 void PairEndMapping(const string& org_read, const Genome& genome,
                     const HashTable& hash_table, const char& strand,
                     const bool& AG_WILDCARD, const uint32_t& max_mismatches,
-                    TopCandidates& top_match,
+                    const uint32_t& b, TopCandidates& top_match,
                     StatSingleReads& stat_single_reads) {
   uint32_t read_len = org_read.size();
   if (read_len < MINIMALREADLEN) {
@@ -121,9 +121,11 @@ void PairEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
+#ifdef SMALLBUCKETS
     if (region.second - region.first + 1 > 5000) {
       continue;
     }
+#endif
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);
@@ -627,7 +629,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                            const string& reads_file_p2,
                            const string& output_file,
                            const uint32_t& n_reads_to_process,
-                           const uint32_t& max_mismatches,
+                           const uint32_t& max_mismatches, const uint32_t& b,
                            const string& adaptor, const uint32_t& top_k,
                            const int& frag_range, const bool& ambiguous,
                            const bool& unmapped, const bool& SAM,
@@ -716,7 +718,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 #pragma omp parallel for
         for (uint32_t j = 0; j < num_of_reads[pi]; ++j) {
           PairEndMapping(read_seqs[pi][j], genome, hash_table, strand,
-                         AG_WILDCARD, max_mismatches, top_results[pi][j],
+                         AG_WILDCARD, max_mismatches, b, top_results[pi][j],
                          stat_single_reads);
         }
       }

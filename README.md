@@ -46,6 +46,7 @@ paired-end reads
 | -u      | -unmapped | Boolean | false | output unmapped reads |
 | -C      | -clip | String | empty | clip the specified adaptor |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
+| -b      | -bucket | Integer | 5000 | maximum candidates for a seed |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paired-end mapping |
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
 | -t      | -thread | Integer | 1 | number of threads for mapping |
