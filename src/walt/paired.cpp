@@ -121,11 +121,10 @@ void PairEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
-#ifdef SMALLBUCKETS
-    if (region.second - region.first + 1 > 5000) {
+    if (region.second - region.first + 1 > b) {
       continue;
     }
-#endif
+
     for (uint32_t j = region.first; j <= region.second; ++j) {
       uint32_t genome_pos = hash_table.index[j];
       uint32_t chr_id = getChromID(genome.start_index, genome_pos);

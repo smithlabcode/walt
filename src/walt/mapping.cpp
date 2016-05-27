@@ -236,7 +236,6 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
       continue;
 
     IndexRegion(read_seed, genome, hash_table, seed_len, region);
-
     if (region.second - region.first + 1 > b) {
       continue;
     }
