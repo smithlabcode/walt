@@ -257,8 +257,8 @@ void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
           stat_paired_reads.fragment_len_count[i],
           100.00 * stat_paired_reads.fragment_len_count[i]
               / stat_paired_reads.unique_mapped_pairs);
+      average_fragment_len += i * stat_paired_reads.fragment_len_count[i];
     }
-    average_fragment_len += i * stat_paired_reads.fragment_len_count[i];
   }
   average_fragment_len /= stat_paired_reads.unique_mapped_pairs;
 
@@ -274,7 +274,7 @@ void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
   standard_deviation = sqrt(standard_deviation);
   fprintf(fstat, "\n\nAVERAGE VALUE OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
           average_fragment_len);
-  fprintf(fstat, "\n\nSTANDARD DEVIATION OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
+  fprintf(fstat, "STANDARD DEVIATION OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
           standard_deviation);
 
   fclose(fstat);
