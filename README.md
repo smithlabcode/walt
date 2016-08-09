@@ -46,6 +46,7 @@ paired-end reads
 | -u      | -unmapped | Boolean | false | output unmapped reads |
 | -C      | -clip | String | empty | clip the specified adaptor |
 | -A      | -ag-wild | Boolean | false | map using A/G bisulfite wildcards |
+| -P      | -pbat | Boolean | false | map post-bisulfite adaptor tagging reads |
 | -b      | -bucket | Integer | 5000 | maximum candidates for a seed |
 | -k      | -topk | Integer | 50 | maximum allowed mappings for a read in paired-end mapping |
 | -L      | -fraglen | Integer | 1000 | max fragment length in paired-end mapping |
@@ -76,6 +77,11 @@ For example, to mapping reads to human genome hg19
 If mapping the reads from the *_2 reads file, the -A option should be set. This means that all Gs in the reads and genome are converted to As. If -A option is not set, all Cs in the reads and genome are converted to Ts.
 
     walt -i hg19.dbindex -r read_2.fq -A -o reads_2_mapping.sam
+
+    
+If mapping post-bisulfite adaptor tagging reads (PBAT), the -P option should be set. 
+    walt -i hg19.dbindex -r read_2.fq -P -o reads_2_mapping.sam
+    walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -P -o paired_mapping_PBAT.sam
     
 Additionally, WALT supports comma-separated list of read files. WALT produces one mapping output file for each read file. For single-end mapping, the output file names will be appended "_s1", "_s2", and so on. Notice: except the first file path, all other file paths cannot use '~'. For example, "-r ~/read_file1.fq,~/read_file2.fq" is not allowed. It should be "-r ~/read_file1.fq,/home/read_file2.fq", since linux system doesn't know it is a path except the first one.
 	 

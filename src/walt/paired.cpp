@@ -647,10 +647,10 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                            const string& output_file,
                            const uint32_t& n_reads_to_process,
                            const uint32_t& max_mismatches, const uint32_t& b,
-                           const string& adaptor, const uint32_t& top_k,
-                           const int& frag_range, const bool& ambiguous,
-                           const bool& unmapped, const bool& SAM,
-                           const int& num_of_threads) {
+                           const string& adaptor, const bool& PBAT,
+                           const uint32_t& top_k, const int& frag_range,
+                           const bool& ambiguous, const bool& unmapped,
+                           const bool& SAM, const int& num_of_threads) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -662,10 +662,17 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   hash_table.index.resize(size_of_index);
 
   vector<vector<string> > index_names(2, vector<string>(2));
-  index_names[0][0] = index_file + "_CT00";
-  index_names[0][1] = index_file + "_CT01";
-  index_names[1][0] = index_file + "_GA10";
-  index_names[1][1] = index_file + "_GA11";
+  if (!PBAT) {
+    index_names[0][0] = index_file + "_CT00";
+    index_names[0][1] = index_file + "_CT01";
+    index_names[1][0] = index_file + "_GA10";
+    index_names[1][1] = index_file + "_GA11";
+  } else {
+    index_names[0][0] = index_file + "_CT00";
+    index_names[0][1] = index_file + "_GA10";
+    index_names[1][0] = index_file + "_CT01";
+    index_names[1][1] = index_file + "_GA11";
+  }
 
   vector<vector<string> > read_names(2, vector<string>(n_reads_to_process));
   vector<vector<string> > read_seqs(2, vector<string>(n_reads_to_process));

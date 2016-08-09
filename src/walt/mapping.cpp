@@ -386,9 +386,10 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
-                            const string& adaptor, const bool& AG_WILDCARD,
-                            const bool& ambiguous, const bool& unmapped,
-                            const bool& SAM, const int& num_of_threads) {
+                            const string& adaptor, const bool& PBAT,
+                            const bool& AG_WILDCARD, const bool& ambiguous,
+                            const bool& unmapped, const bool& SAM,
+                            const int& num_of_threads) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -400,11 +401,17 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   hash_table.index.resize(size_of_index);
 
   vector<string> index_names;
-  if (!AG_WILDCARD) {
+  if (!AG_WILDCARD && !PBAT) {
     index_names.push_back(index_file + "_CT00");
     index_names.push_back(index_file + "_CT01");
-  } else {
+  } else if (AG_WILDCARD && !PBAT) {
     index_names.push_back(index_file + "_GA10");
+    index_names.push_back(index_file + "_GA11");
+  } else if (!AG_WILDCARD && PBAT) {
+    index_names.push_back(index_file + "_CT00");
+    index_names.push_back(index_file + "_GA10");
+  } else {
+    index_names.push_back(index_file + "_CT01");
     index_names.push_back(index_file + "_GA11");
   }
 
