@@ -80,6 +80,7 @@ If mapping the reads from the *_2 reads file, the -A option should be set. This 
 
     
 If mapping post-bisulfite adaptor tagging reads (PBAT), the -P option should be set. 
+
     walt -i hg19.dbindex -r read_2.fq -P -o reads_2_mapping.sam
     walt -i hg19.dbindex -1 read_1.fq -2 read_2.fq -P -o paired_mapping_PBAT.sam
     
