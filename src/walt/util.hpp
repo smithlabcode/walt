@@ -139,8 +139,10 @@ inline char complimentBase(const char& nt) {
       return ('C');
     case 'T':
       return ('A');
+    case 'N':
+      return ('N');
     default:
-      fprintf(stderr, "[ERROR: NON-ACGT NUCLEOTIDE]");
+      fprintf(stderr, "[ERROR: UNEXPECTED NUCLEOTIDE]");
       exit(EXIT_FAILURE);
   }
 }

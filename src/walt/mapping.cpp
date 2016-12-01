@@ -404,14 +404,9 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   if (!AG_WILDCARD && !PBAT) {
     index_names.push_back(index_file + "_CT00");
     index_names.push_back(index_file + "_CT01");
-  } else if (AG_WILDCARD && !PBAT) {
-    index_names.push_back(index_file + "_GA10");
-    index_names.push_back(index_file + "_GA11");
-  } else if (!AG_WILDCARD && PBAT) {
-    index_names.push_back(index_file + "_CT00");
-    index_names.push_back(index_file + "_GA10");
   } else {
-    index_names.push_back(index_file + "_CT01");
+    // PBAT single-end is the same as A-rich regular WGBS
+    index_names.push_back(index_file + "_GA10");
     index_names.push_back(index_file + "_GA11");
   }
 
@@ -456,7 +451,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       char strand = fi == 0 ? '+' : '-';
 #pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
-        SingleEndMapping(read_seqs[j], genome, hash_table, strand, AG_WILDCARD,
+        SingleEndMapping(read_seqs[j], genome, hash_table, strand,
+                         AG_WILDCARD || PBAT,
                          b, map_results[j], stat_single_reads);
       }
     }
@@ -466,7 +462,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       StatInfoUpdate(map_results[j].times, stat_single_reads);
       if (!SAM) {
         OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
-                            read_scores[j], genome, AG_WILDCARD,
+                            read_scores[j], genome, AG_WILDCARD || PBAT,
                             stat_single_reads, fout);
       } else {
         OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],

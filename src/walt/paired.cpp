@@ -287,6 +287,7 @@ int OutputBestPairedResults(const CandidatePosition& r1,
                             const string& read_name, const string& read_seq1,
                             const string& read_score1, const string& read_seq2,
                             const string& read_score2, const bool& SAM,
+                            const bool& PBAT,
                             FILE * fout) {
   string read_seq2_rev = ReverseComplimentString(read_seq2);
   string read_scr2_rev = ReverseString(read_score2);
@@ -356,10 +357,18 @@ int OutputBestPairedResults(const CandidatePosition& r1,
     }
   }
 
+  char strand = r1.strand;
   uint32_t start_pos = r1.strand == '+' ? s1 : s2;
+  if (PBAT) {
+    // if PBAT, the whole fragment is considered as A-rich;
+    // therefore it is necessary to report a reverse-complement
+    strand = r1.strand == '+' ? '-' : '+';
+    seq = ReverseComplimentString(seq);
+    scr = ReverseString(scr);
+  }
   fprintf(fout, "%s\t%u\t%u\tFRAG:%s\t%u\t%c\t%s\t%s\n",
           genome.name[chr_id1].c_str(), start_pos, start_pos + len,
-          read_name.c_str(), r1.mismatch + r2.mismatch, r1.strand, seq.c_str(),
+          read_name.c_str(), r1.mismatch + r2.mismatch, strand, seq.c_str(),
           scr.c_str());
 
   return len;
@@ -514,6 +523,7 @@ void MergePairedEndResults(
     const vector<vector<CandidatePosition> >& ranked_results,
     const vector<int>& ranked_results_size, const int& frag_range,
     const uint32_t& max_mismatches, const bool& SAM,
+    const bool& PBAT,
     StatPairedReads& stat_paired_reads, FILE * fout) {
 #ifdef DEBUG
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
@@ -594,7 +604,7 @@ void MergePairedEndResults(
                                   ranked_results[1][best_pair.second],
                                   frag_range, read_len1, read_len2, genome,
                                   read_name, read_seq1, read_score1, read_seq2,
-                                  read_score2, SAM, fout);
+                                  read_score2, SAM, PBAT, fout);
     stat_paired_reads.fragment_len_count[len]++;
     if (SAM) {  // SAM
       is_paired_mapped = true;
@@ -619,10 +629,10 @@ void MergePairedEndResults(
     StatInfoUpdate(best_match_2.times, stat_paired_reads.stat_single_reads_2);
     if (!SAM) {
       OutputSingleResults(best_match_1, read_name, read_seq1, read_score1,
-                          genome, false, stat_paired_reads.stat_single_reads_1,
+                          genome, PBAT, stat_paired_reads.stat_single_reads_1,
                           fout);
       OutputSingleResults(best_match_2, read_name, read_seq2, read_score2,
-                          genome, true, stat_paired_reads.stat_single_reads_2,
+                          genome, !PBAT, stat_paired_reads.stat_single_reads_2,
                           fout);
     }
   }
@@ -668,10 +678,10 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
     index_names[1][0] = index_file + "_GA10";
     index_names[1][1] = index_file + "_GA11";
   } else {
-    index_names[0][0] = index_file + "_CT00";
-    index_names[0][1] = index_file + "_GA10";
-    index_names[1][0] = index_file + "_CT01";
-    index_names[1][1] = index_file + "_GA11";
+    index_names[0][0] = index_file + "_GA10";
+    index_names[0][1] = index_file + "_GA11";
+    index_names[1][0] = index_file + "_CT00";
+    index_names[1][1] = index_file + "_CT01";
   }
 
   vector<vector<string> > read_names(2, vector<string>(n_reads_to_process));
@@ -718,7 +728,10 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   for (uint32_t i = 0;; i += n_reads_to_process) {
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
-      AG_WILDCARD = pi == 1 ? true : false;
+      if (!PBAT)
+        AG_WILDCARD = pi == 1 ? true : false;
+      else
+        AG_WILDCARD = pi == 0 ? true : false;
       StatSingleReads& stat_single_reads =
           pi == 0 ?
               stat_paired_reads.stat_single_reads_1 :
@@ -772,7 +785,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                             read_scores[0][j], read_seqs[1][j],
                             read_scores[1][j], ranked_results,
                             ranked_results_size, frag_range, max_mismatches,
-                            SAM, stat_paired_reads, fout);
+                            SAM, PBAT, stat_paired_reads, fout);
     }
 
     if (num_of_reads[0] < n_reads_to_process)
