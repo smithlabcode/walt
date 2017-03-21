@@ -168,6 +168,9 @@ If paired-end reads are mapped in proper pair, the QNAME is added "FRAG:" in the
 ***Ting Chen***   *tingchen@usc.edu*
 
 
+### Citation ###
+WALT: fast and accurate read mapping for bisulfite sequencing. Bioinformatics, 32(22), pp.3507-3509. [Supplementary](https://github.com/smithlabcode/walt/blob/master/doc/Supplementary%20Data.pdf)
+
 ### Copyright ###
 
     Copyright (C) 2015 University of Southern California
