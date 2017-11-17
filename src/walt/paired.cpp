@@ -758,6 +758,7 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                          AG_WILDCARD, max_mismatches, b, top_results[pi][j],
                          stat_single_reads);
         }
+#pragma omp barrier
       }
     }
     if (num_of_reads[0] != num_of_reads[1]) {
