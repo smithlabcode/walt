@@ -6,11 +6,11 @@
 
 	(1) Open walt/src/walt/Makefile, modify “-D SEEDPATTERN3" to " -D SEEDPATTERN7"
 
-	(2) rebuild the program using make all, make install
+	(2) Rebuild the program using `make all`, `make install`
 	
-	(3) rebuild your index using the new makedb command
+	(3) Rebuild your index using the new `makedb` command
 	
-	(4) mapping reads using the new walt command
+	(4) Map reads using the new `walt` command
 	
 	
 	
