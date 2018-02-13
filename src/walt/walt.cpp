@@ -104,6 +104,7 @@ int main(int argc, const char **argv) {
 
     /* number of reads to map at one loop */
     uint32_t n_reads_to_process = 1000000;
+    const uint32_t PROCESS_LIMIT = 10000000;
 
     /* ignore seeds which have more than b candidates */
     uint32_t b = 5000;
@@ -289,8 +290,8 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
     fprintf(stderr, "[NUMBER OF THREADS FOR MAPPING IS %d]\n", num_of_threads);
 
-    if (n_reads_to_process > 5000000) {
-      n_reads_to_process = 5000000;
+    if (n_reads_to_process > PROCES_LIMIT) {
+      n_reads_to_process = PROCES_LIMIT;
     }
 
     if (is_paired_end_reads && top_k < 2) {

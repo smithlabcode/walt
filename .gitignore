@@ -1,0 +1,20 @@
+# no .svn direcrories
+.svn/
+bin/
+
+# no compiled object file
+*.[oa]
+*.so
+
+# no temporary file
+*~
+*.out
+*.aux
+*.log
+*.eps
+*.tif
+*.dvi
+
+# ignore binary file
+src/walt/makedb
+src/walt/walt
