@@ -290,8 +290,8 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
     fprintf(stderr, "[NUMBER OF THREADS FOR MAPPING IS %d]\n", num_of_threads);
 
-    if (n_reads_to_process > PROCES_LIMIT) {
-      n_reads_to_process = PROCES_LIMIT;
+    if (n_reads_to_process > PROCESS_LIMIT) {
+      n_reads_to_process = PROCESS_LIMIT;
     }
 
     if (is_paired_end_reads && top_k < 2) {
