@@ -325,7 +325,7 @@ int main(int argc, const char **argv) {
       }
     }
   } catch (const SMITHLABException &e) {
-    fprintf(stderr, "%s\n", e.what().c_str());
+    std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
     fprintf(stderr, "ERROR: could not allocate memory\n");

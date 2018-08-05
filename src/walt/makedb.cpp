@@ -146,7 +146,7 @@ int main(int argc, const char **argv) {
     ReadGenome(chrom_files, genome);
     WriteIndexHeadInfo(outfile, genome, size_of_index);
   } catch (const SMITHLABException &e) {
-    fprintf(stderr, "%s\n", e.what().c_str());
+    std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
     fprintf(stderr, "ERROR: could not allocate memory\n");
