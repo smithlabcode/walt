@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <string>
+#include <omp.h>
 
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
@@ -84,7 +85,7 @@ int main(int argc, const char **argv) {
     string adaptor;
 
     /* paired-end or single-end mapping */
-    bool is_paired_end_reads = false;
+    bool has_paired_end_reads = false;
 
     /* output ambiguous or unmapped reads or not, both are false by default */
     bool ambiguous = false;
@@ -103,7 +104,7 @@ int main(int argc, const char **argv) {
     uint32_t max_mismatches = 6;
 
     /* number of reads to map at one loop */
-    uint32_t n_reads_to_process = 1000000;
+    uint32_t n_reads_to_process = 5000000;
     const uint32_t PROCESS_LIMIT = 10000000;
 
     /* ignore seeds which have more than b candidates */
@@ -117,6 +118,7 @@ int main(int argc, const char **argv) {
 
     /* number of threads for mapping */
     int num_of_threads = 1;
+    FILE * fambiguous = NULL, * funmapped = NULL, * fout, * fstat;
 
     /****************** COMMAND LINE OPTIONS ********************/
     OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
@@ -197,17 +199,6 @@ int main(int argc, const char **argv) {
       return EXIT_FAILURE;
     }
 
-    if (!reads_file_s.empty() && reads_file_p1.empty()
-        && reads_file_p2.empty()) {
-      is_paired_end_reads = false;
-    } else if (reads_file_s.empty() && !reads_file_p1.empty()
-        && !reads_file_p2.empty()) {
-      is_paired_end_reads = true;
-    } else {
-      fprintf(stderr, "Please use -r option to set singled-end reads, \n"
-              "-1 and -2 options to set paired-end reads\n");
-      return EXIT_FAILURE;
-    }
     if (!leftover_args.empty()) {
       fprintf(stderr, "%s\n", opt_parse.help_message().c_str());
       return EXIT_SUCCESS;
@@ -215,7 +206,7 @@ int main(int argc, const char **argv) {
     /****************** END COMMAND LINE OPTIONS *****************/
 
     bool get_empty_fields = false;
-    if (!is_paired_end_reads) {
+    if (!reads_file_s.empty()) {
       v_reads_file_s = smithlab::split(reads_file_s, ",", get_empty_fields);
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         if (!is_valid_filename(v_reads_file_s[i], "fastq")
@@ -225,7 +216,9 @@ int main(int argc, const char **argv) {
           return EXIT_FAILURE;
         }
       }
-    } else {
+    } 
+    if (!reads_file_p1.empty() && !reads_file_p2.empty()) {
+      has_paired_end_reads = true;
       v_reads_file_p1 = smithlab::split(reads_file_p1, ",", get_empty_fields);
       v_reads_file_p2 = smithlab::split(reads_file_p2, ",", get_empty_fields);
       if (v_reads_file_p1.size() != v_reads_file_p2.size()) {
@@ -245,36 +238,31 @@ int main(int argc, const char **argv) {
         }
       }
     }
-
-    if (!is_paired_end_reads) {
-      if (v_reads_file_s.size() == 1) {
-        v_output_file.push_back(output_file);
-      } else {
-        char output_filename[1000];
-        for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
-          sprintf(output_filename, "%s_s%u", output_file.c_str(), i);
-          v_output_file.push_back(output_filename);
-        }
-      }
-    } else {
-      if (v_reads_file_p1.size() == 1) {
-        v_output_file.push_back(output_file);
-      } else {
-        char output_filename[1000];
-        for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-          sprintf(output_filename, "%s_p%u", output_file.c_str(), i);
-          v_output_file.push_back(output_filename);
-        }
-      }
+    else if (reads_file_p1.empty() ^ reads_file_p2.empty()){
+      fprintf(stderr, "When using -1 and -2 for pair-end reads, both of them \n\
+          should be specified.\n");
+      return EXIT_FAILURE;
     }
 
-    for (uint32_t i = 0; i < v_reads_file_p2.size(); ++i) {
-      if (!is_valid_filename(v_reads_file_p2[i], "fastq")
-          && !is_valid_filename(v_reads_file_p2[i], "fq")) {
-        fprintf(stderr,
-                "The suffix of the reads file should be '.fastq', '.fq'\n");
-        return EXIT_FAILURE;
-      }
+    // CHECK OPTIONS
+    omp_set_dynamic(0);
+    omp_set_num_threads(num_of_threads);
+    fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
+    fprintf(stderr, "[NUMBER OF THREADS FOR MAPPING IS %d]\n", num_of_threads);
+
+    if (n_reads_to_process > PROCESS_LIMIT) {
+      n_reads_to_process = PROCESS_LIMIT;
+    }
+
+    if (has_paired_end_reads && top_k < 2) {
+      fprintf(stderr, "-k option should be at least 2 for paired-end reads\n");
+      return EXIT_FAILURE;
+    }
+
+    if (has_paired_end_reads && top_k > 300) {
+      fprintf(stderr,
+              "-k option should be less than 300 for paired-end reads\n");
+      return EXIT_FAILURE;
     }
 
     size_t suffix_pos = output_file.find_last_of(".");
@@ -283,47 +271,56 @@ int main(int argc, const char **argv) {
     } else if (".mr" == output_file.substr(suffix_pos)) {
       SAM = false;
     }
-    /****************** END COMMAND LINE OPTIONS *****************/
-
-    //////////////////////////////////////////////////////////////
-    // CHECK OPTIONS
-    fprintf(stderr, "[MAXIMUM NUMBER OF MISMATCHES IS %u]\n", max_mismatches);
-    fprintf(stderr, "[NUMBER OF THREADS FOR MAPPING IS %d]\n", num_of_threads);
-
-    if (n_reads_to_process > PROCESS_LIMIT) {
-      n_reads_to_process = PROCESS_LIMIT;
+    fout = fopen(output_file.c_str(), "w");
+    if (!fout) {
+      throw SMITHLABException("cannot open input file " + output_file);
     }
-
-    if (is_paired_end_reads && top_k < 2) {
-      fprintf(stderr, "-k option should be at least 2 for paired-end reads\n");
-      return EXIT_FAILURE;
+    fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
+    if(SAM) {
+      SAMHead(index_file, command, fout);
     }
-
-    if (is_paired_end_reads && top_k > 300) {
-      fprintf(stderr,
-              "-k option should be less than 300 for paired-end reads\n");
-      return EXIT_FAILURE;
+    if (ambiguous && !SAM) {
+      fambiguous = fopen(string(output_file + ".ambiguous").c_str(), "w");
+      if (!fambiguous) {
+        throw SMITHLABException(
+            "cannot open output file " + string(output_file + ".ambiguous"));
+      }
     }
+    if (unmapped && !SAM) {
+      funmapped = fopen(string(output_file + ".unmapped").c_str(), "w");
+      if (!funmapped) {
+        throw SMITHLABException(
+            "cannot open output file " + string(output_file + ".unmapped"));
+      }
+    }
+    fstat = fopen(string(output_file.substr(0, suffix_pos) \
+          + ".mapstats").c_str(), "w");
+
     ShowGenomeInfo(index_file);
-
-    //////////////////////////////////////////////////////////////
+    // To-do: Load the mapping index here. There is no need to load index repeatedly.
+    //
     // Mapping
-    if (!is_paired_end_reads) {
+    if (!reads_file_s.empty()) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
-        ProcessSingledEndReads(command, index_file, v_reads_file_s[i],
-                               v_output_file[i], n_reads_to_process,
+        ProcessSingledEndReads(index_file, v_reads_file_s[i],
+                               fout, fstat, n_reads_to_process,
                                max_mismatches, b, adaptor, PBAT, AG_WILDCARD,
-                               ambiguous, unmapped, SAM, num_of_threads);
-      }
-    } else {
-      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
-        ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
-                              v_reads_file_p2[i], v_output_file[i],
-                              n_reads_to_process, max_mismatches, b, adaptor,
-                              PBAT, top_k, frag_range, ambiguous, unmapped,
-                              SAM, num_of_threads);
+                               fambiguous, funmapped, SAM);
       }
     }
+    if (has_paired_end_reads){
+      for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
+        ProcessPairedEndReads(index_file, v_reads_file_p1[i],
+                              v_reads_file_p2[i], fout, fstat,
+                              n_reads_to_process, max_mismatches, b, adaptor,
+                              PBAT, top_k, frag_range, fambiguous, funmapped,
+                              SAM);
+      }
+    }
+    fclose(fout);
+    fclose(fstat);
+    if (fambiguous) fclose(fambiguous);
+    if (funmapped) fclose(funmapped);
   } catch (const SMITHLABException &e) {
     fprintf(stderr, "%s\n", e.what().c_str());
     return EXIT_FAILURE;

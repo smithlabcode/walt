@@ -321,7 +321,8 @@ void OutputUnmapped(const string& read_name, const string& read_seq,
 void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          const string& read_seq, const string& read_score,
                          const Genome& genome, const bool& AG_WILDCARD,
-                         StatSingleReads& stat_single_reads, FILE * fout) {
+                         StatSingleReads& stat_single_reads, FILE * fout,
+                         FILE * fambiguous, FILE * funmapped) {
   string read_seq_tmp = read_seq;
   string read_score_tmp = read_score;
   if (AG_WILDCARD) {
@@ -330,15 +331,14 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
   }
 
   if (best_match.times == 0 && stat_single_reads.unmapped) {
-    OutputUnmapped(read_name, read_seq_tmp, read_score_tmp,
-                   stat_single_reads.funmapped);
+    OutputUnmapped(read_name, read_seq_tmp, read_score_tmp, funmapped);
   } else if (best_match.times == 1) {
     OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
                                      read_score_tmp, genome, AG_WILDCARD, fout);
   } else if (best_match.times >= 2 && stat_single_reads.ambiguous) {
     OutputUniquelyAndAmbiguousMapped(best_match, read_name, read_seq_tmp,
                                      read_score_tmp, genome, AG_WILDCARD,
-                                     stat_single_reads.fambiguous);
+                                     fambiguous);
   }
 }
 
@@ -381,15 +381,14 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
   }
 }
 
-void ProcessSingledEndReads(const string& command, const string& index_file,
+void ProcessSingledEndReads(const string& index_file,
                             const string& reads_file_s,
-                            const string& output_file,
+                            FILE * fout, FILE * fstat,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
                             const string& adaptor, const bool& PBAT,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped, const bool& SAM,
-                            const int& num_of_threads) {
+                            const bool& AG_WILDCARD, FILE * fambiguous,
+                            FILE * funmapped, const bool& SAM) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -419,21 +418,11 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
-  FILE * fout = fopen(output_file.c_str(), "w");
-  if (!fout) {
-    throw SMITHLABException("cannot open input file " + output_file);
-  }
 
   clock_t start_t = clock();
   uint32_t num_of_reads;
-  StatSingleReads stat_single_reads(ambiguous, unmapped, output_file, SAM);
+  StatSingleReads stat_single_reads(fambiguous!=NULL, funmapped!=NULL, SAM);
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
-  fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
-  if(SAM) {
-    SAMHead(index_file, command, fout);
-  }
-  omp_set_dynamic(0);
-  omp_set_num_threads(num_of_threads);
   for (uint32_t i = 0;; i += n_reads_to_process) {
     LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
@@ -463,7 +452,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       if (!SAM) {
         OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
                             read_scores[j], genome, AG_WILDCARD || PBAT,
-                            stat_single_reads, fout);
+                            stat_single_reads, fout, fambiguous, funmapped);
       } else {
         OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],
                         read_scores[j], genome, stat_single_reads, fout);
@@ -473,10 +462,9 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
     if (num_of_reads < n_reads_to_process)
       break;
   }
+  fprintf(stderr, "[FINISHED]\n");
   fclose(fin);
-  fclose(fout);
 
-  FILE * fstat = fopen(string(output_file + ".mapstats").c_str(), "w");
   fprintf(fstat, "[TOTAL NUMBER OF READS: %u]\n",
           stat_single_reads.total_reads);
   fprintf(
@@ -509,8 +497,6 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
             / stat_single_reads.total_reads,
         MINIMALREADLEN);
   }
-
-  fclose(fstat);
 
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));

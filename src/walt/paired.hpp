@@ -102,10 +102,10 @@ struct TopCandidates {
  * unmapped reads pairs */
 struct StatPairedReads {
   StatPairedReads(const bool& _ambiguous, const bool& _unmapped,
-                  const uint32_t& frag_range, const string& output_file,
+                  const uint32_t& frag_range,
                   const bool& SAM)
-      : stat_single_reads_1(_ambiguous, _unmapped, output_file + "_1", SAM),
-        stat_single_reads_2(_ambiguous, _unmapped, output_file + "_2", SAM) {
+      : stat_single_reads_1(_ambiguous, _unmapped, SAM),
+        stat_single_reads_2(_ambiguous, _unmapped, SAM) {
     total_read_pairs = 0;
     unique_mapped_pairs = 0;
     ambiguous_mapped_pairs = 0;
@@ -130,15 +130,15 @@ struct StatPairedReads {
 };
 
 /* paired-end read */
-void ProcessPairedEndReads(const string& command, const string& index_file,
+void ProcessPairedEndReads(const string& index_file,
                            const string& reads_file_p1,
                            const string& reads_file_p2,
-                           const string& output_file,
+                           FILE * fout, FILE * fstat,
                            const uint32_t& n_reads_to_process,
                            const uint32_t& max_mismatches, const uint32_t& b,
                            const string& adaptor, const bool& PBAT,
                            const uint32_t& top_k, const int& frag_range,
-                           const bool& ambiguous, const bool& unmapped,
-                           const bool& SAM, const int& num_of_threads);
+                           FILE * fambiguous, FILE * funmapped,
+                           const bool& SAM);
 
 #endif /* PAIRED_HPP_ */
