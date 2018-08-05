@@ -54,7 +54,7 @@ struct BestMatch {
 /* count the number of uniquely mapped, ambiguous mapped and unmapped reads */
 struct StatSingleReads {
   StatSingleReads(const bool& _ambiguous, const bool& _unmapped,
-                  const string& output_file, const bool& _SAM)
+                  const bool& _SAM)
       : ambiguous(_ambiguous),
         unmapped(_unmapped),
         SAM(_SAM) {
@@ -64,29 +64,6 @@ struct StatSingleReads {
     unmapped_reads = 0;
 
     num_of_short_reads = 0;
-
-    if (ambiguous && !SAM) {
-      fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
-      if (!fambiguous) {
-        throw SMITHLABException(
-            "cannot open input file " + string(output_file + "_ambiguous"));
-      }
-    }
-    if (unmapped && !SAM) {
-      funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
-      if (!funmapped) {
-        throw SMITHLABException(
-            "cannot open input file " + string(output_file + "_unmapped"));
-      }
-    }
-  }
-  ~StatSingleReads() {
-    if (ambiguous && !SAM) {
-      fclose(fambiguous);
-    }
-    if (unmapped && !SAM) {
-      fclose(funmapped);
-    }
   }
 
   uint32_t total_reads;
@@ -96,9 +73,6 @@ struct StatSingleReads {
 
   // number of reads that are shorter than the minimum length requirement
   uint32_t num_of_short_reads;
-
-  FILE * fambiguous;
-  FILE * funmapped;
 
   bool ambiguous;
   bool unmapped;
@@ -147,20 +121,20 @@ void OutputUnmapped(const string& read_name, const string& read_seq,
 void OutputSingleResults(const BestMatch& best_match, const string& read_name,
                          const string& read_seq, const string& read_score,
                          const Genome& genome, const bool& AG_WILDCARD,
-                         StatSingleReads& stat_single_reads, FILE * fout);
+                         StatSingleReads& stat_single_reads, FILE * fout,
+                         FILE * fambiguous, FILE * funmapped);
 
 /* update number of unmapped, uniquely mapped and ambiguously mapped reads */
 void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads);
 
 /* singled-end read */
-void ProcessSingledEndReads(const string& command, const string& index_file,
+void ProcessSingledEndReads(const string& index_file,
                             const string& reads_file_s,
-                            const string& output_file,
+                            FILE * fout, FILE * fstat,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
                             const string& adaptor, const bool& PBAT,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped, const bool& SAM,
-                            const int& num_of_threads);
+                            const bool& AG_WILDCARD, FILE * fambiguous,
+                            FILE * funmapped, const bool& SAM);
 
 #endif /* MAPPING_HPP_ */

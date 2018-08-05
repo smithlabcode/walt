@@ -164,8 +164,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 }
 
 void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
-                          const string& output_file) {
-  FILE * fstat = fopen(string(output_file + ".mapstats").c_str(), "w");
+                          FILE * fstat) {
   fprintf(fstat, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
           stat_paired_reads.total_read_pairs);
   fprintf(
@@ -277,7 +276,6 @@ void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
   fprintf(fstat, "STANDARD DEVIATION OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
           standard_deviation);
 
-  fclose(fstat);
 }
 
 int OutputBestPairedResults(const CandidatePosition& r1,
@@ -524,7 +522,8 @@ void MergePairedEndResults(
     const vector<int>& ranked_results_size, const int& frag_range,
     const uint32_t& max_mismatches, const bool& SAM,
     const bool& PBAT,
-    StatPairedReads& stat_paired_reads, FILE * fout) {
+    StatPairedReads& stat_paired_reads, FILE * fout,
+    FILE * fambiguous, FILE * funmapped) {
 #ifdef DEBUG
   for (int i = ranked_results_size[0] - 1; i >= 0; --i) {
     const CandidatePosition& r1 = ranked_results[0][i];
@@ -630,10 +629,10 @@ void MergePairedEndResults(
     if (!SAM) {
       OutputSingleResults(best_match_1, read_name, read_seq1, read_score1,
                           genome, PBAT, stat_paired_reads.stat_single_reads_1,
-                          fout);
+                          fout, fambiguous, funmapped);
       OutputSingleResults(best_match_2, read_name, read_seq2, read_score2,
                           genome, !PBAT, stat_paired_reads.stat_single_reads_2,
-                          fout);
+                          fout, fambiguous, funmapped);
     }
   }
   if (SAM) {  // Output SAM
@@ -651,16 +650,16 @@ void MergePairedEndResults(
   }
 }
 
-void ProcessPairedEndReads(const string& command, const string& index_file,
+void ProcessPairedEndReads(const string& index_file,
                            const string& reads_file_p1,
                            const string& reads_file_p2,
-                           const string& output_file,
+                           FILE * fout, FILE * fstat,
                            const uint32_t& n_reads_to_process,
                            const uint32_t& max_mismatches, const uint32_t& b,
                            const string& adaptor, const bool& PBAT,
                            const uint32_t& top_k, const int& frag_range,
-                           const bool& ambiguous, const bool& unmapped,
-                           const bool& SAM, const int& num_of_threads) {
+                           FILE * fambiguous, FILE * funmapped,
+                           const bool& SAM) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -708,23 +707,13 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
   string adaptors[2];
   extract_adaptors(adaptor, adaptors[0], adaptors[1]);
   clock_t start_t = clock();
-  FILE * fout = fopen(output_file.c_str(), "w");
-  if (!fout) {
-    throw SMITHLABException("cannot open input file " + output_file);
-  }
   uint32_t num_of_reads[2];
-  StatPairedReads stat_paired_reads(ambiguous, unmapped, frag_range,
-                                    output_file, SAM);
+  StatPairedReads stat_paired_reads(fambiguous!=NULL, funmapped!=NULL,
+      frag_range, SAM);
   bool AG_WILDCARD = true;
   fprintf(stderr, "[MAPPING PAIRED-END READS FROM THE FOLLOWING TWO FILES]\n");
   fprintf(stderr, "   %s (AND)\n   %s\n", reads_file_p1.c_str(),
           reads_file_p2.c_str());
-  fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
-  if (SAM) {
-    SAMHead(index_file, command, fout);
-  }
-  omp_set_dynamic(0);
-  omp_set_num_threads(num_of_threads);
   for (uint32_t i = 0;; i += n_reads_to_process) {
     num_of_reads[0] = num_of_reads[1] = 0;
     for (uint32_t pi = 0; pi < 2; ++pi) {  // paired end reads _1 and _2
@@ -786,7 +775,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
                             read_scores[0][j], read_seqs[1][j],
                             read_scores[1][j], ranked_results,
                             ranked_results_size, frag_range, max_mismatches,
-                            SAM, PBAT, stat_paired_reads, fout);
+                            SAM, PBAT, stat_paired_reads, fout, fambiguous,
+                            funmapped);
     }
 
     if (num_of_reads[0] < n_reads_to_process)
@@ -795,9 +785,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
 
   fclose(fin[0]);
   fclose(fin[1]);
-  fclose(fout);
 
-  OutputPairedStatInfo(stat_paired_reads, output_file);
+  OutputPairedStatInfo(stat_paired_reads, fstat);
   fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
           (double(clock() - start_t) / CLOCKS_PER_SEC));
 }
