@@ -1,7 +1,7 @@
 /*
  *    Part of SMITHLAB software
  *
- *    Copyright (C) 2008 Cold Spring Harbor Laboratory, 
+ *    Copyright (C) 2008 Cold Spring Harbor Laboratory,
  *                       University of Southern California and
  *                       Andrew D. Smith
  *
@@ -34,6 +34,7 @@
 #include <iterator>
 #include <cassert>
 #include <cmath>
+#include <numeric>
 
 
 namespace smithlab {
@@ -52,24 +53,24 @@ typedef size_t MASK_t;
 namespace smithlab {
 
   // Code dealing with false discovery rate
-  double get_fdr_cutoff(const size_t n_tests, std::vector<double> &pvals, 
+  double get_fdr_cutoff(const size_t n_tests, std::vector<double> &pvals,
                         const double alpha);
 
-  void correct_pvals(const size_t n_tests, std::vector<double> &pvals); 
+  void correct_pvals(const size_t n_tests, std::vector<double> &pvals);
 
   // Assumes 4 nucleotide DNA alphabet
   static const size_t alphabet_size = 4;
 
-  std::vector<std::string> split(std::string, const char *, 
-				 bool get_empty_fields = false);
+  std::vector<std::string> split(std::string, const char *,
+                                 bool get_empty_fields = false);
   std::vector<std::string> split_whitespace_quoted(std::string to_split);
   void split_whitespace(const std::string& s, std::vector<std::string> &v);
-  
+
   std::string strip(const std::string& s);
 
-  std::vector<std::string> 
+  std::vector<std::string>
   squash(const std::vector<std::string> &v);
-  
+
   template <class T> std::string toa(T t) {
     std::ostringstream s;
     s << t;
@@ -107,7 +108,7 @@ base2int(char c) {
   case 'a' : return 0;
   case 'c' : return 1;
   case 'g' : return 2;
-  case 't' : return 3; 
+  case 't' : return 3;
   default  : return 4;
   }
 }
@@ -133,7 +134,7 @@ base2int_bs(char c) {
   case 'a' : return 0;
   case 'c' : return 3;
   case 'g' : return 2;
-  case 't' : return 3; 
+  case 't' : return 3;
   default  : return 4;
   }
 }
@@ -162,7 +163,7 @@ base2int_bs_ag(char c) {
   case 'a' : return 0;
   case 'c' : return 1;
   case 'g' : return 0;
-  case 't' : return 3; 
+  case 't' : return 3;
   default  : return 4;
   }
 }
@@ -178,7 +179,7 @@ base2int_bs_rc(char c) {
   case 'a' : return 0;
   case 'c' : return 1;
   case 'g' : return 0;
-  case 't' : return 3; 
+  case 't' : return 3;
   }
   return 4;
 }
@@ -193,7 +194,7 @@ base2int_rc(char c) {
   case 'a' : return 3;
   case 'c' : return 2;
   case 'g' : return 1;
-  case 't' : return 0; 
+  case 't' : return 0;
   }
   return 4;
 }
@@ -268,9 +269,8 @@ mer2i_rc(std::string::const_iterator a, const std::string::const_iterator b) {
   return index;
 }
 
-struct SMITHLABException {
-  SMITHLABException(std::string m) : message(m) {}
-  std::string what() const {return message;}
+struct SMITHLABException : public std::runtime_error {
+  SMITHLABException(std::string m) : std::runtime_error(m), message(m) {}
   std::string message;
 };
 
@@ -308,7 +308,7 @@ revcomp_inplace(std::string::iterator first, std::string::iterator last) {
   std::reverse(first, last);
 }
 
-inline std::string 
+inline std::string
 bits2string_masked(size_t mask, size_t bits) {
   std::string s;
   size_t selector = smithlab_bits::high_bit;
@@ -319,7 +319,9 @@ bits2string_masked(size_t mask, size_t bits) {
   return s;
 }
 
-inline std::string 
+
+
+inline std::string
 bits2string_for_positions(size_t positions, size_t bits) {
   std::string s;
   size_t selector = smithlab_bits::high_bit;
@@ -335,53 +337,52 @@ percent(const size_t a, const size_t b) {
   return static_cast<size_t>((100.0*a)/b);
 }
 
-/////////////////////////////////////////////////////////////////////////
-// We are using a conservative approach to clip that adaptors in which
-// the adaptor sequence is only required to match some at some initial
-// portion, and then the rest of the read is not examined.
 
-const size_t head_length = 14;
-const size_t sufficient_head_match = 11;
-const size_t min_overlap = 5;
 
-inline size_t
-similarity(const std::string &s, const size_t pos, const std::string &adaptor) {
-  const size_t lim = std::min(std::min(s.length() - pos, adaptor.length()), head_length);
-  size_t count = 0;
-  for (size_t i = 0; i < lim; ++i)
-    count += (s[pos + i] == adaptor[i]);
-  return count;
+
+
+////////////////////Code from Alphabet//////////////////////
+
+
+
+bool
+inline valid_base(char c) {
+  char i = std::toupper(c);
+  return (i == 'A' || i == 'C' || i == 'G' || i == 'T');
 }
 
-inline size_t
-clip_adaptor_from_read(const std::string &adaptor, std::string &s) {
-  size_t lim1 = s.length() - head_length + 1;
-  for (size_t i = 0; i < lim1; ++i)
-    if (similarity(s, i, adaptor) >= sufficient_head_match) {
-      fill(s.begin() + i, s.end(), 'N');
-      return s.length() - i;
-    }
-  const size_t lim2 = s.length() - min_overlap + 1;
-  for (size_t i = lim1; i < lim2; ++i)
-    if (similarity(s, i, adaptor) >= s.length() - i - 1) {
-      fill(s.begin() + i, s.end(), 'N');
-      return s.length() - i;
-    }
-  return 0;
+size_t
+inline mer2index(const char *s, size_t n) {
+  size_t multiplier = 1, index = 0;
+  do {
+    --n;
+    index += base2int(s[n])*multiplier;
+    multiplier *= smithlab::alphabet_size;
+  } while (n > 0);
+  return index;
 }
 
-inline void
-extract_adaptors(const std::string &adaptor, std::string & T_adaptor, std::string & A_adaptor) {
-  const size_t sep_idx = adaptor.find_first_of(":");
-  if (adaptor.find_last_of(":") != sep_idx)
-    throw SMITHLABException("ERROR: adaptor format \"T_adaptor[:A_adaptor]\"");
-  if (sep_idx == std::string::npos)
-    T_adaptor = A_adaptor = adaptor;
-  else {
-    T_adaptor = adaptor.substr(0, sep_idx);
-    A_adaptor = adaptor.substr(sep_idx + 1);
+size_t
+inline kmer_counts(const std::vector<std::string> &seqs,
+            std::vector<size_t> &counts, size_t k) {
+  counts.clear();
+  size_t nwords = static_cast<size_t>(pow(static_cast<float>(smithlab::alphabet_size),
+                                          static_cast<int>(k)));
+  counts.resize(nwords, 0);
+  size_t total = 0;
+  for (size_t i = 0; i < seqs.size(); ++i) {
+    char seq[seqs[i].length() + 1];
+    seq[seqs[i].length()] = '\0';
+    copy(seqs[i].begin(), seqs[i].end(), seq);
+    for (size_t j = 0; j < seqs[i].length() - k + 1; ++j)
+      if (std::count_if(seq + j, seq + j + k, &valid_base) ==
+          static_cast<int>(k)) {
+        counts[mer2index(seq + j, k)]++;
+        ++total;
+      }
   }
+  return total;
 }
-/////////////////////////////////////////////////////////////////////////
+
 
 #endif

@@ -181,4 +181,57 @@ inline uint32_t getHashValue(const char* nucleotides) {
   return hash_value;
 }
 
+/////////////////////////////////////////////////////////////////////////
+// We are using a conservative approach to clip that adaptors in which
+// the adaptor sequence is only required to match some at some initial
+// portion, and then the rest of the read is not examined.
+
+static const size_t head_length = 14;
+static const size_t sufficient_head_match = 11;
+static const size_t min_overlap = 5;
+
+inline size_t
+similarity(const std::string &s, const size_t pos, const std::string &adaptor) {
+  const size_t lim = std::min(std::min(s.length() - pos, adaptor.length()), head_length);
+  size_t count = 0;
+  for (size_t i = 0; i < lim; ++i)
+    count += (s[pos + i] == adaptor[i]);
+  return count;
+}
+
+inline size_t
+clip_adaptor_from_read(const std::string &adaptor, std::string &s) {
+  size_t lim1 = s.length() - head_length + 1;
+  for (size_t i = 0; i < lim1; ++i)
+    if (similarity(s, i, adaptor) >= sufficient_head_match) {
+      fill(s.begin() + i, s.end(), 'N');
+      return s.length() - i;
+    }
+  const size_t lim2 = s.length() - min_overlap + 1;
+  for (size_t i = lim1; i < lim2; ++i)
+    if (similarity(s, i, adaptor) >= s.length() - i - 1) {
+      fill(s.begin() + i, s.end(), 'N');
+      return s.length() - i;
+    }
+  return 0;
+}
+
+#include <stdexcept>
+
+inline void
+extract_adaptors(const std::string &adaptor,
+                 std::string & T_adaptor, std::string & A_adaptor) {
+  const size_t sep_idx = adaptor.find_first_of(":");
+  if (adaptor.find_last_of(":") != sep_idx)
+    throw std::runtime_error("ERROR: adaptor format \"T_adaptor[:A_adaptor]\"");
+  if (sep_idx == std::string::npos)
+    T_adaptor = A_adaptor = adaptor;
+  else {
+    T_adaptor = adaptor.substr(0, sep_idx);
+    A_adaptor = adaptor.substr(sep_idx + 1);
+  }
+}
+/////////////////////////////////////////////////////////////////////////
+
+
 #endif /* UTIL_H_ */
