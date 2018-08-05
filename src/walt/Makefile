@@ -31,12 +31,12 @@ endif
 PROGS = makedb walt
 
 CXX = g++
-CFLAGS = -Wall -O3 -fPIC -fmessage-length=50 -fopenmp -D SEEDPATTERN3
+CXXFLAGS = -Wall -O3 -fPIC -std=c++11 -fmessage-length=50 -fopenmp -D SEEDPATTERN3
 
 TEST_DIR = $(SRC_ROOT)/test
 
 ifeq "$(shell uname)" "Darwin"
-CFLAGS += -arch x86_64
+CXXFLAGS += -arch x86_64
 endif
 
 SRCDB = reference.cpp
@@ -44,27 +44,29 @@ SRCMAP =  reference.cpp mapping.cpp paired.cpp
 OBJDB = $(patsubst %.cpp,%.o,$(SRCDB))
 OBJMAP = $(patsubst %.cpp,%.o,$(SRCMAP))
 
-all:	$(PROGS)
+all: $(PROGS)
 
 %.o: %.cpp %.hpp
-	$(CXX) $(CFLAGS) -c -o $@ $<  -I$(SMITHLAB_CPP)
+	$(CXX) $(CXXFLAGS) -c -o $@ $<  -I$(SMITHLAB_CPP)
 
 makedb : $(OBJDB) \
-	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
+	$(addprefix $(SMITHLAB_CPP)/, \
+	smithlab_os.o smithlab_utils.o OptionParser.o)
 
 walt : $(OBJMAP) \
-	$(addprefix $(SMITHLAB_CPP)/, smithlab_os.o smithlab_utils.o OptionParser.o)
+	$(addprefix $(SMITHLAB_CPP)/, \
+	smithlab_os.o smithlab_utils.o OptionParser.o)
 
 %: %.cpp
-		$(CXX) $(CFLAGS) -o $@ $^ -I$(SMITHLAB_CPP)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -I$(SMITHLAB_CPP)
 install: all
 	@mkdir -p $(SRC_ROOT)/bin
 	@install -m 755 $(PROGS) $(SRC_ROOT)/bin
 
-test_%:	%
+test_%: %
 	@$(TEST_DIR)/$@ $(TEST_DIR)
 
-test:	$(addprefix test_, $(PROGS))
+test: $(addprefix test_, $(PROGS))
 
 clean:
 	@-rm -f $(PROGS) *.o *.so *.a *~
