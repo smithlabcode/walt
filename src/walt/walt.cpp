@@ -33,9 +33,17 @@
 #include "mapping.hpp"
 #include "reference.hpp"
 
-int main(int argc, const char **argv) {
-  srand (time(NULL));
+using std::vector;
+using std::string;
+using std::cerr;
+using std::endl;
+
+int
+main(int argc, const char **argv) {
   try {
+
+    srand (time(NULL));
+
     string command = argv[0];
     bool help_info = false;
     for (int i = 1; i < argc; i++) {
@@ -119,59 +127,38 @@ int main(int argc, const char **argv) {
     int num_of_threads = 1;
 
     /****************** COMMAND LINE OPTIONS ********************/
-    OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads",
-                           "");
-    opt_parse.add_opt(
-        "index",
-        'i',
-        "index file created by makedb command \
-        (the suffix of the index file should be '.dbindex')",
-        true, index_file);
-    opt_parse.add_opt(
-        "reads",
-        'r',
-        "comma-separated list of read files for singled-end mapping \
-         (the suffix of read files should be '.fastq' or '.fq')",
-        false, reads_file_s);
-    opt_parse.add_opt(
-        "reads1",
-        '1',
-        "comma-separated list of read files for mate 1 \
-         (the suffix of read files should be '.fastq' or '.fq')",
-        false, reads_file_p1);
-    opt_parse.add_opt(
-        "reads2",
-        '2',
-        "comma-separated list of read files for mate 2 \
-        (the suffix of read files should be '.fastq' or '.fq')",
-        false, reads_file_p2);
+    OptionParser opt_parse(strip_path(argv[0]), "map Illumina BS-seq reads","");
+    opt_parse.add_opt("index", 'i', "index file created by makedb command "
+                      "(the suffix of the index file should be '.dbindex')",
+                      true, index_file);
+    opt_parse.add_opt("reads", 'r', "comma-separated list of read files "
+                      "for singled-end mapping (expect suffix .fastq or .fq)",
+                      false, reads_file_s);
+    opt_parse.add_opt("reads1", '1', "comma-separated list of read files for "
+                      "mate 1 (expect suffix .fastq or .fq)",
+                      false, reads_file_p1);
+    opt_parse.add_opt("reads2", '2', "comma-separated list of read files for "
+                      "mate 2 (expect suffix .fastq or .fq)",
+                      false, reads_file_p2);
     opt_parse.add_opt("output", 'o', "output file name", true, output_file);
-    opt_parse.add_opt("mismatch", 'm', "maximum allowed mismatches", false,
+    opt_parse.add_opt("mismatch", 'm', "max allowed mismatches", false,
                       max_mismatches);
-    opt_parse.add_opt("number", 'N', "number of reads to map at one loop",
+    opt_parse.add_opt("number", 'N', "number of reads per batch",
                       false, n_reads_to_process);
-    opt_parse.add_opt(
-        "ambiguous",
-        'a',
-        "randomly output one mapped position for ambiguous \
-        reads in a separated file",
-        false, ambiguous);
-    opt_parse.add_opt("unmapped", 'u',
-                      "output unmapped reads in a separated file", false,
-                      unmapped);
-    opt_parse.add_opt("clip", 'C', "clip the specified adaptor", false,
-                      adaptor);
-    opt_parse.add_opt("ag-wild", 'A',
-                      "map using A/G bisulfite wildcards (single-end)", false,
-                      AG_WILDCARD);
-    opt_parse.add_opt("pbat", 'P',
-                      "map post-bisulfite adaptor tagging reads", false,
-                      PBAT);
+    opt_parse.add_opt("ambiguous", 'a', "output one random location for "
+                      "ambiguously mapping reads in separate file",
+                      false, ambiguous);
+    opt_parse.add_opt("unmapped", 'u', "output unmapped reads in separate file",
+                      false, unmapped);
+    opt_parse.add_opt("clip", 'C', "clip the specified adaptor", false, adaptor);
+    opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards "
+                      "(single-end)", false, AG_WILDCARD);
+    opt_parse.add_opt("pbat", 'P', "map post-bisulfite adaptor tagging reads",
+                      false, PBAT);
     opt_parse.add_opt("bucket", 'b', "maximum candidates for a seed",
                       false, top_k);
-    opt_parse.add_opt("topk", 'k',
-                      "maximum allowed mappings for a read (paired-end)", false,
-                      top_k);
+    opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read "
+                      "(paired-end)", false, top_k);
     opt_parse.add_opt("fraglen", 'L', "max fragment length (paired-end)", false,
                       frag_range);
     opt_parse.add_opt("thread", 't', "number of threads for mapping", false,
@@ -191,12 +178,10 @@ int main(int argc, const char **argv) {
       fprintf(stderr, "%s\n", opt_parse.option_missing_message().c_str());
       return EXIT_SUCCESS;
     }
-
     if (!is_valid_filename(index_file, "dbindex")) {
       fprintf(stderr, "The suffix of the index file should be '.dbindex'\n");
       return EXIT_FAILURE;
     }
-
     if (!reads_file_s.empty() && reads_file_p1.empty()
         && reads_file_p2.empty()) {
       is_paired_end_reads = false;
@@ -315,7 +300,8 @@ int main(int argc, const char **argv) {
                                max_mismatches, b, adaptor, PBAT, AG_WILDCARD,
                                ambiguous, unmapped, SAM, num_of_threads);
       }
-    } else {
+    }
+    else {
       for (uint32_t i = 0; i < v_reads_file_p1.size(); ++i) {
         ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
@@ -324,13 +310,14 @@ int main(int argc, const char **argv) {
                               SAM, num_of_threads);
       }
     }
-  } catch (const SMITHLABException &e) {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-  } catch (std::bad_alloc &ba) {
-    fprintf(stderr, "ERROR: could not allocate memory\n");
+  }
+  catch (const std::runtime_error &e) {
+    cerr << e.what() << endl;
     return EXIT_FAILURE;
   }
-
+  catch (std::bad_alloc &ba) {
+    cerr << "ERROR: could not allocate memory" << endl;
+    return EXIT_FAILURE;
+  }
   return EXIT_SUCCESS;
 }
