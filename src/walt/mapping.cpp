@@ -386,7 +386,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
-                            const string& adaptor, const bool& PBAT,
+                            const string& adaptor,
                             const bool& AG_WILDCARD, const bool& ambiguous,
                             const bool& unmapped, const bool& SAM,
                             const int& num_of_threads) {
@@ -401,11 +401,10 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   hash_table.index.resize(size_of_index);
 
   vector<string> index_names;
-  if (!AG_WILDCARD && !PBAT) {
+  if (!AG_WILDCARD) {
     index_names.push_back(index_file + "_CT00");
     index_names.push_back(index_file + "_CT01");
   } else {
-    // PBAT single-end is the same as A-rich regular WGBS
     index_names.push_back(index_file + "_GA10");
     index_names.push_back(index_file + "_GA11");
   }
@@ -452,7 +451,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
 #pragma omp parallel for
       for (uint32_t j = 0; j < num_of_reads; ++j) {
         SingleEndMapping(read_seqs[j], genome, hash_table, strand,
-                         AG_WILDCARD || PBAT,
+                         AG_WILDCARD,
                          b, map_results[j], stat_single_reads);
       }
     }
@@ -462,7 +461,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
       StatInfoUpdate(map_results[j].times, stat_single_reads);
       if (!SAM) {
         OutputSingleResults(map_results[j], read_names[j], read_seqs[j],
-                            read_scores[j], genome, AG_WILDCARD || PBAT,
+                            read_scores[j], genome, AG_WILDCARD,
                             stat_single_reads, fout);
       } else {
         OutputSingleSAM(map_results[j], read_names[j], read_seqs[j],

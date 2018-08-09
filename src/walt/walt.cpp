@@ -104,9 +104,6 @@ main(int argc, const char **argv) {
      * are converted to As. If option is only for single-end mapping */
     bool AG_WILDCARD = false;
 
-    /* post-bisulfite adaptor tagging  */
-    bool PBAT = false;
-
     /* maximum allowed mismatches */
     uint32_t max_mismatches = 6;
 
@@ -153,8 +150,6 @@ main(int argc, const char **argv) {
     opt_parse.add_opt("clip", 'C', "clip the specified adaptor", false, adaptor);
     opt_parse.add_opt("ag-wild", 'A', "map using A/G bisulfite wildcards "
                       "(single-end)", false, AG_WILDCARD);
-    opt_parse.add_opt("pbat", 'P', "map post-bisulfite adaptor tagging reads",
-                      false, PBAT);
     opt_parse.add_opt("bucket", 'b', "maximum candidates for a seed",
                       false, top_k);
     opt_parse.add_opt("topk", 'k', "maximum allowed mappings for a read "
@@ -297,7 +292,7 @@ main(int argc, const char **argv) {
       for (uint32_t i = 0; i < v_reads_file_s.size(); ++i) {
         ProcessSingledEndReads(command, index_file, v_reads_file_s[i],
                                v_output_file[i], n_reads_to_process,
-                               max_mismatches, b, adaptor, PBAT, AG_WILDCARD,
+                               max_mismatches, b, adaptor, AG_WILDCARD,
                                ambiguous, unmapped, SAM, num_of_threads);
       }
     }
@@ -306,7 +301,7 @@ main(int argc, const char **argv) {
         ProcessPairedEndReads(command, index_file, v_reads_file_p1[i],
                               v_reads_file_p2[i], v_output_file[i],
                               n_reads_to_process, max_mismatches, b, adaptor,
-                              PBAT, top_k, frag_range, ambiguous, unmapped,
+                              top_k, frag_range, ambiguous, unmapped,
                               SAM, num_of_threads);
       }
     }

@@ -158,7 +158,7 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
-                            const string& adaptor, const bool& PBAT,
+                            const string& adaptor,
                             const bool& AG_WILDCARD, const bool& ambiguous,
                             const bool& unmapped, const bool& SAM,
                             const int& num_of_threads);
