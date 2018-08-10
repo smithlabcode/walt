@@ -105,10 +105,10 @@ struct StatSingleReads {
   bool SAM;
 };
 
-/* load reads from reads file, each time load n_reads_to_process reads,
+/* load reads from reads file, each time load n_reads_per_batch reads,
  * start from  read_start_idx */
-void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
-                            const uint32_t& n_reads_to_process,
+void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
+                            const uint32_t& n_reads_per_batch,
                             const std::string &adaptor, uint32_t& num_of_reads,
                             std::vector<std::string> &read_names,
                             std::vector<std::string> &read_seqs,
@@ -150,17 +150,17 @@ void OutputSingleResults(const BestMatch& best_match, const std::string &read_na
                          StatSingleReads& stat_single_reads, FILE * fout);
 
 /* update number of unmapped, uniquely mapped and ambiguously mapped reads */
-void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads);
+void StatInfoUpdate(const uint32_t times, StatSingleReads& stat_single_reads);
 
 /* singled-end read */
 void ProcessSingledEndReads(const bool VERBOSE, const std::string &index_file,
-                            const std::string &reads_file_s,
+                            const std::string &input_file,
                             const std::string &output_file,
-                            const uint32_t& n_reads_to_process,
-                            const uint32_t& max_mismatches, const uint32_t& b,
+                            const uint32_t n_reads_per_batch,
+                            const uint32_t max_mismatches, const uint32_t b,
                             const std::string &adaptor,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped, const bool& SAM,
-                            const int& num_of_threads);
+                            const bool AG_WILDCARD, const bool ambiguous,
+                            const bool unmapped, const bool SAM,
+                            const int num_of_threads);
 
 #endif /* MAPPING_HPP_ */
