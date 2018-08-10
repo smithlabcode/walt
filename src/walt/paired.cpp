@@ -39,14 +39,8 @@ using std::vector;
 using std::string;
 using std::pair;
 using std::make_pair;
-
-uint32_t MAX(const uint32_t& a, const uint32_t& b) {
-  return a > b ? a : b;
-}
-
-uint32_t MIN(const uint32_t& a, const uint32_t& b) {
-  return a < b ? a : b;
-}
+using std::max;
+using std::min;
 
 int GetSAMFLAG(const bool& paired, const bool& paired_mapped,
                const bool& unmapped, const bool& next_unmapped, const bool& rev,
@@ -308,14 +302,14 @@ int OutputBestPairedResults(const CandidatePosition& r1,
   ForwardChromPosition(r2.genome_pos, r2.strand, chr_id2, read_len2, genome, s2,
                        e2);
 
-  uint32_t overlap_s = MAX(s1, s2);
-  uint32_t overlap_e = MIN(e1, e2);
+  uint32_t overlap_s = max(s1, s2);
+  uint32_t overlap_e = min(e1, e2);
 
-  uint32_t one_l = r1.strand == '+' ? s1 : MAX(overlap_e, s1);
-  uint32_t one_r = r1.strand == '+' ? MIN(overlap_s, e1) : e1;
+  uint32_t one_l = r1.strand == '+' ? s1 : max(overlap_e, s1);
+  uint32_t one_r = r1.strand == '+' ? min(overlap_s, e1) : e1;
 
-  uint32_t two_l = r1.strand == '+' ? MAX(overlap_e, s2) : s2;
-  uint32_t two_r = r1.strand == '+' ? e2 : MIN(overlap_s, e2);
+  uint32_t two_l = r1.strand == '+' ? max(overlap_e, s2) : s2;
+  uint32_t two_r = r1.strand == '+' ? e2 : min(overlap_s, e2);
 
   int len = r1.strand == '+' ? (two_r - one_l) : (one_r - two_l);
   if (SAM) {
