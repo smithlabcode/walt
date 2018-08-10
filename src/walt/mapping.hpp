@@ -107,12 +107,13 @@ struct StatSingleReads {
 
 /* load reads from reads file, each time load n_reads_per_batch reads,
  * start from  read_start_idx */
-void LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
-                            const uint32_t& n_reads_per_batch,
-                            const std::string &adaptor, uint32_t& num_of_reads,
-                            std::vector<std::string> &read_names,
-                            std::vector<std::string> &read_seqs,
-                            std::vector<std::string> &read_scores);
+void
+LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
+                       const uint32_t n_reads_per_batch,
+                       const std::string &adaptor, uint32_t& num_of_reads,
+                       std::vector<std::string> &read_names,
+                       std::vector<std::string> &read_seqs,
+                       std::vector<std::string> &read_scores);
 
 /* reverse the std::string */
 std::string ReverseString(const std::string &str);

@@ -43,7 +43,7 @@ using std::endl;
 
 
 void
-LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
+LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
                        const uint32_t n_reads_per_batch,
                        const string &adaptor, uint32_t &num_of_reads,
                        vector<string> &read_names,
@@ -293,7 +293,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 }
 
-void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads) {
+void StatInfoUpdate(const uint32_t times, StatSingleReads& stat_single_reads) {
   if (times == 0) {
     stat_single_reads.unmapped_reads++;
   } else if (times == 1) {
