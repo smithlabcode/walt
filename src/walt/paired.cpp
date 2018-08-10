@@ -642,7 +642,7 @@ void MergePairedEndResults(const Genome& genome,
   }
 }
 
-void ProcessPairedEndReads(const string& command, const string& index_file,
+void ProcessPairedEndReads(const bool VERBOSE, const string& index_file,
                            const string& reads_file_p1,
                            const string& reads_file_p2,
                            const string& output_file,
@@ -705,7 +705,8 @@ void ProcessPairedEndReads(const string& command, const string& index_file,
           reads_file_p2.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   if (SAM) {
-    SAMHead(index_file, command, fout);
+    // ADS: need to fix this but not here
+    SAMHead(index_file, "walt", fout);
   }
   omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);

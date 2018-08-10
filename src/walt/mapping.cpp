@@ -381,7 +381,7 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
   }
 }
 
-void ProcessSingledEndReads(const string& command, const string& index_file,
+void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
                             const string& reads_file_s,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
@@ -429,7 +429,8 @@ void ProcessSingledEndReads(const string& command, const string& index_file,
   fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
   fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
   if(SAM) {
-    SAMHead(index_file, command, fout);
+    // ADS: need to fix this, but not here
+    SAMHead(index_file, "walt", fout);
   }
   omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);

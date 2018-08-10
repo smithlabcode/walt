@@ -153,7 +153,7 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
 void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads);
 
 /* singled-end read */
-void ProcessSingledEndReads(const string& command, const string& index_file,
+void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
                             const string& reads_file_s,
                             const string& output_file,
                             const uint32_t& n_reads_to_process,
