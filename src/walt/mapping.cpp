@@ -33,24 +33,29 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 using std::vector;
 using std::string;
 using std::pair;
+using std::cerr;
+using std::endl;
 
 
-void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
-                            const uint32_t& n_reads_to_process,
-                            const string& adaptor, uint32_t& num_of_reads,
-                            vector<string>& read_names,
-                            vector<string>& read_seqs,
-                            vector<string>& read_scores) {
+void
+LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
+                       const uint32_t n_reads_per_batch,
+                       const string &adaptor, uint32_t &num_of_reads,
+                       vector<string> &read_names,
+                       vector<string> &read_seqs,
+                       vector<string> &read_scores) {
+
   char cline[MAX_LINE_LENGTH];
   string line;
   int line_code = 0;
   uint32_t line_count = 0;
   num_of_reads = 0;
-  uint32_t lim = n_reads_to_process * 4;
+  uint32_t lim = n_reads_per_batch * 4;
   while (line_count < lim && fgets(cline, MAX_LINE_LENGTH, fin)) {
     cline[strlen(cline) - 1] = 0;
     line = cline;
@@ -390,15 +395,17 @@ void OutputSingleSAM(const BestMatch best_match, const string& read_name,
   }
 }
 
-void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
-                            const string& reads_file_s,
-                            const string& output_file,
-                            const uint32_t& n_reads_to_process,
-                            const uint32_t& max_mismatches, const uint32_t& b,
-                            const string& adaptor,
-                            const bool& AG_WILDCARD, const bool& ambiguous,
-                            const bool& unmapped, const bool& SAM,
-                            const int& num_of_threads) {
+void
+ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
+                       const string &reads_file_s,
+                       const string &output_file,
+                       const uint32_t n_reads_per_batch,
+                       const uint32_t max_mismatches,
+                       const uint32_t b,
+                       const string &adaptor,
+                       const bool AG_WILDCARD, const bool ambiguous,
+                       const bool unmapped, const bool SAM,
+                       const int num_of_threads) {
   // LOAD THE INDEX HEAD INFO
   Genome genome;
   HashTable hash_table;
@@ -418,11 +425,11 @@ void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
     index_names.push_back(index_file + "_GA11");
   }
 
-  vector<string> read_names(n_reads_to_process);
-  vector<string> read_seqs(n_reads_to_process);
-  vector<string> read_scores(n_reads_to_process);
+  vector<string> read_names(n_reads_per_batch);
+  vector<string> read_seqs(n_reads_per_batch);
+  vector<string> read_scores(n_reads_per_batch);
 
-  vector<BestMatch> map_results(n_reads_to_process);
+  vector<BestMatch> map_results(n_reads_per_batch);
   FILE * fin = fopen(reads_file_s.c_str(), "r");
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
@@ -435,16 +442,19 @@ void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
   clock_t start_t = clock();
   uint32_t num_of_reads;
   StatSingleReads stat_single_reads(ambiguous, unmapped, output_file, SAM);
-  fprintf(stderr, "[MAPPING READS FROM %s]\n", reads_file_s.c_str());
-  fprintf(stderr, "[OUTPUT MAPPING RESULTS TO %s]\n", output_file.c_str());
+
+  if (VERBOSE)
+    cerr << "input_file: " << reads_file_s << endl
+         << "output_file: " << output_file << endl;
+
   if(SAM) {
     // ADS: need to fix this, but not here
     SAMHead(index_file, "walt", fout);
   }
   omp_set_dynamic(0);
   omp_set_num_threads(num_of_threads);
-  for (uint32_t i = 0;; i += n_reads_to_process) {
-    LoadReadsFromFastqFile(fin, i, n_reads_to_process, adaptor, num_of_reads,
+  for (uint32_t i = 0;; i += n_reads_per_batch) {
+    LoadReadsFromFastqFile(fin, i, n_reads_per_batch, adaptor, num_of_reads,
                            read_names, read_seqs, read_scores);
     if (num_of_reads == 0)
       break;
@@ -479,49 +489,24 @@ void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
       }
     }
 
-    if (num_of_reads < n_reads_to_process)
+    if (num_of_reads < n_reads_per_batch)
       break;
   }
   fclose(fin);
   fclose(fout);
 
-  FILE * fstat = fopen(string(output_file + ".mapstats").c_str(), "w");
-  fprintf(fstat, "[TOTAL NUMBER OF READS: %u]\n",
-          stat_single_reads.total_reads);
-  fprintf(
-      fstat,
-      "[UNIQUELY MAPPED READS: %u (%.2lf%%)]\n",
-      stat_single_reads.unique_mapped_reads,
-      100.00 * stat_single_reads.unique_mapped_reads
-          / stat_single_reads.total_reads);
-  fprintf(
-      fstat,
-      "[AMBIGUOUS MAPPED READS: %u (%.2lf%%)]\n",
-      stat_single_reads.ambiguous_mapped_reads,
-      100.00 * stat_single_reads.ambiguous_mapped_reads
-          / stat_single_reads.total_reads);
-  fprintf(
-      fstat,
-      "[UNMAPPED READS: %u (%.2lf%%)]\n",
-      stat_single_reads.unmapped_reads,
-      100.00 * stat_single_reads.unmapped_reads
-          / stat_single_reads.total_reads);
+  std::ofstream mapstats(output_file + ".mapstats");
+  const double percent_unique =
+    (100.0*stat_single_reads.unique_mapped_reads)/stat_single_reads.total_reads;
+  mapstats << "total_reads: " << stat_single_reads.total_reads << endl
+           << "mapped:" << endl
+           << "    unique: " << stat_single_reads.unique_mapped_reads << endl
+           << "    percent_unique: " << percent_unique << endl
+           << "    ambiguous: " << stat_single_reads.ambiguous_mapped_reads << endl
+           << "unmapped: " << stat_single_reads.ambiguous_mapped_reads << endl
+           << "min_read_length: " << MINIMALREADLEN << endl
+           << "too_short: " << stat_single_reads.num_of_short_reads << endl;
 
-  if (stat_single_reads.num_of_short_reads != 0) {
-    fprintf(fstat, "\n\n[READS SHORTER THAN %d ARE IGNORED]\n",
-            MINIMALREADLEN);
-    fprintf(
-        fstat,
-        "[%u (%.2lf%%) READS ARE SHORTER THAN %d]\n",
-        stat_single_reads.num_of_short_reads,
-        100.00 * stat_single_reads.num_of_short_reads
-            / stat_single_reads.total_reads,
-        MINIMALREADLEN);
-  }
-
-  fclose(fstat);
-
-  fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
-          (double(clock() - start_t) / CLOCKS_PER_SEC));
-
+  if (VERBOSE)
+    cerr << "mapping_time: " << double(clock() - start_t)/CLOCKS_PER_SEC << endl;
 }
