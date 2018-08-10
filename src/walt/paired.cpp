@@ -52,7 +52,7 @@ pct(double a, double b) {return (100.0*a)/b;}
 string
 StatPairedReads::tostring(const size_t n_tabs) const {
   std::ostringstream oss;
-  oss << "pairs:"
+  oss << "pairs:" << endl
       << "    total_read_pairs: " << total_read_pairs << endl
       << "    mapped:" << endl
       << "        unique: " << unique_mapped_pairs << endl
