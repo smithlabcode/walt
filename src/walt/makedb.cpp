@@ -31,6 +31,17 @@
 
 #include "reference.hpp"
 
+#include <vector>
+#include <string>
+#include <iostream>
+#include <set>
+
+using std::vector;
+using std::string;
+using std::cerr;
+using std::endl;
+using std::set;
+
 void BuildIndex(const vector<string>& chrom_files, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
   switch (indicator) {
