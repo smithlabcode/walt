@@ -29,8 +29,16 @@
 #include "smithlab_os.hpp"
 #include "smithlab_utils.hpp"
 
-#include <fstream>
+// #include <fstream>
+#include <iostream>
 #include <algorithm>
+#include <sstream>
+// #include <utility>
+
+using std::string;
+using std::vector;
+using std::set;
+using std::endl;
 
 uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos) {
   uint32_t size = nums.size();
@@ -405,14 +413,15 @@ void ReadIndexHeadInfo(const string& index_file, Genome& genome,
   fclose(fin);
 }
 
-void ShowGenomeInfo(const string& index_file) {
+string
+ShowGenomeInfo(const string& index_file) {
   Genome genome;
   uint32_t size_of_index;
   ReadIndexHeadInfo(index_file, genome, size_of_index);
-  fprintf(stderr, "[THERE ARE %u CHROMOSOMES IN THE GENOME]\n",
-          genome.num_of_chroms);
-  fprintf(stderr, "[THE TOTAL LENGTH OF ALL CHROMOSOMES IS %u]\n",
-          genome.length_of_genome);
+  std::ostringstream oss;
+  oss << "n_chroms: " << genome.num_of_chroms << endl
+      << "genome_length: " << genome.length_of_genome;
+  return oss.str();
 }
 
 void SAMHead(const string& index_file, const string& command, FILE * fout) {

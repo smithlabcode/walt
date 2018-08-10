@@ -54,7 +54,7 @@ struct BestMatch {
 /* count the number of uniquely mapped, ambiguous mapped and unmapped reads */
 struct StatSingleReads {
   StatSingleReads(const bool& _ambiguous, const bool& _unmapped,
-                  const string& output_file, const bool& _SAM)
+                  const std::string &output_file, const bool& _SAM)
       : ambiguous(_ambiguous),
         unmapped(_unmapped),
         SAM(_SAM) {
@@ -66,17 +66,17 @@ struct StatSingleReads {
     num_of_short_reads = 0;
 
     if (ambiguous && !SAM) {
-      fambiguous = fopen(string(output_file + "_ambiguous").c_str(), "w");
+      fambiguous = fopen(std::string(output_file + "_ambiguous").c_str(), "w");
       if (!fambiguous) {
         throw SMITHLABException(
-            "cannot open input file " + string(output_file + "_ambiguous"));
+            "cannot open input file " + std::string(output_file + "_ambiguous"));
       }
     }
     if (unmapped && !SAM) {
-      funmapped = fopen(string(output_file + "_unmapped").c_str(), "w");
+      funmapped = fopen(std::string(output_file + "_unmapped").c_str(), "w");
       if (!funmapped) {
         throw SMITHLABException(
-            "cannot open input file " + string(output_file + "_unmapped"));
+            "cannot open input file " + std::string(output_file + "_unmapped"));
       }
     }
   }
@@ -109,43 +109,43 @@ struct StatSingleReads {
  * start from  read_start_idx */
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
                             const uint32_t& n_reads_to_process,
-                            const string& adaptor, uint32_t& num_of_reads,
-                            vector<string>& read_names,
-                            vector<string>& read_seqs,
-                            vector<string>& read_scores);
+                            const std::string &adaptor, uint32_t& num_of_reads,
+                            std::vector<std::string> &read_names,
+                            std::vector<std::string> &read_seqs,
+                            std::vector<std::string> &read_scores);
 
-/* reverse the string */
-string ReverseString(const string& str);
+/* reverse the std::string */
+std::string ReverseString(const std::string &str);
 
-/* reverse compliment string */
-string ReverseComplimentString(const string& str);
+/* reverse compliment std::string */
+std::string ReverseComplimentString(const std::string &str);
 
 /* reads from _1 file, Cs are converted to Ts*/
-void C2T(const string& org_read, const uint32_t& read_len, string& read);
+void C2T(const std::string &org_read, const uint32_t& read_len, std::string &read);
 
 /* reads from _2 file, Gs are converted to As*/
-void G2A(const string& org_read, const uint32_t& read_len, string& read);
+void G2A(const std::string &org_read, const uint32_t& read_len, std::string &read);
 
 /* find the region of index where those positions started with the seed */
-void IndexRegion(const string& read, const Genome& genome,
+void IndexRegion(const std::string &read, const Genome& genome,
                  const HashTable& hash_table, const uint32_t& seed_len,
-                 pair<uint32_t, uint32_t>& region);
+                 std::pair<uint32_t, uint32_t> &region);
 
 /* output the uniquely mapped reads or ambiguously mapped reads */
 void OutputUniquelyAndAmbiguousMapped(const BestMatch& best_match,
-                                      const string& read_name,
-                                      const string& read_seq,
-                                      const string& read_score,
+                                      const std::string &read_name,
+                                      const std::string &read_seq,
+                                      const std::string &read_score,
                                       const Genome& genome,
                                       const bool& AG_WILDCARD, FILE * fout);
 
 /* output the unmapped reads */
-void OutputUnmapped(const string& read_name, const string& read_seq,
-                    const string& read_score, FILE * fout);
+void OutputUnmapped(const std::string &read_name, const std::string &read_seq,
+                    const std::string &read_score, FILE * fout);
 
 /* output the single end results */
-void OutputSingleResults(const BestMatch& best_match, const string& read_name,
-                         const string& read_seq, const string& read_score,
+void OutputSingleResults(const BestMatch& best_match, const std::string &read_name,
+                         const std::string &read_seq, const std::string &read_score,
                          const Genome& genome, const bool& AG_WILDCARD,
                          StatSingleReads& stat_single_reads, FILE * fout);
 
@@ -153,12 +153,12 @@ void OutputSingleResults(const BestMatch& best_match, const string& read_name,
 void StatInfoUpdate(const uint32_t& times, StatSingleReads& stat_single_reads);
 
 /* singled-end read */
-void ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
-                            const string& reads_file_s,
-                            const string& output_file,
+void ProcessSingledEndReads(const bool VERBOSE, const std::string &index_file,
+                            const std::string &reads_file_s,
+                            const std::string &output_file,
                             const uint32_t& n_reads_to_process,
                             const uint32_t& max_mismatches, const uint32_t& b,
-                            const string& adaptor,
+                            const std::string &adaptor,
                             const bool& AG_WILDCARD, const bool& ambiguous,
                             const bool& unmapped, const bool& SAM,
                             const int& num_of_threads);

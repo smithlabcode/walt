@@ -40,25 +40,18 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <utility>
-
-using std::set;
-using std::pair;
-using std::string;
-using std::vector;
-using std::make_pair;
 
 struct Genome {
   /* chromosome name */
-  vector<string> name;
+  std::vector<std::string> name;
 
   /* chromosome length */
-  vector<uint32_t> length;
+  std::vector<uint32_t> length;
 
   /* all chromosomes are concatenated to one string, and stored
    * in vector<char> sequence. start_index indicates the start position
    * of the chromosome in vector<char> sequence. */
-  vector<uint32_t> start_index;
+  std::vector<uint32_t> start_index;
 
   /* There are two different strands, '+' and '-'. The chromosome read from
    * reference file is '+', and the one got from reverse compliment rule
@@ -73,7 +66,7 @@ struct Genome {
   uint32_t length_of_genome;
 
   /* all chromosome are concatenated to one string, and stored in sequence. */
-  vector<char> sequence;
+  std::vector<char> sequence;
 };
 
 /* HashTable stores genome positions for each k-mer
@@ -92,37 +85,37 @@ struct HashTable {
 
   /* counter is a indicator array. It recodes the start positions of
    * each k-mer in the index array */
-  vector<uint32_t> counter;
+  std::vector<uint32_t> counter;
 
   /* index array stores genome positions for each k-mer */
-  vector<uint32_t> index;
+  std::vector<uint32_t> index;
 };
 
 /* find the first index in nums which is larger or equal to pos */
-uint32_t getChromID(const vector<uint32_t>& nums, const uint32_t& pos);
+uint32_t getChromID(const std::vector<uint32_t>& nums, const uint32_t& pos);
 
 /* identify chromosome files and estimate the size of each chromosome */
-void IdentifyChromosomes(const string& chrom_file, vector<string>& chrom_files);
+void IdentifyChromosomes(const std::string& chrom_file, std::vector<std::string>& chrom_files);
 
 /* read chromosomes from disk and store in genome */
-void ReadGenome(const vector<string>& chrom_files, Genome& genome);
+void ReadGenome(const std::vector<std::string>& chrom_files, Genome& genome);
 
 /* get the reverse complimentary strand of genome */
 void ReverseComplementGenome(Genome& genome);
 
 /* Cs in the genome are converted to Ts */
-void C2T(vector<char>& sequence);
+void C2T(std::vector<char>& sequence);
 
 /* Gs in the genome are converted to As */
-void G2A(vector<char>& sequence);
+void G2A(std::vector<char>& sequence);
 
 /* count how many k-mers for each hash value (bucket) */
 void CountBucketSize(const Genome& genome, HashTable& hash_table,
-                     set<uint32_t>& extremal_large_bucket);
+                     std::set<uint32_t>& extremal_large_bucket);
 
 /* put genome positions to the corresponding bucket */
 void HashToBucket(const Genome& genome, HashTable& hash_table,
-                  const set<uint32_t>& extremal_large_bucket);
+                  const std::set<uint32_t>& extremal_large_bucket);
 
 /* Sort each bucket, if the seed length is more than 12, then use binary search
  * for the rest part of the seed */
@@ -136,25 +129,27 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table);
 /* After building the hash table for all chromosomes, write them to the disk.
  * Next time when mapping the reads, first using ReadIndex function to read
  * the chromosomes and hash tables */
-void WriteIndex(const string& index_file, const Genome& genome,
+void WriteIndex(const std::string& index_file, const Genome& genome,
                 const HashTable& hash_table);
 
 /* read the chromosomes and hash tables from the disk */
-void ReadIndex(const string& index_file, Genome& genome, HashTable& hash_table);
+void ReadIndex(const std::string& index_file, Genome& genome, HashTable& hash_table);
 
 /* write the head information to disk, including 4 index names, chromosome names
  * and lengths, and also the largest size of index array in HashTable */
-void WriteIndexHeadInfo(const string& index_file, const Genome& genome,
+void WriteIndexHeadInfo(const std::string& index_file, const Genome& genome,
                         const uint32_t& size_of_index);
 
 /* read the head information from disk */
-void ReadIndexHeadInfo(const string& index_file, Genome& genome,
+void ReadIndexHeadInfo(const std::string& index_file, Genome& genome,
                        uint32_t& size_of_index);
 
 /* show genome length and the number of chromosomes in the genome */
-void ShowGenomeInfo(const string& index_file);
+std::string
+ShowGenomeInfo(const std::string& index_file);
 
 /* show SAM head information */
-void SAMHead(const string& index_file, const string& command, FILE * fout);
+void SAMHead(const std::string &index_file,
+             const std::string &command, FILE * fout);
 
 #endif /* REFERENCE_H_ */

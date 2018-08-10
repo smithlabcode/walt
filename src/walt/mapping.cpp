@@ -30,6 +30,15 @@
 
 #include <omp.h>
 
+#include <string>
+#include <vector>
+#include <iostream>
+
+using std::vector;
+using std::string;
+using std::pair;
+
+
 void LoadReadsFromFastqFile(FILE * fin, const uint32_t& read_start_idx,
                             const uint32_t& n_reads_to_process,
                             const string& adaptor, uint32_t& num_of_reads,

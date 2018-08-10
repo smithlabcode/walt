@@ -28,21 +28,17 @@
 #include "mapping.hpp"
 
 #include <queue>
+#include <vector>
 
 /* CandidatePosition stores the candidate genome positions with number of
  * mismatches less or equal to max_mismatches */
 struct CandidatePosition {
-  CandidatePosition(const uint32_t& _genome_pos = 0, const char& _strand = '+',
-                    const uint32_t& _mismatch = MAX_UINT32)
-      : genome_pos(_genome_pos),
-        strand(_strand),
-        mismatch(_mismatch) {
-  }
-
+  CandidatePosition(const uint32_t gp = 0, const char st = '+',
+                    const uint32_t mm = std::numeric_limits<uint32_t>::max()) :
+    genome_pos(gp), strand(st), mismatch(mm) {}
   bool operator<(const CandidatePosition& b) const {
     return mismatch < b.mismatch;
   }
-
   uint32_t genome_pos;
   char strand;
   uint32_t mismatch;
@@ -53,56 +49,35 @@ struct CandidatePosition {
  * the top-k positions (with minimal mismatches) are recorded. Then using
  * the top-k positions in each of them to find the best pair match. */
 struct TopCandidates {
-  TopCandidates(const uint32_t& _size = 50)
-      : size(_size) {
-  }
+  typedef std::priority_queue<CandidatePosition> cand_pq;
 
-  void SetSize(const uint32_t& _size) {
-    size = _size;
-  }
+  TopCandidates(const uint32_t sz = 50) : max_size(sz) {}
 
-  bool Empty() {
-    return candidates.empty();
-  }
-
-  bool Full() {
-    return candidates.size() >= size;
-  }
-
-  void Clear() {
-    while (!candidates.empty()) {
-      candidates.pop();
-    }
-  }
-
-  CandidatePosition Top() {
-    return candidates.top();
-  }
+  void SetSize(const uint32_t sz) {max_size = sz;}
+  bool Empty() {return candidates.empty();}
+  bool Full() {return candidates.size() >= max_size;}
+  void Clear() {candidates = cand_pq();}
+  void Pop() {candidates.pop();}
+  CandidatePosition Top() {return candidates.top();}
 
   void Push(const CandidatePosition& cand) {
-    if (candidates.size() < size) {
+    if (candidates.size() < max_size)
       candidates.push(cand);
-    } else {
-      if (cand.mismatch < candidates.top().mismatch) {
-        candidates.pop();
-        candidates.push(cand);
-      }
+    else if (cand.mismatch < candidates.top().mismatch) {
+      candidates.pop();
+      candidates.push(cand);
     }
-  }
-
-  void Pop() {
-    candidates.pop();
   }
 
   std::priority_queue<CandidatePosition> candidates;
-  uint32_t size;
+  size_t max_size;
 };
 
 /* count the number of uniquely mapped, ambiguous mapped and
  * unmapped reads pairs */
 struct StatPairedReads {
   StatPairedReads(const bool& _ambiguous, const bool& _unmapped,
-                  const uint32_t& frag_range, const string& output_file,
+                  const uint32_t& frag_range, const std::string &output_file,
                   const bool& SAM)
       : stat_single_reads_1(_ambiguous, _unmapped, output_file + "_1", SAM),
         stat_single_reads_2(_ambiguous, _unmapped, output_file + "_2", SAM) {
@@ -126,17 +101,17 @@ struct StatPairedReads {
   StatSingleReads stat_single_reads_2;
 
   // distribution of fragment length
-  vector<uint32_t> fragment_len_count;
+  std::vector<uint32_t> fragment_len_count;
 };
 
 /* paired-end read */
-void ProcessPairedEndReads(const bool VERBOSE, const string& index_file,
-                           const string& reads_file_p1,
-                           const string& reads_file_p2,
-                           const string& output_file,
+void ProcessPairedEndReads(const bool VERBOSE, const std::string &index_file,
+                           const std::string &reads_file_p1,
+                           const std::string &reads_file_p2,
+                           const std::string &output_file,
                            const uint32_t& n_reads_to_process,
                            const uint32_t& max_mismatches, const uint32_t& b,
-                           const string& adaptor,
+                           const std::string &adaptor,
                            const uint32_t& top_k, const int& frag_range,
                            const bool& ambiguous, const bool& unmapped,
                            const bool& SAM, const int& num_of_threads);

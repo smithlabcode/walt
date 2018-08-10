@@ -32,6 +32,14 @@
 
 #include <omp.h>
 
+#include <vector>
+#include <string>
+
+using std::vector;
+using std::string;
+using std::pair;
+using std::make_pair;
+
 uint32_t MAX(const uint32_t& a, const uint32_t& b) {
   return a > b ? a : b;
 }
