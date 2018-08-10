@@ -91,6 +91,7 @@ struct StatPairedReads {
       fragment_len_count[i] = 0;
     }
   }
+  std::string tostring(const size_t n_tabs = 0) const;
 
   uint32_t total_read_pairs;
   uint32_t unique_mapped_pairs;

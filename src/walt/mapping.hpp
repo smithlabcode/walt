@@ -89,6 +89,8 @@ struct StatSingleReads {
     }
   }
 
+  std::string tostring(const size_t n_tabs) const;
+
   uint32_t total_reads;
   uint32_t unique_mapped_reads;
   uint32_t ambiguous_mapped_reads;

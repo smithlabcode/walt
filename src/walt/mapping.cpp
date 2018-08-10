@@ -41,6 +41,26 @@ using std::pair;
 using std::cerr;
 using std::endl;
 
+static double
+pct(double a, double b) {return (100.0*a)/b;}
+
+string
+StatSingleReads::tostring(const size_t n_tabs = 0) const {
+  static const string tab = "    ";
+  string t;
+  for (size_t i = 0; i < n_tabs; ++i)
+    t += tab;
+  std::ostringstream oss;
+  oss << t << "total_reads: " << total_reads << endl
+      << t << "mapped:" << endl
+      << t << "    unique: " << unique_mapped_reads << endl
+      << t << "    percent_unique: " << pct(unique_mapped_reads, total_reads) << endl
+      << t << "    ambiguous: " << ambiguous_mapped_reads << endl
+      << t << "unmapped: " << unmapped_reads << endl
+      << t << "min_read_length: " << MINIMALREADLEN << endl
+      << t << "too_short: " << num_of_short_reads;
+  return oss.str();
+}
 
 void
 LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
@@ -496,16 +516,7 @@ ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
   fclose(fout);
 
   std::ofstream mapstats(output_file + ".mapstats");
-  const double percent_unique =
-    (100.0*stat_single_reads.unique_mapped_reads)/stat_single_reads.total_reads;
-  mapstats << "total_reads: " << stat_single_reads.total_reads << endl
-           << "mapped:" << endl
-           << "    unique: " << stat_single_reads.unique_mapped_reads << endl
-           << "    percent_unique: " << percent_unique << endl
-           << "    ambiguous: " << stat_single_reads.ambiguous_mapped_reads << endl
-           << "unmapped: " << stat_single_reads.ambiguous_mapped_reads << endl
-           << "min_read_length: " << MINIMALREADLEN << endl
-           << "too_short: " << stat_single_reads.num_of_short_reads << endl;
+  mapstats << stat_single_reads.tostring() << endl;
 
   if (VERBOSE)
     cerr << "mapping_time: " << double(clock() - start_t)/CLOCKS_PER_SEC << endl;

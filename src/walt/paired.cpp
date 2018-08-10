@@ -29,11 +29,12 @@
 #include "OptionParser.hpp"
 
 #include <algorithm>
-
-#include <omp.h>
-
 #include <vector>
 #include <string>
+#include <fstream>
+#include <iostream>
+
+#include <omp.h>
 
 using std::vector;
 using std::string;
@@ -41,6 +42,40 @@ using std::pair;
 using std::make_pair;
 using std::max;
 using std::min;
+using std::endl;
+using std::cerr;
+
+static double
+pct(double a, double b) {return (100.0*a)/b;}
+
+
+string
+StatPairedReads::tostring(const size_t n_tabs) const {
+  std::ostringstream oss;
+  oss << "pairs:"
+      << "    total_read_pairs: " << total_read_pairs << endl
+      << "    mapped:" << endl
+      << "        unique: " << unique_mapped_pairs << endl
+      << "        percent_unique: " << pct(unique_mapped_pairs, total_read_pairs) << endl
+      << "        ambiguous: " << ambiguous_mapped_pairs << endl
+      << "    unmapped: " << unmapped_pairs << endl
+      << "mate1:" << endl
+      << stat_single_reads_1.tostring(1) << endl
+      << "mate2:" << endl
+      << stat_single_reads_2.tostring(1) << endl;
+
+  oss << "frag_len_distribution:" << endl;
+  double total = 0.0;
+  for (size_t i = 0; i < fragment_len_count.size(); ++i) {
+    oss << "    " << i << ": " << fragment_len_count[i] << endl;
+    total += (i * fragment_len_count[i]);
+  }
+  oss << "frag_len_mean: "
+      << total/accumulate(begin(fragment_len_count),
+                          end(fragment_len_count), 0.0);
+  return oss.str();
+}
+
 
 int GetSAMFLAG(const bool& paired, const bool& paired_mapped,
                const bool& unmapped, const bool& next_unmapped, const bool& rev,
@@ -165,121 +200,11 @@ void PairEndMapping(const string& org_read, const Genome& genome,
   }
 }
 
-void OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
-                          const string& output_file) {
-  FILE * fstat = fopen(string(output_file + ".mapstats").c_str(), "w");
-  fprintf(fstat, "[TOTAL NUMBER OF READ PAIRS: %u]\n",
-          stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "[UNIQUELY MAPPED READ PAIRS: %u (%.2lf%%)]\n",
-      stat_paired_reads.unique_mapped_pairs,
-      100.00 * stat_paired_reads.unique_mapped_pairs
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "[AMBIGUOUS MAPPED READ PAIRS: %u (%.2lf%%)]\n",
-      stat_paired_reads.ambiguous_mapped_pairs,
-      100.00 * stat_paired_reads.ambiguous_mapped_pairs
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "[UNMAPPED READS PAIRS: %u (%.2lf%%)]\n",
-      stat_paired_reads.unmapped_pairs,
-      100.00 * stat_paired_reads.unmapped_pairs
-          / stat_paired_reads.total_read_pairs);
-  //////////////////MATE 1////////////////////////
-  fprintf(
-      fstat,
-      "   [UNIQUELY MAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_1.unique_mapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_1.unique_mapped_reads
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "   [AMBIGUOUS MAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_1.ambiguous_mapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_1.ambiguous_mapped_reads
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "   [UNMAPPED READS IN MATE_1: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_1.unmapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_1.unmapped_reads
-          / stat_paired_reads.total_read_pairs);
-  //////////////////MATE 2////////////////////////
-  fprintf(
-      fstat,
-      "   [UNIQUELY MAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_2.unique_mapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_2.unique_mapped_reads
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "   [AMBIGUOUS MAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_2.ambiguous_mapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_2.ambiguous_mapped_reads
-          / stat_paired_reads.total_read_pairs);
-  fprintf(
-      fstat,
-      "   [UNMAPPED READS IN MATE_2: %u (%.2lf%%)]\n",
-      stat_paired_reads.stat_single_reads_2.unmapped_reads,
-      100.00 * stat_paired_reads.stat_single_reads_2.unmapped_reads
-          / stat_paired_reads.total_read_pairs);
-
-  if (stat_paired_reads.stat_single_reads_1.num_of_short_reads != 0
-      || stat_paired_reads.stat_single_reads_2.num_of_short_reads != 0) {
-    fprintf(fstat, "\n\n[READS SHORTER THAN %d ARE IGNORED]\n",
-            MINIMALREADLEN);
-    fprintf(
-        fstat,
-        "[%u (%.2lf%%) READS ARE SHORTER THAN %d IN MATE_1]\n",
-        stat_paired_reads.stat_single_reads_1.num_of_short_reads,
-        100.00 * stat_paired_reads.stat_single_reads_1.num_of_short_reads
-            / stat_paired_reads.total_read_pairs,
-        MINIMALREADLEN);
-    fprintf(
-        fstat,
-        "[%u (%.2lf%%) READS ARE SHORTER THAN %d IN MATE_2]\n",
-        stat_paired_reads.stat_single_reads_2.num_of_short_reads,
-        100.00 * stat_paired_reads.stat_single_reads_2.num_of_short_reads
-            / stat_paired_reads.total_read_pairs,
-        MINIMALREADLEN);
-  }
-
-  // distribution of fragment length
-  double average_fragment_len = 0.0;
-  fprintf(fstat, "\n\nDISTRIBUTION OF PAIRED-END FRAGMNET LENGTH\n");
-  for (uint32_t i = 1; i < stat_paired_reads.fragment_len_count.size(); ++i) {
-    if (stat_paired_reads.fragment_len_count[i] != 0) {
-      fprintf(
-          fstat,
-          "%u:\t%u\t(%.2lf%%)\n",
-          i,
-          stat_paired_reads.fragment_len_count[i],
-          100.00 * stat_paired_reads.fragment_len_count[i]
-              / stat_paired_reads.unique_mapped_pairs);
-      average_fragment_len += i * stat_paired_reads.fragment_len_count[i];
-    }
-  }
-  average_fragment_len /= stat_paired_reads.unique_mapped_pairs;
-
-  // standard deviation
-  double standard_deviation = 0.0;
-  for (uint32_t i = 1; i < stat_paired_reads.fragment_len_count.size(); ++i) {
-    if (stat_paired_reads.fragment_len_count[i] != 0) {
-      standard_deviation += (average_fragment_len - i)
-          * (average_fragment_len - i)
-          * stat_paired_reads.fragment_len_count[i];
-    }
-  }
-  standard_deviation = sqrt(standard_deviation);
-  fprintf(fstat, "\n\nAVERAGE VALUE OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
-          average_fragment_len);
-  fprintf(fstat, "STANDARD DEVIATION OF PAIRED-END FRAGMNET LENGTHS: %lf\n",
-          standard_deviation);
-
-  fclose(fstat);
+void
+OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
+                     const string& output_file) {
+  std::ofstream mapstats(output_file + ".mapstats");
+  mapstats << stat_paired_reads.tostring() << endl;
 }
 
 int OutputBestPairedResults(const CandidatePosition& r1,
@@ -782,6 +707,7 @@ void ProcessPairedEndReads(const bool VERBOSE, const string& index_file,
   fclose(fout);
 
   OutputPairedStatInfo(stat_paired_reads, output_file);
-  fprintf(stderr, "[MAPPING TAKES %.0lf SECONDS]\n",
-          (double(clock() - start_t) / CLOCKS_PER_SEC));
+
+  if (VERBOSE)
+    cerr << "mapping_time: " << double(clock() - start_t)/CLOCKS_PER_SEC << endl;
 }
