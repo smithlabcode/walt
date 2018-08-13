@@ -197,7 +197,6 @@ main(int argc, const char **argv) {
     vector<string> pe_read_files_end2;
     split_filenames(pe_read_files_end2_csv, pe_read_files_end2);
 
-    cerr << "NUMBER OF FILES:" << se_read_files.size() << endl;
     if (pe_read_files_end1.size() != pe_read_files_end2.size())
       throw runtime_error("unequal number of end1 and end2 files");
 
