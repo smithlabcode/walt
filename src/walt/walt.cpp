@@ -45,11 +45,10 @@ using std::to_string;
 
 static void
 split_filenames(const string &s, vector<string> &filenames) {
-  std::stringstream ss(s);
-  using std::istream_iterator;
-  istream_iterator<string> begin(ss), end;
-  vector<string> vstrings(begin, end);
-  std::copy(vstrings.begin(), vstrings.end(), back_inserter(filenames));
+  std::istringstream iss(s);
+  string token;
+  while (std::getline(iss, token, ','))
+    filenames.push_back(token);
 }
 
 static bool
@@ -198,6 +197,7 @@ main(int argc, const char **argv) {
     vector<string> pe_read_files_end2;
     split_filenames(pe_read_files_end2_csv, pe_read_files_end2);
 
+    cerr << "NUMBER OF FILES:" << se_read_files.size() << endl;
     if (pe_read_files_end1.size() != pe_read_files_end2.size())
       throw runtime_error("unequal number of end1 and end2 files");
 
@@ -249,7 +249,7 @@ main(int argc, const char **argv) {
     for (uint32_t i = 0; i < n_pe_read_files; ++i)
       ProcessPairedEndReads(VERBOSE, index_file,
                             pe_read_files_end1[i], pe_read_files_end2[i],
-                            output_files[i],
+                            output_files[i+n_se_read_files],
                             batch_size, max_mismatches, b, adaptor,
                             top_k, frag_range, ambiguous, unmapped,
                             sam_format, num_of_threads);
