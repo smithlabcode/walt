@@ -174,7 +174,7 @@ inline uint32_t power(const uint32_t& x, const uint32_t& p) {
 /* transfer a k-mer to a integer number and use it as a key in the hash table */
 inline uint32_t getHashValue(const char* nucleotides) {
   uint32_t hash_value = 0;
-  for (uint32_t i = 0; i < F2SEEDKEYWIGTH; ++i) {
+  for (uint32_t i = 0; i < F2SEEDKEYWEIGHT; ++i) {
     hash_value <<= 2;
     hash_value += getBits(nucleotides[F2CAREDPOSITION[i]]);
   }

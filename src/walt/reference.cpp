@@ -189,7 +189,7 @@ void TestHashTable(const Genome& genome, const HashTable& hash_table) {
 void CountBucketSize(const Genome& genome, HashTable& hash_table,
                      set<uint32_t>& extremal_large_bucket) {
   fprintf(stderr, "[COUNT BUCKET SIZE]\n");
-  hash_table.counter_size = power(4, F2SEEDKEYWIGTH);
+  hash_table.counter_size = power(4, F2SEEDKEYWEIGHT);
   hash_table.counter.resize(hash_table.counter_size + 1, 0);
 
   uint32_t size = 0, hash_value = 0;
@@ -266,7 +266,7 @@ struct SortHashTableBucketCMP {
     uint32_t l1 = genome.start_index[chr_id1 + 1] - p1;
     uint32_t l2 = genome.start_index[chr_id2 + 1] - p2;
 
-    for (uint32_t j = F2SEEDKEYWIGTH; j < F2CAREDPOSITION_SIZE; ++j) {
+    for (uint32_t j = F2SEEDKEYWEIGHT; j < F2CAREDPOSITION_SIZE; ++j) {
       /*Strict Weak Ordering */
       if (F2CAREDPOSITION[j] >= l2)
         return false;

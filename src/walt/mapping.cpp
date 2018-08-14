@@ -199,7 +199,7 @@ void IndexRegion(const string& read, const Genome& genome,
                  const HashTable& hash_table, const uint32_t& seed_len,
                  pair<uint32_t, uint32_t>& region) {
   uint32_t l = region.first, u = region.second - 1;
-  for (uint32_t p = F2SEEDKEYWIGTH; p < seed_len; ++p) {
+  for (uint32_t p = F2SEEDKEYWEIGHT; p < seed_len; ++p) {
     uint32_t care_pos = F2CAREDPOSITION[p];
     l = LowerBound(l, u, read[care_pos], care_pos, genome, hash_table);
     u = UpperBound(l, u, read[care_pos], care_pos, genome, hash_table);
@@ -233,10 +233,10 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
   }
 
   /* return the maximal seed length for a particular read length */
-  uint32_t seed_pattern_repeats = (read_len - SEEPATTERNLEN + 1)
-      / SEEPATTERNLEN;
+  uint32_t seed_pattern_repeats = (read_len - SEEDPATTERNLEN + 1)
+      / SEEDPATTERNLEN;
   seed_pattern_repeats = seed_pattern_repeats < 50 ? seed_pattern_repeats : 50;
-  uint32_t seed_len = seed_pattern_repeats * SEEPATTERNCAREDWEIGHT;
+  uint32_t seed_len = seed_pattern_repeats * SEEDPATTERNCAREDWEIGHT;
 
   string read;
   if (AG_WILDCARD) {
@@ -245,7 +245,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
     C2T(org_read, read_len, read);
   }
 
-  for (uint32_t seed_i = 0; seed_i < SEEPATTERNLEN; ++seed_i) {
+  for (uint32_t seed_i = 0; seed_i < SEEDPATTERNLEN; ++seed_i) {
     /* all exact matches are covered by the first seed */
     if (best_match.mismatch == 0 && seed_i)
       break;
@@ -287,7 +287,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
 
       /* check the position */
       uint32_t num_of_mismatch = 0;
-      uint32_t num_of_nocared = seed_pattern_repeats * SEEPATTERNNOCAREDWEIGHT
+      uint32_t num_of_nocared = seed_pattern_repeats * SEEDPATTERNNOCAREDWEIGHT
           + seed_i;
       for (uint32_t p = 0;
           p < num_of_nocared && num_of_mismatch <= best_match.mismatch; ++p) {
@@ -296,7 +296,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
           num_of_mismatch++;
         }
       }
-      for (uint32_t p = seed_pattern_repeats * SEEPATTERNLEN + seed_i;
+      for (uint32_t p = seed_pattern_repeats * SEEDPATTERNLEN + seed_i;
           p < read_len && num_of_mismatch <= best_match.mismatch; ++p) {
         if (genome.sequence[genome_pos + p] != read[p]) {
           num_of_mismatch++;
@@ -436,7 +436,7 @@ ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
   uint32_t size_of_index;
   ReadIndexHeadInfo(index_file, genome, size_of_index);
   genome.sequence.resize(genome.length_of_genome);
-  hash_table.counter.resize(power(4, F2SEEDKEYWIGTH) + 1);
+  hash_table.counter.resize(power(4, F2SEEDKEYWEIGHT) + 1);
   hash_table.index.resize(size_of_index);
 
   vector<string> index_names;
