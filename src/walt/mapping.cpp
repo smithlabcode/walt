@@ -316,6 +316,7 @@ void SingleEndMapping(const string& org_read, const Genome& genome,
 }
 
 void StatInfoUpdate(const uint32_t times, StatSingleReads& stat_single_reads) {
+  ++stat_single_reads.total_reads;
   if (times == 0) {
     stat_single_reads.unmapped_reads++;
   } else if (times == 1) {
@@ -486,7 +487,7 @@ ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
     for (uint32_t j = 0; j < num_of_reads; ++j) {
       map_results[j] = best_match;
     }
-    stat_single_reads.total_reads += num_of_reads;
+    //stat_single_reads.total_reads += num_of_reads;
     for (uint32_t fi = 0; fi < 2; ++fi) {
       ReadIndex(index_names[fi], genome, hash_table);
       char strand = fi == 0 ? '+' : '-';
