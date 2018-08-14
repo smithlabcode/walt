@@ -70,6 +70,8 @@ LoadReadsFromFastqFile(FILE * fin, const uint32_t read_start_idx,
                        vector<string> &read_seqs,
                        vector<string> &read_scores) {
 
+  srand(0);
+
   char cline[MAX_LINE_LENGTH];
   string line;
   int line_code = 0;
@@ -454,7 +456,7 @@ ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
   if (!fin) {
     throw SMITHLABException("cannot open input file " + reads_file_s);
   }
-  FILE * fout = fopen(output_file.c_str(), "w");
+  FILE * fout = fopen(output_file.c_str(), "a");
   if (!fout) {
     throw SMITHLABException("cannot open input file " + output_file);
   }
@@ -515,7 +517,7 @@ ProcessSingledEndReads(const bool VERBOSE, const string& index_file,
   fclose(fin);
   fclose(fout);
 
-  std::ofstream mapstats(output_file + ".mapstats");
+  std::ofstream mapstats(output_file + ".mapstats", std::ios::app);
   mapstats << stat_single_reads.tostring() << endl;
 
   if (VERBOSE)

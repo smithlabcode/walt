@@ -203,7 +203,7 @@ void PairEndMapping(const string& org_read, const Genome& genome,
 void
 OutputPairedStatInfo(const StatPairedReads& stat_paired_reads,
                      const string& output_file) {
-  std::ofstream mapstats(output_file + ".mapstats");
+  std::ofstream mapstats(output_file + ".mapstats", std::ios::app);
   mapstats << stat_paired_reads.tostring() << endl;
 }
 
@@ -619,7 +619,7 @@ void ProcessPairedEndReads(const bool VERBOSE, const string& index_file,
   string adaptors[2];
   extract_adaptors(adaptor, adaptors[0], adaptors[1]);
   clock_t start_t = clock();
-  FILE * fout = fopen(output_file.c_str(), "w");
+  FILE * fout = fopen(output_file.c_str(), "a");
   if (!fout) {
     throw SMITHLABException("cannot open input file " + output_file);
   }

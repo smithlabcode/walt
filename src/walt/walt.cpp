@@ -22,12 +22,6 @@
  *    along with WALT.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector>
-#include <string>
-#include <stdexcept>
-
-#include <sys/stat.h>
-
 #include "smithlab_os.hpp"
 #include "OptionParser.hpp"
 #include "smithlab_utils.hpp"
@@ -35,6 +29,13 @@
 #include "paired.hpp"
 #include "mapping.hpp"
 #include "reference.hpp"
+
+#include <vector>
+#include <string>
+#include <fstream>
+#include <stdexcept>
+
+#include <sys/stat.h>
 
 using std::vector;
 using std::string;
@@ -44,7 +45,8 @@ using std::runtime_error;
 using std::to_string;
 
 static void
-split_filenames(const string &s, vector<string> &filenames) {
+split_filenames(string s, vector<string> &filenames) {
+  std::replace(begin(s), end(s), ',', ' ');
   std::stringstream ss(s);
   using std::istream_iterator;
   istream_iterator<string> begin(ss), end;
@@ -88,8 +90,6 @@ main(int argc, const char **argv) {
   try {
 
     static const vector<string> fastq_suffixes = {".fastq", ".fq"};
-
-    srand (time(NULL));
 
     string se_read_files_csv; // singled-end reads file or comma-sep list
 
@@ -211,10 +211,26 @@ main(int argc, const char **argv) {
 
     vector<string> output_files;
     split_filenames(output_files_csv, output_files);
-    if (output_files.size() !=
-        se_read_files.size() + pe_read_files_end1.size())
+    if (output_files.size() != 1 &&
+        (output_files.size() !=
+         se_read_files.size() + pe_read_files_end1.size()))
       throw runtime_error("wrong number of output files: " +
                           output_files_csv);
+
+    if (output_files.size() == 1) {
+      vector<string> v;
+      for (size_t i = 0; i < se_read_files.size(); ++i)
+        v.push_back(output_files[0]);
+      for (size_t i = 0; i < pe_read_files_end1.size(); ++i)
+        v.push_back(output_files[0]);
+      output_files.swap(v);
+    }
+
+    // clear the output files so that later appends make sense
+    for (size_t i = 0; i < output_files.size(); ++i) {
+      std::ofstream out(output_files[i]);
+      std::ofstream stat(output_files[i] + ".mapstats");
+    }
 
     //////////////////////////////////////////////////////////////
     // CHECK OPTIONS
@@ -232,13 +248,14 @@ main(int argc, const char **argv) {
     if (VERBOSE)
       ShowGenomeInfo(index_file);
 
+    size_t outfile_idx = 0;
     // map any single-end reads
     const size_t n_se_read_files = se_read_files.size();
     if (VERBOSE)
       cerr << "n_se_read_files: " << n_se_read_files << endl;
     for (uint32_t i = 0; i < se_read_files.size(); ++i)
       ProcessSingledEndReads(VERBOSE, index_file, se_read_files[i],
-                             output_files[i], batch_size,
+                             output_files[outfile_idx++], batch_size,
                              max_mismatches, b, adaptor, AG_WILDCARD,
                              ambiguous, unmapped, sam_format, num_of_threads);
 
@@ -249,7 +266,7 @@ main(int argc, const char **argv) {
     for (uint32_t i = 0; i < n_pe_read_files; ++i)
       ProcessPairedEndReads(VERBOSE, index_file,
                             pe_read_files_end1[i], pe_read_files_end2[i],
-                            output_files[i],
+                            output_files[outfile_idx++],
                             batch_size, max_mismatches, b, adaptor,
                             top_k, frag_range, ambiguous, unmapped,
                             sam_format, num_of_threads);
