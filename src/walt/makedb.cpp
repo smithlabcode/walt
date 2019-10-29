@@ -41,6 +41,7 @@ using std::string;
 using std::cerr;
 using std::endl;
 using std::set;
+using std::runtime_error;
 
 void BuildIndex(const vector<string>& chrom_files, const int& indicator,
                 const string& output_file, uint32_t& size_of_index) {
@@ -156,7 +157,7 @@ int main(int argc, const char **argv) {
     Genome genome;
     ReadGenome(chrom_files, genome);
     WriteIndexHeadInfo(outfile, genome, size_of_index);
-  } catch (const SMITHLABException &e) {
+  } catch (const runtime_error &e) {
     std::cerr << e.what() << std::endl;
     return EXIT_FAILURE;
   } catch (std::bad_alloc &ba) {
