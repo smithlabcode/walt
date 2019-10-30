@@ -89,6 +89,11 @@ void ReadGenome(const vector<string>& chrom_files, Genome& genome) {
     read_fasta_file(chrom_files[i].c_str(), tmp_chrom_names, tmp_chrom_seqs);
 
     for (uint32_t j = 0; j < tmp_chrom_seqs.size(); ++j) {
+
+      /* keep chromosome names to a single word to avoid mr formatting errors*/
+      tmp_chrom_names[j] = tmp_chrom_names[j].substr(0, 
+                           tmp_chrom_names[j].find_first_of(" \t"));
+
       chrom_names.push_back(tmp_chrom_names[j]);
       chrom_seqs.push_back(tmp_chrom_seqs[j]);
       all_chroms_len += tmp_chrom_seqs[j].size();
