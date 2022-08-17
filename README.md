@@ -1,4 +1,4 @@
-**NOTICE** : The WALT mapper is deprecated and no longer maintained. Please use [abismal](github.com/smithlabcode/abismal) instead.
+**NOTICE** : The WALT mapper is deprecated and no longer maintained. Please use [abismal](https://github.com/smithlabcode/abismal) instead.
 
 ## WALT v1.0 ##
 
