@@ -1,3 +1,5 @@
+**NOTICE** : The WALT mapper is deprecated and no longer maintained. Please use [abismal](github.com/smithlabcode/abismal) instead.
+
 ## WALT v1.0 ##
 
 ***WALT*** (Wildcard ALignment Tool) is a read mapping program for bisulfite sequencing in DNA methylation studies.
