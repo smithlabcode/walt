@@ -1,4 +1,8 @@
-**NOTICE** : The WALT mapper is deprecated and no longer maintained. Please use [abismal](https://github.com/smithlabcode/abismal) instead.
+# IMPORTANT NOTICE
+
+The WALT mapper is *deprecated and no longer maintained*. We created a novel WGBS
+mapper that adds various improvements to WALT called [abismal](https://github.com/smithlabcode/abismal).
+Please use this program instead
 
 ## WALT v1.0 ##
 
